@@ -1,0 +1,205 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { SERVICES, SERVICES_INTRO } from '@/features/services/services-data';
+
+export default function ServicesScreen() {
+  const router = useRouter();
+
+  /** Matches the detail screen: fall back to Home if opened without history. */
+  const handleBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/*
+        A custom header, because the root Stack sets headerShown: false
+        globally — so there is no navigation header to duplicate.
+      */}
+      <View style={styles.header}>
+        <Pressable
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          hitSlop={10}
+          style={styles.backButton}>
+          <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Services</Text>
+      </View>
+
+      {/*
+        ScrollView, not FlatList: four fixed sections of one structured
+        document. Virtualisation would add machinery and force the sections
+        into a data array for no benefit.
+      */}
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.intro}>
+          <Text style={styles.eyebrow}>Our Expertise</Text>
+          <Text style={styles.title}>Services</Text>
+          <View style={styles.goldRule} />
+          <Text style={styles.introText}>{SERVICES_INTRO}</Text>
+        </View>
+
+        {SERVICES.map((service, index) => (
+          /*
+            Now interactive: every service has its own real route, so a button
+            role here is truthful rather than decorative.
+          */
+          <Pressable
+            key={service.id}
+            onPress={() =>
+              router.push({ pathname: '/services/[service]', params: { service: service.id } })
+            }
+            accessibilityRole="button"
+            accessibilityLabel={`${service.title}. ${service.short}`}
+            style={({ pressed }) => [styles.service, pressed && styles.servicePressed]}>
+            <View style={styles.serviceHeader}>
+              {/* Numbered 01–04, padded so the column stays aligned. */}
+              <Text style={styles.serviceNumber}>
+                {String(index + 1).padStart(2, '0')}
+              </Text>
+              <View style={styles.serviceIcon}>
+                <Ionicons name={service.icon} size={24} color={Colors.brandGreen} />
+              </View>
+            </View>
+
+            <Text style={styles.serviceTitle}>{service.title}</Text>
+            <Text style={styles.serviceDescription}>{service.description}</Text>
+            <Text style={styles.serviceShort}>{service.short}</Text>
+
+            {/* One restrained affordance per card — no arrow noise elsewhere. */}
+            <View style={styles.serviceAction}>
+              <Text style={styles.serviceActionText}>Explore Service</Text>
+              <Ionicons name="arrow-forward" size={14} color={Colors.brandGreen} />
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.softWhite },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  backButton: { padding: Spacing.xs },
+  headerTitle: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSizes.md,
+    color: Colors.charcoal,
+  },
+
+  scroll: { paddingBottom: Spacing.xxl },
+
+  intro: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.lg,
+  },
+  eyebrow: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSizes.overline,
+    color: Colors.brandGreen,
+    letterSpacing: LetterSpacing.widest,
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontFamily: FontFamily.headingSemiBold,
+    fontSize: FontSizes.xl,
+    color: Colors.charcoal,
+    marginTop: Spacing.xs,
+  },
+  goldRule: {
+    width: 56,
+    height: 1,
+    backgroundColor: Colors.gold,
+    marginVertical: Spacing.md,
+  },
+  introText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.sm,
+    lineHeight: 22,
+    color: Colors.textMuted,
+  },
+
+  service: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    padding: Spacing.lg,
+    backgroundColor: Colors.cardBg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+  },
+  serviceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  serviceNumber: {
+    fontFamily: FontFamily.headingSemiBold,
+    fontSize: FontSizes.lg,
+    // Gold used once per section as a quiet editorial marker, nothing more.
+    color: Colors.gold,
+    letterSpacing: LetterSpacing.wide,
+  },
+  serviceIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.marble,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serviceTitle: {
+    fontFamily: FontFamily.headingSemiBold,
+    fontSize: FontSizes.lg,
+    color: Colors.charcoal,
+  },
+  serviceDescription: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.sm,
+    lineHeight: 22,
+    color: Colors.text,
+    marginTop: Spacing.sm,
+  },
+  serviceShort: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.xs,
+    lineHeight: 20,
+    color: Colors.textMuted,
+    marginTop: Spacing.sm,
+  },
+  servicePressed: {
+    borderColor: Colors.brandGreen,
+    backgroundColor: Colors.marble,
+  },
+  serviceAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.md,
+  },
+  serviceActionText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSizes.xs,
+    letterSpacing: LetterSpacing.wide,
+    textTransform: 'uppercase',
+    color: Colors.brandGreen,
+  },
+});

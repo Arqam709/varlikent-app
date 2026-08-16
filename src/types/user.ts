@@ -7,8 +7,8 @@
  * type-check every screen we build from Step 2 onwards.
  */
 
-/** Which login method created the account. */
-export type AuthProvider = 'local' | 'google' | 'microsoft';
+/** Which login method created the account. Mirrors the backend enum. */
+export type AuthProvider = 'local' | 'google' | 'microsoft' | 'apple';
 
 /**
  * The user object returned by `/auth/login`, `/auth/register` and `/auth/me`.
@@ -31,16 +31,29 @@ export interface User {
 }
 
 /**
- * The subset of the user we are willing to keep on the device.
+ * The ONLY user shape allowed into React state.
  *
- * Why this exists: the Step 0 audit found that `/auth/me` can currently
- * include `resetPasswordToken` / `resetPasswordExpires`, because the backend's
- * `protect` middleware only excludes `password`. We must not blindly persist
- * the whole response to storage. When we implement session restore (Step 8),
- * we will map the response down to these fields.
+ * Why this exists — confirmed by reading the real backend:
  *
- * This is a client-side safeguard, not a fix. The real fix is server-side and
- * is deliberately out of scope for now.
+ *   `/auth/login` and `/auth/register` run the response through `safeUser()`
+ *   (backend/routes/auth.js:16), which deletes password, resetPasswordToken
+ *   and resetPasswordExpires.
+ *
+ *   `/auth/me` does NOT. It returns `req.user` straight from the `protect`
+ *   middleware, which only does `.select('-password')`
+ *   (backend/middleware/auth.js:13). So a user with a password reset in
+ *   progress has their resetPasswordToken and resetPasswordExpires in that
+ *   response.
+ *
+ * The two endpoints therefore return DIFFERENT shapes, and the mobile app must
+ * not trust either blindly. `sanitizeUser()` in features/auth maps both down
+ * to exactly these fields.
+ *
+ * Also excluded: googleId / microsoftId / appleId — internal identity linkage
+ * the UI has no use for.
+ *
+ * This is a client-side safeguard, not a fix. The server-side fix would be to
+ * use `safeUser()` in `/auth/me` too, and is out of scope.
  */
 export type SafeUser = Pick<
   User,
@@ -52,5 +65,7 @@ export type SafeUser = Pick<
   | 'permissions'
   | 'avatar'
   | 'themePreference'
+  | 'favourites'
   | 'isActive'
+  | 'createdAt'
 >;

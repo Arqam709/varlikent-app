@@ -9,49 +9,51 @@
  * Web equivalent: your `import.meta.env.VITE_API_URL` / `.env` file.
  */
 
-/**
- * `__DEV__` is a global that React Native injects automatically.
- * It is `true` when running through Metro (Expo Go, dev builds) and `false`
- * in a production build. It is the mobile equivalent of `import.meta.env.DEV`.
- */
+/** Used when no `.env` is present, so a fresh clone runs with no setup. */
+const DEFAULT_API_BASE_URL = 'https://varli-kent-backend.onrender.com/api';
 
 /**
  * Base URL of the Varlikent backend, INCLUDING the `/api` prefix.
+ * The backend mounts every auth endpoint under `/api/auth/...`
+ * (backend/server.js), so `${API_BASE_URL}/auth/login` resolves correctly.
  *
- * The verified backend contract puts every auth endpoint under `/api/auth/...`,
- * so `${API_BASE_URL}/auth/login` resolves correctly.
+ * ── How EXPO_PUBLIC_* works ──────────────────────────────────────────────
+ * Expo CLI loads `.env`, then Metro INLINES the literal value at build time —
+ * it textually replaces `process.env.EXPO_PUBLIC_API_URL` with the string
+ * before the bundle ships. Three consequences follow:
  *
- * ────────────────────────────────────────────────────────────────────────
- * IMPORTANT — why this is still a placeholder:
+ *   1. It must be written in dot notation exactly as below. Dynamic access
+ *      like process.env['EXPO_PUBLIC_' + name] is NOT replaced and yields
+ *      undefined.
+ *   2. Editing .env needs a full app reload to take effect (and often
+ *      `npx expo start --clear`), because the old value is already baked in.
+ *   3. The value ends up in the shipped bundle IN PLAIN TEXT. So it is only
+ *      ever appropriate for public configuration. A public API URL qualifies;
+ *      a JWT secret or database URI never would.
  *
- * `http://localhost:5000/api` is the website's dev fallback, and it works
- * there because the browser and the server run on the same machine.
- *
- * On a physical phone running Expo Go, `localhost` means THE PHONE ITSELF.
- * It will never reach your PC. When we get to Step 4 we will replace the dev
- * value with either:
- *
- *   1. your PC's LAN IP, e.g. 'http://192.168.1.34:5000/api'
- *      (phone and PC on the same Wi-Fi, Windows Firewall allowing Node)
- *   2. the deployed Render URL, e.g. 'https://<your-api>.onrender.com/api'
- *
- * TODO(step 4): fill both of these in.
- * ────────────────────────────────────────────────────────────────────────
+ * ── Switching to a local backend ─────────────────────────────────────────
+ * Set EXPO_PUBLIC_API_URL in .env to http://192.168.100.200:5000/api
+ * (phone and PC on the same Wi-Fi, Windows Firewall allowing Node). Note that
+ * `localhost` can never work from a physical phone — it resolves to the phone.
+ * ─────────────────────────────────────────────────────────────────────────
  */
-const DEV_API_BASE_URL = 'http://localhost:5000/api';
-const PROD_API_BASE_URL = 'https://REPLACE-ME.onrender.com/api';
-
-export const API_BASE_URL = __DEV__ ? DEV_API_BASE_URL : PROD_API_BASE_URL;
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_BASE_URL;
 
 /**
  * How long to wait before giving up on a request, in milliseconds.
  *
- * Mobile networks are slower and less reliable than a desktop browser, and
- * Render's free tier sleeps after inactivity — the first request after a
- * cold start can take 30-50 seconds. A generous timeout avoids showing an
- * error for a request that would have succeeded.
+ * Raised from 30s to 60s deliberately. The backend is deployed on Render, and
+ * a service that has spun down after inactivity typically takes 30-50 seconds
+ * to answer its first request. At a 30s ceiling we would abort during exactly
+ * that cold start and report a timeout for a request that was about to
+ * succeed — the most confusing possible failure on a first login.
+ *
+ * The cost is that a genuinely unreachable server takes longer to report. That
+ * is acceptable because the submit button shows a loading state throughout, so
+ * the user always sees that work is in progress. (A warm response measured
+ * ~0.7s, so this ceiling is only ever reached in the cold-start case.)
  */
-export const REQUEST_TIMEOUT_MS = 30_000;
+export const REQUEST_TIMEOUT_MS = 60_000;
 
 /**
  * The key the JWT will be stored under on the device.

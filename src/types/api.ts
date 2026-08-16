@@ -7,10 +7,32 @@
 
 import type { User } from './user';
 
-/** Every failed response looks like this. */
+/**
+ * One entry from express-validator's error array.
+ * Verified live: {"type":"field","value":"...","msg":"Valid email is required",
+ *                 "path":"email","location":"body"}
+ */
+export interface ApiValidationIssue {
+  msg: string;
+  path?: string;
+  type?: string;
+  location?: string;
+}
+
+/**
+ * Failures come back in TWO different shapes — confirmed against the deployed
+ * backend, not assumed:
+ *
+ *   A) { success: false, message: "Invalid credentials" }        (401, 400)
+ *   B) { success: false, errors: [ { msg: "..." }, ... ] }       (400 validator)
+ *
+ * Shape B has NO `message` field, so a client that only reads `.message` shows
+ * a generic fallback for every validation failure. `api-client.ts` reads both.
+ */
 export interface ApiErrorResponse {
   success: false;
-  message: string;
+  message?: string;
+  errors?: ApiValidationIssue[];
 }
 
 /** Returned by `POST /auth/login` (200) and `POST /auth/register` (201). */
