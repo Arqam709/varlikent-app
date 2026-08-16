@@ -33,6 +33,7 @@ import {
   type PropertyMessage,
   type PropertyMessageNewEvent,
 } from '@/types/property-messaging';
+import { appendUniqueMessage } from '@/utils/append-unique-message';
 import { formatPrice } from '@/utils/format-price';
 
 
@@ -153,15 +154,9 @@ export default function ConversationScreen() {
       const incoming = payload.message;
       if (!incoming?._id) return;
 
-      setMessages((current) =>
-        // Dedupe by server id. The sender receives BOTH the REST response and
-        // this event, and either can arrive first — comparing on `_id` makes
-        // arrival order irrelevant and needs no optimistic-message
-        // reconciliation. Same idiom handleLoadOlder already uses.
-        current.some((message) => message._id === incoming._id)
-          ? current
-          : [...current, incoming]
-      );
+      // Deduped by server id: the sender also receives its own message here,
+      // and this event can beat the POST response. See appendUniqueMessage.
+      setMessages((current) => appendUniqueMessage(current, incoming));
 
       // Reuses the existing one-shot scroll intent, consumed by
       // onContentSizeChange — the same mechanism a sent message uses.
@@ -230,7 +225,16 @@ export default function ConversationScreen() {
     setSendError(null);
     try {
       const saved = await sendPropertyMessage(token, id, text);
-      setMessages((current) => [...current, saved]);
+      /*
+       * Deduped, because the socket copy of this very message may ALREADY be in
+       * state — property-message:new is emitted the moment the write commits,
+       * which routinely beats this POST response back to the device.
+       *
+       * A blind [...current, saved] here was the duplicate-key bug: the socket
+       * handler appended it, then this line appended it again, and FlatList saw
+       * two children with the same `_id`.
+       */
+      setMessages((current) => appendUniqueMessage(current, saved));
       setDraft('');
 
       // Your own message should always be brought into view.
