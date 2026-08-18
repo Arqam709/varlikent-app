@@ -2,7 +2,10 @@ import { useRouter } from 'expo-router';
 import { ImageBackground, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * HOME HERO
@@ -22,6 +25,8 @@ import { Colors, FontFamily, FontSizes, LetterSpacing, Spacing } from '@/constan
  * four lines, splitting it would create a file for its own sake.
  */
 export default function HomeHero() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
 
   /**
@@ -58,7 +63,7 @@ export default function HomeHero() {
       style={[styles.hero, { height: heroHeight }]}
       accessible
       accessibilityRole="image"
-      accessibilityLabel="Luxury Istanbul villa">
+      accessibilityLabel={t('home.heroImageAlt')}>
       {/*
         Flat dark overlay for text contrast. The website layers four gradients
         here; a single rgba View is the honest simple version and needs no
@@ -83,7 +88,7 @@ export default function HomeHero() {
         <Text style={styles.heading}>
           We Design, Build{'\n'}
           &amp; Deliver Exceptional{'\n'}
-          <Text style={styles.headingAccent}>Spaces in Istanbul</Text>
+          <Text style={styles.headingAccent}>{t('home.heroLine3')}</Text>
         </Text>
 
         {/* Gold is decorative here — never an action. */}
@@ -122,7 +127,7 @@ export default function HomeHero() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   hero: {
     width: '100%',
     justifyContent: 'center',
@@ -144,7 +149,7 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.gold,
+    color: theme.gold,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
     textAlign: 'center',
@@ -156,17 +161,17 @@ const styles = StyleSheet.create({
     // RN does not inherit line-height and its default is cramped for a serif
     // at display size, so it is set explicitly.
     lineHeight: 36,
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
     textAlign: 'center',
   },
   /** The website renders this third line in brand green. */
   headingAccent: {
-    color: Colors.green,
+    color: theme.green,
   },
   goldRule: {
     width: 56,
     height: 1,
-    backgroundColor: Colors.gold,
+    backgroundColor: theme.gold,
     // Tightened from `lg` as part of the compaction — the shorter hero needs
     // the breathing room spent on the image, not the divider.
     marginVertical: Spacing.md,

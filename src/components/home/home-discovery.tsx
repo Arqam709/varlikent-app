@@ -2,7 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * HOME DISCOVERY
@@ -22,12 +26,15 @@ import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@
  * focused — a one-line change from here.
  */
 export default function HomeDiscovery() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
 
   return (
     <View style={styles.section}>
-      <Text style={styles.eyebrow}>Discover</Text>
-      <Text style={styles.heading}>Find your next home</Text>
+      <Text style={styles.eyebrow}>{t('home.discoverEyebrow')}</Text>
+      <Text style={styles.heading}>{t('home.discoverTitle')}</Text>
 
       {/*
         Looks like a search field, behaves like a link. `accessibilityRole` is
@@ -39,8 +46,8 @@ export default function HomeDiscovery() {
         accessibilityRole="button"
         accessibilityLabel="Search properties. Opens the properties list."
         style={({ pressed }) => [styles.searchBar, pressed && styles.searchBarPressed]}>
-        <Ionicons name="search" size={18} color={Colors.textMuted} />
-        <Text style={styles.searchText}>Search properties in Istanbul</Text>
+        <Ionicons name="search" size={18} color={theme.textMuted} />
+        <Text style={styles.searchText}>{t('home.searchPlaceholder')}</Text>
       </Pressable>
 
       {/*
@@ -82,6 +89,8 @@ function QuickAction({
   subtitle: string;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -91,7 +100,7 @@ function QuickAction({
       accessibilityLabel={`${title}. ${subtitle}.`}
       style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}>
       <View style={styles.actionIcon}>
-        <Ionicons name={icon} size={20} color={Colors.brandGreen} />
+        <Ionicons name={icon} size={20} color={theme.brandGreen} />
       </View>
 
       {/* `flex: 1` lets the text block absorb the row and wrap if it must. */}
@@ -100,12 +109,12 @@ function QuickAction({
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+      <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   section: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
@@ -120,14 +129,14 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
 
@@ -135,9 +144,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
@@ -146,12 +155,12 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   searchBarPressed: {
-    borderColor: Colors.brandGreen,
+    borderColor: theme.brandGreen,
   },
   searchText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
 
   actions: {
@@ -162,22 +171,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     padding: Spacing.md,
     minHeight: 72,
   },
   actionPressed: {
-    borderColor: Colors.brandGreen,
-    backgroundColor: Colors.marble,
+    borderColor: theme.brandGreen,
+    backgroundColor: theme.marble,
   },
   actionIcon: {
     width: 40,
     height: 40,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -187,12 +196,12 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   actionSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
 });

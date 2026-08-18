@@ -14,7 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 import Button from '@/components/ui/button';
 import TextField from '@/components/ui/text-field';
-import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { ApiError } from '@/services/api-client';
 
@@ -30,6 +33,8 @@ import { ApiError } from '@/services/api-client';
  * Copy is taken verbatim from the website's locales/translations.js (`auth.*`).
  */
 export default function RegisterScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { register } = useAuth();
 
@@ -58,7 +63,7 @@ export default function RegisterScreen() {
      * verbatim when they come back.
      */
     if (!trimmedName || !trimmedEmail || !password) {
-      setErrorMessage('Please fill in all fields.');
+      setErrorMessage(t('register.allFieldsRequired'));
       return;
     }
     if (password.length < 6) {
@@ -66,7 +71,7 @@ export default function RegisterScreen() {
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.');
+      setErrorMessage(t('register.passwordMismatch'));
       return;
     }
 
@@ -80,7 +85,7 @@ export default function RegisterScreen() {
       router.replace('/');
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : t('common.somethingWentWrong')
       );
     } finally {
       setSubmitting(false);
@@ -113,22 +118,22 @@ export default function RegisterScreen() {
             <Text style={styles.wordmark}>VARLIKENT</Text>
           </View>
 
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Fill in your details to get started.</Text>
+          <Text style={styles.title}>{t('register.title')}</Text>
+          <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
 
           <View style={styles.form}>
             <TextField
-              label="Full Name"
+              label={t('register.fullName')}
               value={name}
               onChangeText={setName}
-              placeholder="Your full name"
+              placeholder={t('register.fullNamePlaceholder')}
               autoCapitalize="words"
               autoComplete="name"
               textContentType="name"
             />
 
             <TextField
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
@@ -138,22 +143,22 @@ export default function RegisterScreen() {
             />
 
             <TextField
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
               // Website's own placeholder — states the backend's 6-char minimum
               // without us implementing validation yet.
-              placeholder="Min. 6 characters"
+              placeholder={t('register.passwordPlaceholder')}
               secure
               autoComplete="new-password"
               textContentType="newPassword"
             />
 
             <TextField
-              label="Confirm Password"
+              label={t('register.confirmPassword')}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Repeat password"
+              placeholder={t('register.confirmPlaceholder')}
               secure
               autoComplete="new-password"
               textContentType="newPassword"
@@ -162,7 +167,7 @@ export default function RegisterScreen() {
             {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
             <Button
-              label="Create Account"
+              label={t('register.title')}
               variant="primary"
               onPress={handleSubmit}
               loading={submitting}
@@ -171,12 +176,12 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>{t('register.haveAccount')}</Text>
             <Pressable
               onPress={() => router.replace('/login')}
               accessibilityRole="link"
               hitSlop={8}>
-              <Text style={styles.footerLink}>Sign In</Text>
+              <Text style={styles.footerLink}>{t('common.signIn')}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -185,10 +190,10 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.softWhite,
+    backgroundColor: theme.softWhite,
   },
   flex: {
     flex: 1,
@@ -201,7 +206,7 @@ const styles = StyleSheet.create({
   back: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingVertical: Spacing.md,
   },
   brand: {
@@ -213,18 +218,18 @@ const styles = StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     letterSpacing: 3,
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   subtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.xs,
   },
   form: {
@@ -235,7 +240,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: Colors.danger,
+    color: theme.danger,
   },
   footer: {
     flexDirection: 'row',
@@ -247,11 +252,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   footerLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

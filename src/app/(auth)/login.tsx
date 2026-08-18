@@ -14,7 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 import Button from '@/components/ui/button';
 import TextField from '@/components/ui/text-field';
-import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { ApiError } from '@/services/api-client';
 
@@ -31,6 +34,8 @@ import { ApiError } from '@/services/api-client';
  * Copy is taken verbatim from the website's locales/translations.js (`auth.*`).
  */
 export default function LoginScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { login } = useAuth();
 
@@ -54,7 +59,7 @@ export default function LoginScreen() {
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail || !password) {
-      setErrorMessage('Please enter your email and password.');
+      setErrorMessage(t('auth.credentialsRequired'));
       return;
     }
 
@@ -76,7 +81,7 @@ export default function LoginScreen() {
        * They are never collapsed into one generic string.
        */
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : t('common.somethingWentWrong')
       );
     } finally {
       // `finally` so the button always recovers, success or failure.
@@ -125,8 +130,8 @@ export default function LoginScreen() {
             <Text style={styles.wordmark}>VARLIKENT</Text>
           </View>
 
-          <Text style={styles.title}>Sign In</Text>
-          <Text style={styles.subtitle}>Welcome back. Please enter your details.</Text>
+          <Text style={styles.title}>{t('common.signIn')}</Text>
+          <Text style={styles.subtitle}>{t('auth.welcomeBack')}</Text>
 
           <View style={styles.form}>
             <TextField
@@ -149,7 +154,7 @@ export default function LoginScreen() {
               textContentType="password"
               // Visual only for this step — /forgot-password does not exist yet,
               // so it is plain Text rather than something that looks tappable.
-              labelAccessory={<Text style={styles.forgot}>Forgot password?</Text>}
+              labelAccessory={<Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>}
             />
 
             {/*
@@ -179,7 +184,7 @@ export default function LoginScreen() {
               onPress={() => router.replace('/register')}
               accessibilityRole="link"
               hitSlop={8}>
-              <Text style={styles.footerLink}>Sign up</Text>
+              <Text style={styles.footerLink}>{t('auth.noAccount')}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -188,10 +193,10 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.softWhite,
+    backgroundColor: theme.softWhite,
   },
   flex: {
     flex: 1,
@@ -204,7 +209,7 @@ const styles = StyleSheet.create({
   back: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingVertical: Spacing.md,
   },
   brand: {
@@ -216,18 +221,18 @@ const styles = StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     letterSpacing: 3,
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   subtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.xs,
   },
   form: {
@@ -237,13 +242,13 @@ const styles = StyleSheet.create({
   forgot: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
   error: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: Colors.danger,
+    color: theme.danger,
   },
   footer: {
     flexDirection: 'row',
@@ -255,11 +260,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   footerLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

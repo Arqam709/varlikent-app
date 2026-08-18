@@ -15,7 +15,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { getPropertyById } from '@/features/properties/properties-api';
 import { startPropertyConversation } from '@/features/property-messaging/property-messaging-api';
@@ -27,6 +31,9 @@ import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 
 
 export default function PropertyDetailScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   /** Typed as a string — the param comes from the URL, so it is always text. */
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -50,11 +57,11 @@ export default function PropertyDetailScreen() {
       setLoadState('success');
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : t('common.somethingWentWrong')
       );
       setLoadState('error');
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     load();
@@ -72,21 +79,21 @@ export default function PropertyDetailScreen() {
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
         </Pressable>
-        <Text style={styles.headerTitle}>Property Details</Text>
+        <Text style={styles.headerTitle}>{t('propertyDetails.title')}</Text>
       </View>
 
       {loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' || !property ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Unable to load property</Text>
+          <Text style={styles.stateHeading}>{t('propertyDetails.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
           <Button label="Try Again" variant="primary" onPress={load} style={styles.retry} />
         </View>
@@ -135,12 +142,14 @@ function Gallery({
   index: number;
   onIndexChange: (i: number) => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const images = getPropertyImages(property);
 
   const isRent = property.listingType === 'Rent';
   const isFeatured = Boolean(property.featured) && !isRent;
   const badgeLabel = isRent ? 'For Rent' : isFeatured ? 'Featured' : 'For Sale';
-  const badgeColor = isRent ? Colors.brandGreen : isFeatured ? Colors.goldWarm : Colors.navy;
+  const badgeColor = isRent ? theme.brandGreen : isFeatured ? theme.goldWarm : theme.navy;
 
   return (
     <View style={[styles.gallery, { height: 280 }]}>
@@ -205,6 +214,7 @@ function Gallery({
  * missing value but a meaningless one.
  */
 function Specs({ property }: { property: PropertyDetail }) {
+  const styles = useThemedStyles(makeStyles);
   const specs = [
     property.beds > 0 ? { value: String(property.beds), label: property.beds === 1 ? 'Bed' : 'Beds' } : null,
     property.baths > 0 ? { value: String(property.baths), label: property.baths === 1 ? 'Bath' : 'Baths' } : null,
@@ -226,6 +236,7 @@ function Specs({ property }: { property: PropertyDetail }) {
 }
 
 function Description({ property }: { property: PropertyDetail }) {
+  const styles = useThemedStyles(makeStyles);
   const text = property.description?.trim();
   if (!text) return null;
 
@@ -243,6 +254,7 @@ function Description({ property }: { property: PropertyDetail }) {
  * renders Type / Listing / District / Status and, on 20 of 34, Parking.
  */
 function DetailRows({ property }: { property: PropertyDetail }) {
+  const styles = useThemedStyles(makeStyles);
   const rows: [string, string][] = [];
   const push = (label: string, value: string | number | undefined) => {
     if (value !== undefined && value !== null && String(value).trim() !== '') {
@@ -279,6 +291,8 @@ function DetailRows({ property }: { property: PropertyDetail }) {
 
 /** Positive features only — a list of "Pool: No" tells a buyer nothing. */
 function Features({ property }: { property: PropertyDetail }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const features = (
     [
       ['Balcony', property.balcony],
@@ -298,7 +312,7 @@ function Features({ property }: { property: PropertyDetail }) {
       <View style={styles.features}>
         {features.map((feature) => (
           <View key={feature} style={styles.feature}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.brandGreen} />
+            <Ionicons name="checkmark-circle" size={16} color={theme.brandGreen} />
             <Text style={styles.featureText}>{feature}</Text>
           </View>
         ))}
@@ -330,6 +344,9 @@ function Features({ property }: { property: PropertyDetail }) {
  * that have no assigned agent at all.
  */
 function Agent({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { status, token } = useAuth();
 
@@ -376,7 +393,7 @@ function Agent({ property }: { property: PropertyDetail }) {
       // ApiError.message is already normalised: a 409 gives the backend's own
       // "agent unavailable" wording, never a stack trace or a Mongo error.
       setMessageError(
-        error instanceof ApiError ? error.message : 'Could not open the conversation. Please try again.'
+        error instanceof ApiError ? error.message : t('propertyDetails.conversationFailed')
       );
     } finally {
       setStarting(false);
@@ -411,9 +428,9 @@ function Agent({ property }: { property: PropertyDetail }) {
                 starting && styles.messageButtonBlocked,
               ]}>
               {starting ? (
-                <ActivityIndicator size="small" color={Colors.textOnDark} />
+                <ActivityIndicator size="small" color={theme.textOnDark} />
               ) : (
-                <Text style={styles.messageButtonLabel}>Message</Text>
+                <Text style={styles.messageButtonLabel}>{t('propertyDetails.message')}</Text>
               )}
             </Pressable>
           ) : null}
@@ -426,6 +443,7 @@ function Agent({ property }: { property: PropertyDetail }) {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <View style={styles.goldRule} />
@@ -435,8 +453,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -444,17 +462,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   scroll: { paddingBottom: Spacing.xxl },
 
-  gallery: { width: '100%', backgroundColor: Colors.marble },
+  gallery: { width: '100%', backgroundColor: theme.marble },
   galleryImage: { width: '100%', height: '100%' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   badge: {
@@ -469,7 +487,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
   counter: {
     position: 'absolute',
@@ -483,20 +501,20 @@ const styles = StyleSheet.create({
   counterText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
 
   body: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingHorizontal: Spacing.lg,
   },
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: Colors.navy,
+    color: theme.navy,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
   },
@@ -504,21 +522,21 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.md,
     lineHeight: 24,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
   },
   location: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
   },
   address: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingHorizontal: Spacing.lg,
     marginTop: 2,
   },
@@ -527,7 +545,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
   },
@@ -537,21 +555,21 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     marginHorizontal: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     paddingVertical: Spacing.md,
   },
   specItem: { flex: 1, alignItems: 'center' },
   specValue: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   specLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
 
@@ -559,14 +577,14 @@ const styles = StyleSheet.create({
   goldRule: {
     width: 40,
     height: 1,
-    backgroundColor: Colors.gold,
+    backgroundColor: theme.gold,
     marginLeft: Spacing.lg,
     marginBottom: Spacing.md,
   },
   sectionTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,
   },
@@ -576,7 +594,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -584,12 +602,12 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   rowValue: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   features: {
@@ -602,15 +620,15 @@ const styles = StyleSheet.create({
   featureText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   agent: {
     marginHorizontal: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     padding: Spacing.md,
     gap: 2,
   },
@@ -628,12 +646,12 @@ const styles = StyleSheet.create({
   agentName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   agentLine: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   /**
    * Deliberately not the shared Button: that is a full-width 52dp pill for
@@ -646,12 +664,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   messageButtonPressed: {
-    backgroundColor: Colors.primaryPressed,
+    backgroundColor: theme.primaryPressed,
   },
   messageButtonBlocked: {
     opacity: 0.6,
@@ -661,12 +679,12 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.primaryText,
+    color: theme.primaryText,
   },
   agentError: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.danger,
+    color: theme.danger,
     marginTop: Spacing.sm,
   },
 
@@ -680,14 +698,14 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
   retry: { marginTop: Spacing.md, alignSelf: 'stretch' },

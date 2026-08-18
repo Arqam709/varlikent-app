@@ -15,6 +15,18 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /**
+   * Replaces the signed-in user with a fresh copy returned by the server.
+   *
+   * Used by the account screens after a successful profile, avatar or theme
+   * write — those endpoints all return the updated user, so the app can adopt it
+   * without a second /auth/me round trip. The payload still goes through
+   * `sanitizeUser`, so a server response is never trusted into state wholesale.
+   *
+   * Only the user is touched; the token is untouched, because none of these
+   * writes issue a new one.
+   */
+  applyUser: (rawUser: unknown) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -101,11 +113,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus('unauthenticated');
   }, []);
 
+  const applyUser = useCallback((rawUser: unknown) => {
+    try {
+      setUser(sanitizeUser(rawUser));
+    } catch {
+      // An unusable payload leaves the existing user in place. A successful
+      // profile save must not be able to sign someone out.
+    }
+  }, []);
+
   // useMemo keeps the context value referentially stable, so consumers do not
   // re-render on every provider render.
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, status, login, register, logout }),
-    [user, token, status, login, register, logout]
+    () => ({ user, token, status, login, register, logout, applyUser }),
+    [user, token, status, login, register, logout, applyUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

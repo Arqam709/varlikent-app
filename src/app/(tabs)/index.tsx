@@ -11,13 +11,18 @@ import HomeDiscovery from '@/components/home/home-discovery';
 import HomeFeaturedProperties from '@/components/home/home-featured-properties';
 import HomeHero from '@/components/home/home-hero';
 import HomeServicesPreview from '@/components/home/home-services-preview';
-import { Colors, FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { getUnreadCount } from '@/features/notifications/notifications-api';
 import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 
 
 export default function HomeScreen() {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { status, token } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -72,7 +77,7 @@ export default function HomeScreen() {
             }
             hitSlop={10}
             style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}>
-            <Ionicons name="notifications-outline" size={22} color={Colors.charcoal} />
+            <Ionicons name="notifications-outline" size={22} color={theme.charcoal} />
 
             {/* Never rendered for anonymous users — unreadCount stays 0. */}
             {unreadCount > 0 ? (
@@ -94,10 +99,10 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.softWhite,
+    backgroundColor: theme.softWhite,
   },
   /**
    * No horizontal padding here — that would inset the hero image and stop it
@@ -126,7 +131,7 @@ const styles = StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     letterSpacing: 3,
   },
   /** `overflow: 'visible'` so the badge can sit proud of the icon. */
@@ -143,7 +148,7 @@ const styles = StyleSheet.create({
     height: 16,
     paddingHorizontal: 3,
     borderRadius: Radius.full,
-    backgroundColor: Colors.brandGreen,
+    backgroundColor: theme.brandGreen,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -151,7 +156,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: 9,
     lineHeight: 12,
-    color: Colors.primaryText,
+    color: theme.primaryText,
   },
 
 });

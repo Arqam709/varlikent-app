@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Colors, FontFamily, Spacing } from '@/constants/theme';
+import { FontFamily, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * HOME STATS STRIP
@@ -34,14 +37,30 @@ type Stat = {
   a11yLabel: string;
 };
 
-const STATS: Stat[] = [
-  { value: '500+', label: 'Properties', a11yLabel: '500 plus properties' },
-  { value: '10+', label: 'Years', a11yLabel: '10 plus years' },
-  { value: '40+', label: 'Districts', a11yLabel: '40 plus districts' },
-  { value: '98%', label: 'Satisfaction', a11yLabel: '98 percent satisfaction' },
+/**
+ * The figures are fixed; only their CAPTIONS are translated.
+ *
+ * Built inside the component rather than at module scope because `t` is only
+ * available from the hook — a module-level array would be evaluated once at
+ * import and freeze whichever language happened to be active, which is the
+ * same class of bug as a module-level themed StyleSheet.
+ */
+const STAT_FIGURES: { value: string; key: string; a11yLabel: string }[] = [
+  { value: '500+', key: 'home.statProperties', a11yLabel: '500 plus properties' },
+  { value: '10+', key: 'home.statYears', a11yLabel: '10 plus years' },
+  { value: '40+', key: 'home.statDistricts', a11yLabel: '40 plus districts' },
+  { value: '98%', key: 'home.statSatisfaction', a11yLabel: '98 percent satisfaction' },
 ];
 
 export default function HomeStats() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+
+  const STATS: Stat[] = STAT_FIGURES.map((figure) => ({
+    value: figure.value,
+    label: t(figure.key),
+    a11yLabel: figure.a11yLabel,
+  }));
   return (
     <View style={styles.strip}>
       {STATS.map((stat) => (
@@ -64,12 +83,12 @@ export default function HomeStats() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   strip: {
     flexDirection: 'row',
     // Marble is a touch warmer than the page's softWhite, so the strip reads
     // as its own band without needing a card, shadow or border box.
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     // Gold hairline on top only — the mobile stand-in for the website's
     // gold gradient section dividers, and it seals the hero's bottom edge.
     borderTopWidth: 1,
@@ -89,7 +108,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: 22,
     lineHeight: 28,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   label: {
     fontFamily: FontFamily.bodyMedium,
@@ -105,7 +124,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     textTransform: 'uppercase',
     textAlign: 'center',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.xs,
   },
 });

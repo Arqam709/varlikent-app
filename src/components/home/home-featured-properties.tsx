@@ -11,7 +11,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { getProperties } from '@/features/properties/properties-api';
 import type { PropertySummary } from '@/types/property';
 import { formatPrice } from '@/utils/format-price';
@@ -23,6 +27,9 @@ const MAX_CARDS = 6;
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function HomeFeaturedProperties() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -55,8 +62,8 @@ export default function HomeFeaturedProperties() {
       <View style={styles.header}>
         <View style={styles.headerText}>
           {/* "Handpicked" is the website's own label for this section. */}
-          <Text style={styles.eyebrow}>Handpicked</Text>
-          <Text style={styles.heading}>Featured Properties</Text>
+          <Text style={styles.eyebrow}>{t('home.featuredEyebrow')}</Text>
+          <Text style={styles.heading}>{t('home.featuredTitle')}</Text>
         </View>
 
         
@@ -65,13 +72,13 @@ export default function HomeFeaturedProperties() {
           accessibilityRole="button"
           accessibilityLabel="View all properties"
           hitSlop={8}>
-          <Text style={styles.viewAll}>View All</Text>
+          <Text style={styles.viewAll}>{t('home.viewAll')}</Text>
         </Pressable>
       </View>
 
       {loadState === 'loading' ? (
         <View style={styles.stateBox}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         // Compact and inline: the hero, discovery, Buy/Rent and stats around
@@ -79,7 +86,7 @@ export default function HomeFeaturedProperties() {
         <View style={styles.stateBox}>
           <Text style={styles.errorText}>Featured properties couldn&apos;t load.</Text>
           <Pressable onPress={load} accessibilityRole="button" hitSlop={8}>
-            <Text style={styles.retry}>Retry</Text>
+            <Text style={styles.retry}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       ) : (
@@ -112,10 +119,12 @@ function FeaturedCard({
   width: number;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const imageUrl = getPropertyImages(property)[0] ?? null;
   const isRent = property.listingType === 'Rent';
   const badgeLabel = isRent ? 'For Rent' : 'For Sale';
-  const badgeColor = isRent ? Colors.brandGreen : Colors.navy;
+  const badgeColor = isRent ? theme.brandGreen : theme.navy;
 
   return (
     <Pressable
@@ -166,7 +175,7 @@ function FeaturedCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   section: {
     paddingTop: Spacing.xl,
   },
@@ -183,20 +192,20 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
   viewAll: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 
   list: {
@@ -205,20 +214,20 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     overflow: 'hidden',
   },
   cardPressed: {
     opacity: 0.85,
-    borderColor: Colors.brandGreen,
+    borderColor: theme.brandGreen,
   },
   /** 170 rather than the list card's 200 — a preview, not the main event. */
   imageArea: {
     height: 170,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
   },
   image: { width: '100%', height: '100%' },
   placeholder: {
@@ -238,31 +247,31 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
   body: { padding: Spacing.md },
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.navy,
+    color: theme.navy,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 19,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
   location: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.sm,
   },
   specs: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
 
@@ -274,18 +283,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
   },
   errorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   retry: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

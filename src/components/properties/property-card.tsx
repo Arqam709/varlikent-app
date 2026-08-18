@@ -1,7 +1,10 @@
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import type { PropertySummary } from '@/types/property';
 import { formatPrice } from '@/utils/format-price';
 import { getPropertyImages } from '@/utils/property-images';
@@ -16,6 +19,8 @@ type Props = {
 };
 
 export default function PropertyCard({ property, onPress }: Props) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const imageUrl = getPropertyImages(property)[0] ?? null;
 
   const isRent = property.listingType === 'Rent';
@@ -23,7 +28,7 @@ export default function PropertyCard({ property, onPress }: Props) {
   const isFeatured = Boolean(property.featured) && !isRent;
 
   const badgeLabel = isRent ? 'For Rent' : isFeatured ? 'Featured' : 'For Sale';
-  const badgeColor = isRent ? Colors.brandGreen : isFeatured ? Colors.goldWarm : Colors.navy;
+  const badgeColor = isRent ? theme.brandGreen : isFeatured ? theme.goldWarm : theme.navy;
 
   const content = (
     <>
@@ -94,11 +99,11 @@ export default function PropertyCard({ property, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     // Clips the image to the rounded top corners.
     overflow: 'hidden',
@@ -106,11 +111,11 @@ const styles = StyleSheet.create({
   /** Touch feedback — the native stand-in for the website's hover lift. */
   cardPressed: {
     opacity: 0.85,
-    borderColor: Colors.brandGreen,
+    borderColor: theme.brandGreen,
   },
   imageArea: {
     height: 200,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
   },
   image: {
     width: '100%',
@@ -120,7 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
   },
   /** Left-edge tag, matching the website's badge placement. */
   badge: {
@@ -135,7 +140,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
   body: {
     padding: Spacing.md,
@@ -144,19 +149,19 @@ const styles = StyleSheet.create({
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.navy,
+    color: theme.navy,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
   location: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.sm,
   },
   propertyType: {
@@ -164,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
   stats: {
@@ -174,16 +179,16 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: theme.border,
   },
   stat: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   statDivider: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.border,
+    color: theme.border,
   },
 });

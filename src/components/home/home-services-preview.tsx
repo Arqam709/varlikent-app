@@ -2,16 +2,23 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { SERVICES, SERVICES_INTRO } from '@/features/services/services-data';
 
 export default function HomeServicesPreview() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
 
   return (
     <View style={styles.section}>
-      <Text style={styles.eyebrow}>Our Expertise</Text>
-      <Text style={styles.heading}>Beyond Real Estate</Text>
+      <Text style={styles.eyebrow}>{t('home.expertiseEyebrow')}</Text>
+      <Text style={styles.heading}>{t('home.beyondRealEstate')}</Text>
       <Text style={styles.intro}>{SERVICES_INTRO}</Text>
 
       <View style={styles.grid}>
@@ -24,7 +31,7 @@ export default function HomeServicesPreview() {
             accessibilityRole="button"
             accessibilityLabel={`${service.title}. ${service.short}`}
             style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}>
-            <Ionicons name={service.icon} size={22} color={Colors.brandGreen} />
+            <Ionicons name={service.icon} size={22} color={theme.brandGreen} />
             <Text style={styles.tileTitle}>{service.title}</Text>
           </Pressable>
         ))}
@@ -35,14 +42,14 @@ export default function HomeServicesPreview() {
         accessibilityRole="button"
         accessibilityLabel="View all services"
         style={({ pressed }) => [styles.viewAll, pressed && styles.viewAllPressed]}>
-        <Text style={styles.viewAllText}>View All Services</Text>
-        <Ionicons name="arrow-forward" size={16} color={Colors.brandGreen} />
+        <Text style={styles.viewAllText}>{t('home.viewAllServices')}</Text>
+        <Ionicons name="arrow-forward" size={16} color={theme.brandGreen} />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   section: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xxl,
@@ -51,21 +58,21 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
   intro: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.sm,
   },
 
@@ -81,9 +88,9 @@ const styles = StyleSheet.create({
    */
   tile: {
     width: '48%',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.md,
@@ -97,13 +104,13 @@ const styles = StyleSheet.create({
    * have looked specific while being generic.
    */
   tilePressed: {
-    borderColor: Colors.brandGreen,
-    backgroundColor: Colors.cardBg,
+    borderColor: theme.brandGreen,
+    backgroundColor: theme.cardBg,
   },
   tileTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   viewAll: {
@@ -115,18 +122,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     minHeight: 48,
   },
   viewAllPressed: {
-    borderColor: Colors.brandGreen,
-    backgroundColor: Colors.marble,
+    borderColor: theme.brandGreen,
+    backgroundColor: theme.marble,
   },
   viewAllText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

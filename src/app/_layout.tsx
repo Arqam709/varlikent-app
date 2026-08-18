@@ -12,7 +12,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 import BrandSplash from '@/components/brand-splash';
 import { AuthProvider } from '@/features/auth/auth-context';
+import { LanguageProvider } from '@/features/localization/language-context';
 import { RealtimeProvider } from '@/features/realtime/realtime-context';
+import { ThemeProvider, useTheme } from '@/features/theme/theme-context';
 
 /**
  * ROOT LAYOUT
@@ -60,6 +62,19 @@ SplashScreen.preventAutoHideAsync();
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+/**
+ * Status-bar icon colour, driven by the active palette.
+ *
+ * Split into its own component because `useTheme()` can only be called BELOW
+ * ThemeProvider, and RootLayout is what renders the provider.
+ */
+function ThemedStatusBar() {
+  const { isDark } = useTheme();
+  // 'light' = light icons, for a dark bar. Only Dark Luxury is a dark palette;
+  // the other four take dark icons on their light grounds.
+  return <StatusBar style={isDark ? 'light' : 'dark'} />;
+}
 
 export default function RootLayout() {
   /**
@@ -125,23 +140,35 @@ export default function RootLayout() {
   }
 
   return (
-    /**
-     * AuthProvider wraps the navigator so every screen can call useAuth().
-     * It sits INSIDE the font gate, so it only mounts once the app is really
-     * starting up — and outside BrandSplash, so the session check runs while
-     * the animation plays instead of after it.
-     */
-    <AuthProvider>
-      {/*
-        RealtimeProvider sits INSIDE AuthProvider because it needs the JWT to
-        open its socket, and must close it when logout clears the session. It
-        holds one socket per app session rather than one per screen, so
-        navigating between Chats and a conversation never drops the connection.
+    /*
+      The providers wrap the navigator so every screen can use them. They sit
+      INSIDE the font gate, so they only mount once the app is really starting
+      up — and outside BrandSplash, so session restore and preference reads run
+      while the animation plays instead of after it. That is also what keeps
+      startup flash-free: by the time the splash fades, language and theme have
+      already resolved from AsyncStorage.
 
-        It renders no UI and subscribes to no events yet — phase RT-0 is
-        connection infrastructure only.
-      */}
-      <RealtimeProvider>
+      PROVIDER ORDER — chosen deliberately, outermost first:
+
+        LanguageProvider   depends on nothing. Reads AsyncStorage only, so it can
+                           sit outermost and have translations ready before any
+                           screen renders.
+        AuthProvider       depends on nothing. Owns the session.
+        ThemeProvider      depends on AUTH — it falls back to the account's
+                           themePreference when this device has no stored choice,
+                           so it must be able to call useAuth().
+        RealtimeProvider   depends on AUTH — needs the JWT to open its socket.
+
+      Theme and Realtime are siblings under Auth because neither needs the other;
+      keeping them independent means a socket problem cannot affect theming, and
+      a theme write cannot disturb the socket. Crucially, AuthProvider's position
+      is UNCHANGED relative to RealtimeProvider, so RT-0's connect-on-token and
+      RT-3's AppState recovery initialise exactly as before.
+    */
+    <LanguageProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <RealtimeProvider>
         {/*
           `headerShown: false` in screenOptions applies to EVERY screen in this
           Stack — that is what removes the default "index" title bar. We turn it
@@ -161,12 +188,18 @@ export default function RootLayout() {
         */}
         {!splashFinished && <BrandSplash onFinish={handleSplashFinish} />}
 
-        {/*
-          The splash background is near-black, so status bar icons must be light
-          while it is up, then follow the system once the app shows through.
-        */}
-        <StatusBar style={splashFinished ? 'auto' : 'light'} />
-      </RealtimeProvider>
-    </AuthProvider>
+            {/*
+              Status-bar icons follow the ACTIVE THEME, not the OS setting.
+              `'auto'` asks the system, which knows nothing about the palette we
+              painted — so Dark Luxury on a light-mode phone got dark icons on a
+              near-black bar, and vice versa. ThemedStatusBar reads `isDark` from
+              the theme instead. The splash keeps its fixed light icons because
+              its ground is near-black regardless of theme.
+            */}
+            {splashFinished ? <ThemedStatusBar /> : <StatusBar style="light" />}
+          </RealtimeProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

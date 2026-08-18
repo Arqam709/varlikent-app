@@ -9,7 +9,10 @@ import {
   type TextInputProps,
 } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * VARLIKENT TEXT FIELD
@@ -49,6 +52,8 @@ export default function TextField({
   autoComplete,
   textContentType,
 }: Props) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   /**
    * React Native has no CSS `:focus`, so the focus ring the website gets for
    * free has to be tracked as state and applied manually.
@@ -75,7 +80,7 @@ export default function TextField({
            */
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={theme.textMuted}
           /**
            * `secureTextEntry` is <input type="password">: it masks the text and
            * tells the OS to skip autocorrect and not learn the word.
@@ -106,7 +111,7 @@ export default function TextField({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   wrapper: {
     gap: Spacing.xs,
   },
@@ -118,32 +123,32 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: Colors.text,
+    color: theme.text,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     paddingHorizontal: Spacing.md,
   },
   /** Stands in for the website's `focus:ring-[#4b6741]`. */
   inputRowFocused: {
-    borderColor: Colors.brandGreen,
+    borderColor: theme.brandGreen,
   },
   input: {
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: theme.text,
     paddingVertical: Spacing.md,
   },
   toggle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.xs,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

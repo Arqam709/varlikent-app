@@ -100,6 +100,46 @@ const varlikentSignature = {
   background: '#FCFAF6',
   surface: '#ffffff',
 
+
+  // ── Navigation surface ─────────────────────────────────────────────
+  /**
+   * The bottom tab bar draws on `navBg`, which is DARK in three of the five
+   * themes (Heritage Navy, Dark Luxury, Forest Green) and light in the other
+   * two. Content on it therefore cannot reuse `primary` / `textMuted` — those
+   * describe ink on a light CONTENT surface, and pairing them against a dark
+   * navy bar measured 2.88:1 and 1.72:1, i.e. very nearly invisible.
+   *
+   * These two tokens name the missing idea — "content ON the navigation
+   * surface" — so the palette owns the decision and the Tabs component stays a
+   * plain token lookup with no per-theme branching.
+   */
+  /**
+   * The brand green used as INK — row icons, selected outlines, links — as
+   * opposed to `primary`, which is a FILL sitting behind a light label.
+   *
+   * The two pull in opposite directions on a dark palette: a fill must be deep
+   * enough for its label to clear 4.5:1, while ink on a dark card must be light
+   * enough to be seen at all. Deepening `primary` for Dark Luxury's button
+   * labels dropped its icons and its selected-radio outline to 2.55:1 — the
+   * selection state visibly disappearing. Naming the second job fixes both
+   * without either compromising the other. Identical to `primary` on the four
+   * light palettes.
+   */
+  primaryInk: '#4b6741',
+
+  navActive: '#4b6741',
+  navInactive: '#6B6B64',
+
+  /**
+   * Gold that is legible as TEXT.
+   *
+   * `accent` (#C9A35A) is the decorative ornament gold and measures 2.37:1 on
+   * white — fine for a rule or a divider, too low for the small uppercase
+   * eyebrow labels it was also being used for. This is the same hue taken down
+   * to a readable value; `accent` keeps its decorative job unchanged.
+   */
+  accentText: '#8A6B24',
+
   // ── Status ─────────────────────────────────────────────────────────
   /**
    * ⚠️ NOT A VERIFIED VARLIKENT BRAND COLOR.

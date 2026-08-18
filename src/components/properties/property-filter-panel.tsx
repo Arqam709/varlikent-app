@@ -12,7 +12,11 @@ import {
 } from 'react-native';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import type { PropertySecondaryFilters } from '@/features/properties/properties-api';
 import type { PropertyArea, PropertyType } from '@/types/property';
 
@@ -99,6 +103,9 @@ export default function PropertyFilterPanel({
   onApply,
   onClose,
 }: Props) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [draft, setDraft] = useState<Draft>(() => toDraft(initialFilters));
 
   /**
@@ -148,22 +155,22 @@ export default function PropertyFilterPanel({
           style={styles.backdrop}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close filters"
+          accessibilityLabel={t('filters.close')}
         />
 
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Filters</Text>
+            <Text style={styles.sheetTitle}>{t('filters.title')}</Text>
             <View style={styles.headerActions}>
               <Pressable onPress={handleReset} accessibilityRole="button" hitSlop={8}>
-                <Text style={styles.reset}>Reset</Text>
+                <Text style={styles.reset}>{t('filters.reset')}</Text>
               </Pressable>
               <Pressable
                 onPress={onClose}
                 accessibilityRole="button"
-                accessibilityLabel="Close filters"
+                accessibilityLabel={t('filters.close')}
                 hitSlop={8}>
-                <Ionicons name="close" size={22} color={Colors.charcoal} />
+                <Ionicons name="close" size={22} color={theme.charcoal} />
               </Pressable>
             </View>
           </View>
@@ -176,19 +183,19 @@ export default function PropertyFilterPanel({
             {/* ── District ───────────────────────────────────────────── */}
             <Section title="District">
               {areasState === 'loading' ? (
-                <ActivityIndicator color={Colors.brandGreen} style={styles.inlineLoader} />
+                <ActivityIndicator color={theme.brandGreen} style={styles.inlineLoader} />
               ) : areasState === 'error' ? (
                 // A district failure never blocks the rest of the panel.
                 <View style={styles.inlineError}>
-                  <Text style={styles.inlineErrorText}>Districts unavailable.</Text>
+                  <Text style={styles.inlineErrorText}>{t('filters.districtsUnavailable')}</Text>
                   <Pressable onPress={onRetryAreas} accessibilityRole="button" hitSlop={8}>
-                    <Text style={styles.retryLink}>Retry</Text>
+                    <Text style={styles.retryLink}>{t('filters.retry')}</Text>
                   </Pressable>
                 </View>
               ) : (
                 <View style={styles.chips}>
                   <Chip
-                    label="Any district"
+                    label={t('filters.anyDistrict')}
                     selected={draft.district === undefined}
                     onPress={() => setDraft((d) => ({ ...d, district: undefined }))}
                   />
@@ -210,7 +217,7 @@ export default function PropertyFilterPanel({
             <Section title="Property Type">
               <View style={styles.chips}>
                 <Chip
-                  label="Any type"
+                  label={t('filters.anyType')}
                   selected={draft.propertyType === undefined}
                   onPress={() => setDraft((d) => ({ ...d, propertyType: undefined }))}
                 />
@@ -240,10 +247,10 @@ export default function PropertyFilterPanel({
                     value={draft.minPrice}
                     onChangeText={onPriceChange('minPrice')}
                     placeholder="Min"
-                    placeholderTextColor={Colors.textMuted}
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
-                    accessibilityLabel="Minimum price in Turkish Lira"
+                    accessibilityLabel={t('filters.minPrice')}
                   />
                 </View>
                 <View style={styles.priceField}>
@@ -252,10 +259,10 @@ export default function PropertyFilterPanel({
                     value={draft.maxPrice}
                     onChangeText={onPriceChange('maxPrice')}
                     placeholder="Max"
-                    placeholderTextColor={Colors.textMuted}
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
-                    accessibilityLabel="Maximum price in Turkish Lira"
+                    accessibilityLabel={t('filters.maxPrice')}
                   />
                 </View>
               </View>
@@ -283,7 +290,7 @@ export default function PropertyFilterPanel({
                   />
                 ))}
               </View>
-              <Text style={styles.hint}>Exact number of bedrooms.</Text>
+              <Text style={styles.hint}>{t('filters.exactBedrooms')}</Text>
             </Section>
           </ScrollView>
 
@@ -302,6 +309,7 @@ export default function PropertyFilterPanel({
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -321,6 +329,7 @@ function Chip({
   selected: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -337,13 +346,13 @@ function Chip({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   backdropWrap: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(30,30,28,0.45)' },
   sheet: {
     // Caps the sheet so the list stays partly visible behind it.
     maxHeight: '88%',
-    backgroundColor: Colors.softWhite,
+    backgroundColor: theme.softWhite,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
     paddingBottom: Spacing.xl,
@@ -356,18 +365,18 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   sheetTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   reset: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
   scroll: { flexGrow: 0 },
   scrollContent: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
@@ -378,7 +387,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginBottom: Spacing.sm,
   },
 
@@ -391,21 +400,21 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: theme.border,
+    backgroundColor: theme.cardBg,
     minHeight: 40,
   },
-  chipSelected: { backgroundColor: Colors.brandGreen, borderColor: Colors.brandGreen },
+  chipSelected: { backgroundColor: theme.brandGreen, borderColor: theme.brandGreen },
   chipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
-  chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: Colors.primaryText },
+  chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: theme.primaryText },
   chipBadge: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   chipBadgeSelected: { color: 'rgba(255,255,255,0.75)' },
 
@@ -416,33 +425,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     paddingHorizontal: Spacing.md,
   },
   pricePrefix: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   priceInput: {
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: theme.text,
     paddingVertical: Spacing.md,
   },
   validation: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.danger,
+    color: theme.danger,
     marginTop: Spacing.sm,
   },
   hint: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.sm,
   },
 
@@ -451,18 +460,18 @@ const styles = StyleSheet.create({
   inlineErrorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   retryLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: theme.border,
   },
 });

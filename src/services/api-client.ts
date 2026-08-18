@@ -77,7 +77,9 @@ function extractMessage(body: unknown, status: number): string {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  // PUT is required by the account endpoints: the backend uses it for
+  // /users/me/profile, /users/me/password and /users/me/theme.
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   /** Serialised as JSON. */
   body?: unknown;
   /** When present, sent as `Authorization: Bearer <token>`. */

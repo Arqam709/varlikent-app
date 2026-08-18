@@ -3,10 +3,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { getServiceById, type Service } from '@/features/services/services-data';
 
 export default function ServiceDetailScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   const { service: serviceParam } = useLocalSearchParams<{ service?: string }>();
   const router = useRouter();
 
@@ -22,18 +28,18 @@ export default function ServiceDetailScreen() {
   if (!service) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Header title="Services" onBack={handleBack} />
+        <Header title={t('services.title')} onBack={handleBack} />
         <View style={styles.notFound}>
-          <Text style={styles.notFoundTitle}>Service not found</Text>
+          <Text style={styles.notFoundTitle}>{t('services.notFound')}</Text>
           <Text style={styles.notFoundBody}>
             This service isn&apos;t available. Browse everything we offer instead.
           </Text>
           <Pressable
             onPress={() => router.replace('/services')}
             accessibilityRole="button"
-            accessibilityLabel="Back to services"
+            accessibilityLabel={t('services.backToServices')}
             style={({ pressed }) => [styles.notFoundAction, pressed && styles.pressedOutline]}>
-            <Text style={styles.notFoundActionText}>Back to Services</Text>
+            <Text style={styles.notFoundActionText}>{t('services.backToServices')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -43,7 +49,7 @@ export default function ServiceDetailScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Names the destination of Back, not the current page. */}
-      <Header title="Services" onBack={handleBack} />
+      <Header title={t('services.title')} onBack={handleBack} />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ServiceHero service={service} />
@@ -107,6 +113,9 @@ export default function ServiceDetailScreen() {
 /* ─────────────────────────── Pieces ─────────────────────────── */
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     // Custom, because the root Stack sets headerShown: false globally — there
     // is no navigation header to duplicate.
@@ -114,10 +123,10 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
       <Pressable
         onPress={onBack}
         accessibilityRole="button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+        <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
       </Pressable>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>
@@ -125,6 +134,8 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
 }
 
 function ServiceHero({ service }: { service: Service }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     <View style={styles.hero}>
       {/* The website's own breadcrumb, uppercased as an overline. */}
@@ -142,7 +153,7 @@ function ServiceHero({ service }: { service: Service }) {
         association. Consistency wins until real imagery exists.
       */}
       <View style={styles.heroIcon}>
-        <Ionicons name={service.icon} size={30} color={Colors.brandGreen} />
+        <Ionicons name={service.icon} size={30} color={theme.brandGreen} />
       </View>
 
       <View style={styles.goldRule} />
@@ -151,6 +162,7 @@ function ServiceHero({ service }: { service: Service }) {
 }
 
 function Capabilities({ service }: { service: Service }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Section eyebrow={service.capabilitiesLabel} heading={service.capabilitiesHeading}>
       <View style={styles.capabilities}>
@@ -177,6 +189,7 @@ function CompareColumn({
   items: string[];
   muted?: boolean;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.compareColumn}>
       <Text style={[styles.compareLabel, !muted && styles.compareLabelAfter]}>{label}</Text>
@@ -198,6 +211,7 @@ function Section({
   heading: string;
   children: React.ReactNode;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionEyebrow}>{eyebrow}</Text>
@@ -207,8 +221,8 @@ function Section({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -216,13 +230,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   scroll: { paddingBottom: Spacing.xxl },
 
@@ -234,7 +248,7 @@ const styles = StyleSheet.create({
   heroLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -242,21 +256,21 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: 30,
     lineHeight: 38,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.sm,
   },
   heroSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
     lineHeight: 25,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.md,
   },
   heroIcon: {
     width: 56,
     height: 56,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: Spacing.lg,
@@ -264,7 +278,7 @@ const styles = StyleSheet.create({
   goldRule: {
     width: 56,
     height: 1,
-    backgroundColor: Colors.gold,
+    backgroundColor: theme.gold,
     marginTop: Spacing.lg,
   },
 
@@ -276,14 +290,14 @@ const styles = StyleSheet.create({
   sectionEyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   sectionHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
     marginBottom: Spacing.lg,
   },
@@ -294,7 +308,7 @@ const styles = StyleSheet.create({
   capabilityNum: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.gold,
+    color: theme.gold,
     letterSpacing: LetterSpacing.wide,
     // Fixed width keeps the numerals in a clean column as text wraps.
     width: 28,
@@ -304,13 +318,13 @@ const styles = StyleSheet.create({
   capabilityTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   capabilityDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.xs,
   },
 
@@ -320,7 +334,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
@@ -328,14 +342,14 @@ const styles = StyleSheet.create({
   stepNumber: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     width: 24,
   },
   stepLabel: {
     flex: 1,
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   // ── Before / After ───────────────────────────────────────────────
@@ -343,9 +357,9 @@ const styles = StyleSheet.create({
   compareColumn: {
     flex: 1,
     gap: Spacing.sm,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
@@ -354,16 +368,16 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.overline,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginBottom: Spacing.xs,
   },
   /** Only the "After" column carries brand colour — the improvement. */
-  compareLabelAfter: { color: Colors.brandGreen },
+  compareLabelAfter: { color: theme.brandGreen },
   compareItem: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
     lineHeight: 18,
-    color: Colors.text,
+    color: theme.text,
   },
 
   // ── Note ─────────────────────────────────────────────────────────
@@ -371,7 +385,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 23,
-    color: Colors.text,
+    color: theme.text,
   },
 
   // ── Closing ──────────────────────────────────────────────────────
@@ -382,14 +396,14 @@ const styles = StyleSheet.create({
   closingHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.lg,
   },
   closingBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.sm,
   },
 
@@ -404,14 +418,14 @@ const styles = StyleSheet.create({
   notFoundTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   notFoundBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
   notFoundAction: {
@@ -420,16 +434,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     minHeight: 48,
     justifyContent: 'center',
   },
-  pressedOutline: { borderColor: Colors.brandGreen, backgroundColor: Colors.marble },
+  pressedOutline: { borderColor: theme.brandGreen, backgroundColor: theme.marble },
   notFoundActionText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 });

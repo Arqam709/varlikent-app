@@ -15,7 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PropertyCard from '@/components/properties/property-card';
 import PropertyFilterPanel, { type AreasState } from '@/components/properties/property-filter-panel';
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import {
   getProperties,
   getPropertyAreas,
@@ -44,6 +48,9 @@ function toSegment(value: unknown): Segment {
 }
 
 export default function PropertiesScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { listingType } = useLocalSearchParams<{ listingType?: string }>();
 
@@ -135,7 +142,7 @@ export default function PropertiesScreen() {
       setErrorMessage(
         error instanceof ApiError
           ? error.message
-          : 'Something went wrong. Please try again.'
+          : t('common.somethingWentWrong')
       );
       // A failed refresh keeps the properties already on screen rather than
       // blanking a working list.
@@ -146,7 +153,8 @@ export default function PropertiesScreen() {
     // Both `segment` and `filters` are dependencies, so changing either
     // rebuilds `load` and the effect below re-runs it — one code path drives
     // first load, segment change, Apply, Clear and retry alike.
-  }, [segment, filters]);
+    // `t` is listed because this builds user-facing empty/error copy.
+  }, [segment, filters, t]);
 
   useEffect(() => {
     load();
@@ -156,9 +164,9 @@ export default function PropertiesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Fixed header, so the title and controls stay put across all states. */}
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>Istanbul</Text>
-        <Text style={styles.title}>Properties</Text>
-        <Text style={styles.subtitle}>Find your next home</Text>
+        <Text style={styles.eyebrow}>{t('properties.eyebrow')}</Text>
+        <Text style={styles.title}>{t('properties.title')}</Text>
+        <Text style={styles.subtitle}>{t('properties.tagline')}</Text>
 
         
         <View style={styles.segmented}>
@@ -193,7 +201,7 @@ export default function PropertiesScreen() {
             <Ionicons
               name="options-outline"
               size={16}
-              color={activeFilterCount > 0 ? Colors.brandGreen : Colors.textMuted}
+              color={activeFilterCount > 0 ? theme.brandGreen : theme.textMuted}
             />
             <Text
               style={[styles.filterText, activeFilterCount > 0 && styles.filterTextActive]}>
@@ -211,13 +219,13 @@ export default function PropertiesScreen() {
 
       {loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Unable to load properties</Text>
+          <Text style={styles.stateHeading}>{t('properties.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
-          <Button label="Try Again" variant="primary" onPress={() => load()} style={styles.retry} />
+          <Button label={t("common.retry")} variant="primary" onPress={() => load()} style={styles.retry} />
         </View>
       ) : (
         <FlatList
@@ -243,8 +251,8 @@ export default function PropertiesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => load(true)}
-              tintColor={Colors.brandGreen}
-              colors={[Colors.brandGreen]}
+              tintColor={theme.brandGreen}
+              colors={[theme.brandGreen]}
             />
           }
           // Only reachable on a genuine empty result — 'loading' and 'error'
@@ -253,12 +261,12 @@ export default function PropertiesScreen() {
             <View style={styles.centered}>
               <Text style={styles.stateBody}>
                 {activeFilterCount > 0
-                  ? 'No properties match these filters.'
+                  ? t('properties.emptyFiltered')
                   : segment === 'Sale'
-                    ? 'No properties for sale are available right now.'
+                    ? t('properties.emptySale')
                     : segment === 'Rent'
-                      ? 'No properties for rent are available right now.'
-                      : 'No properties available right now.'}
+                      ? t('properties.emptyRent')
+                      : t('properties.emptyAll')}
               </Text>
 
               {/*
@@ -301,10 +309,10 @@ export default function PropertiesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.softWhite,
+    backgroundColor: theme.softWhite,
   },
   header: {
     paddingHorizontal: Spacing.lg,
@@ -314,26 +322,26 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
   subtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
   /** Track holding the three options. */
   segmented: {
     flexDirection: 'row',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderRadius: Radius.full,
     padding: 3,
     marginTop: Spacing.md,
@@ -349,16 +357,16 @@ const styles = StyleSheet.create({
     minHeight: 38,
   },
   segmentActive: {
-    backgroundColor: Colors.brandGreen,
+    backgroundColor: theme.brandGreen,
   },
   segmentText: {
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   segmentTextActive: {
     fontFamily: FontFamily.bodySemiBold,
-    color: Colors.primaryText,
+    color: theme.primaryText,
   },
   filterRow: {
     flexDirection: 'row',
@@ -374,27 +382,27 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: theme.border,
+    backgroundColor: theme.cardBg,
     minHeight: 38,
   },
   /** Active filters are signalled by the brand green outline, kept subtle. */
   filterButtonActive: {
-    borderColor: Colors.brandGreen,
+    borderColor: theme.brandGreen,
   },
   filterText: {
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   filterTextActive: {
     fontFamily: FontFamily.bodySemiBold,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
   count: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   list: {
     paddingHorizontal: Spacing.lg,
@@ -412,14 +420,14 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
   retry: {

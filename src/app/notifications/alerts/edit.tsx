@@ -15,7 +15,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { getPropertyAreas } from '@/features/properties/properties-api';
 import {
@@ -45,6 +49,9 @@ const PROPERTY_TYPES: PropertyType[] = [
 const BED_OPTIONS = [1, 2, 3, 4, 5];
 
 export default function EditAlertScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { status, token } = useAuth();
@@ -69,7 +76,7 @@ export default function EditAlertScreen() {
     getPropertyAreas()
       .then(setAreas)
       .catch(() => {});
-  }, []);
+  }, [t]);
 
   /**
    * When editing, seed the form from the saved alert. The list endpoint is
@@ -143,13 +150,14 @@ export default function EditAlertScreen() {
       else router.replace('/notifications/alerts');
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Could not save this alert. Please try again.'
+        error instanceof ApiError ? error.message : t('alerts.saveFailed')
       );
       setSaving(false);
     }
+    // `t` is listed because the catch block builds user-facing copy.
   }, [
     token, saving, priceInvalid, hasCriteria, listingType, propertyType,
-    district, min, max, minBeds, isEditing, id, router,
+    district, min, max, minBeds, isEditing, id, router, t,
   ]);
 
   const handleBack = () => {
@@ -166,19 +174,19 @@ export default function EditAlertScreen() {
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
         </Pressable>
         <Text style={styles.headerTitle}>{isEditing ? 'Edit Alert' : 'New Alert'}</Text>
       </View>
 
       {status !== 'authenticated' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Sign in to save alerts</Text>
+          <Text style={styles.stateHeading}>{t('alerts.signInToSave')}</Text>
           <Button
-            label="Log In"
+            label={t('common.signIn')}
             variant="primary"
             onPress={() => router.push('/login')}
             style={styles.stretch}
@@ -186,7 +194,7 @@ export default function EditAlertScreen() {
         </View>
       ) : loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : (
         <KeyboardAvoidingView
@@ -200,30 +208,30 @@ export default function EditAlertScreen() {
               Choose what you&apos;re looking for. We&apos;ll highlight new listings that match.
             </Text>
 
-            <Section title="Listing Type">
+            <Section title={t('alerts.listingType')}>
               <View style={styles.chips}>
                 <Chip
-                  label="Any"
+                  label={t('alerts.any')}
                   selected={listingType === undefined}
                   onPress={() => setListingType(undefined)}
                 />
                 <Chip
-                  label="For Sale"
+                  label={t('properties.forSale')}
                   selected={listingType === 'Sale'}
                   onPress={() => setListingType('Sale')}
                 />
                 <Chip
-                  label="For Rent"
+                  label={t('properties.forRent')}
                   selected={listingType === 'Rent'}
                   onPress={() => setListingType('Rent')}
                 />
               </View>
             </Section>
 
-            <Section title="District">
+            <Section title={t('alerts.district')}>
               <View style={styles.chips}>
                 <Chip
-                  label="Any district"
+                  label={t('alerts.anyDistrict')}
                   selected={district === undefined}
                   onPress={() => setDistrict(undefined)}
                 />
@@ -241,7 +249,7 @@ export default function EditAlertScreen() {
             <Section title="Property Type">
               <View style={styles.chips}>
                 <Chip
-                  label="Any type"
+                  label={t('alerts.anyType')}
                   selected={propertyType === undefined}
                   onPress={() => setPropertyType(undefined)}
                 />
@@ -264,11 +272,11 @@ export default function EditAlertScreen() {
                   <TextInput
                     value={minPrice}
                     onChangeText={onPriceChange(setMinPrice)}
-                    placeholder="Min"
-                    placeholderTextColor={Colors.textMuted}
+                    placeholder={t('filters.min')}
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
-                    accessibilityLabel="Minimum price in Turkish Lira"
+                    accessibilityLabel={t('filters.minPrice')}
                   />
                 </View>
                 <View style={styles.priceField}>
@@ -276,11 +284,11 @@ export default function EditAlertScreen() {
                   <TextInput
                     value={maxPrice}
                     onChangeText={onPriceChange(setMaxPrice)}
-                    placeholder="Max"
-                    placeholderTextColor={Colors.textMuted}
+                    placeholder={t('filters.max')}
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
-                    accessibilityLabel="Maximum price in Turkish Lira"
+                    accessibilityLabel={t('filters.maxPrice')}
                   />
                 </View>
               </View>
@@ -294,7 +302,7 @@ export default function EditAlertScreen() {
             <Section title="Minimum Bedrooms">
               <View style={styles.chips}>
                 <Chip
-                  label="Any"
+                  label={t('alerts.any')}
                   selected={minBeds === undefined}
                   onPress={() => setMinBeds(undefined)}
                 />
@@ -312,7 +320,7 @@ export default function EditAlertScreen() {
             {errorMessage ? <Text style={styles.validation}>{errorMessage}</Text> : null}
 
             {!hasCriteria ? (
-              <Text style={styles.hint}>Choose at least one filter to save this alert.</Text>
+              <Text style={styles.hint}>{t('alerts.needOneFilter')}</Text>
             ) : null}
 
             <Button
@@ -332,6 +340,7 @@ export default function EditAlertScreen() {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -349,6 +358,7 @@ function Chip({
   selected: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -361,8 +371,8 @@ function Chip({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -371,13 +381,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
@@ -385,7 +395,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
 
   section: { marginTop: Spacing.lg },
@@ -394,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginBottom: Spacing.sm,
   },
 
@@ -404,18 +414,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: theme.border,
+    backgroundColor: theme.cardBg,
     minHeight: 40,
     justifyContent: 'center',
   },
-  chipSelected: { backgroundColor: Colors.brandGreen, borderColor: Colors.brandGreen },
+  chipSelected: { backgroundColor: theme.brandGreen, borderColor: theme.brandGreen },
   chipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
-  chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: Colors.primaryText },
+  chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: theme.primaryText },
 
   priceRow: { flexDirection: 'row', gap: Spacing.sm },
   priceField: {
@@ -424,33 +434,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     paddingHorizontal: Spacing.md,
   },
   pricePrefix: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   priceInput: {
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    color: Colors.text,
+    color: theme.text,
     paddingVertical: Spacing.md,
   },
   validation: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.danger,
+    color: theme.danger,
     marginTop: Spacing.sm,
   },
   hint: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.lg,
   },
   save: { marginTop: Spacing.lg },
@@ -465,7 +475,7 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stretch: { alignSelf: 'stretch', marginTop: Spacing.md },

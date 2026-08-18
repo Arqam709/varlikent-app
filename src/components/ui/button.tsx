@@ -8,7 +8,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * VARLIKENT BUTTON
@@ -59,6 +62,8 @@ export default function Button({
   loadingLabel,
   style,
 }: Props) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const isPrimary = variant === 'primary';
   const isOutlineLight = variant === 'outlineLight';
   /**
@@ -102,7 +107,7 @@ export default function Button({
         {loading && (
           <ActivityIndicator
             size="small"
-            color={isPrimary || isOutlineLight ? Colors.textOnDark : Colors.brandGreen}
+            color={isPrimary || isOutlineLight ? theme.textOnDark : theme.brandGreen}
           />
         )}
         <Text
@@ -119,7 +124,7 @@ export default function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   base: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
@@ -130,18 +135,18 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   primary: {
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.primary,
   },
   primaryPressed: {
-    backgroundColor: Colors.primaryPressed,
+    backgroundColor: theme.primaryPressed,
   },
   secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
   },
   secondaryPressed: {
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
   },
   /** For dark backgrounds. Border matches the website hero's rgba(246,243,237,0.3). */
   outlineLight: {
@@ -168,12 +173,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   labelPrimary: {
-    color: Colors.primaryText,
+    color: theme.primaryText,
   },
   labelSecondary: {
-    color: Colors.text,
+    color: theme.text,
   },
   labelOutlineLight: {
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
 });

@@ -16,7 +16,11 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import {
   getPropertyConversation,
@@ -25,6 +29,7 @@ import {
   sendPropertyMessage,
 } from '@/features/property-messaging/property-messaging-api';
 import { useRealtime } from '@/features/realtime/realtime-context';
+import { useRecoveryReconcile } from '@/features/realtime/use-recovery-reconcile';
 import { ApiError } from '@/services/api-client';
 import {
   MAX_MESSAGE_LENGTH,
@@ -35,6 +40,7 @@ import {
 } from '@/types/property-messaging';
 import { appendUniqueMessage } from '@/utils/append-unique-message';
 import { formatPrice } from '@/utils/format-price';
+import { applyRecovery, collectRecoveryPages } from '@/utils/recover-thread-messages';
 
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -43,6 +49,9 @@ type LoadState = 'loading' | 'success' | 'error';
 const PAGE_SIZE = 30;
 
 export default function ConversationScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user, token, status } = useAuth();
@@ -64,6 +73,33 @@ export default function ConversationScreen() {
   const listRef = useRef<FlatList<PropertyMessage>>(null);
 
   const shouldScrollToEnd = useRef(true);
+
+  /**
+   * The current messages, readable without being a dependency.
+   *
+   * Recovery needs to know what is already loaded, but listing `messages` in
+   * reconcileMessages' dependencies would change its identity on every message —
+   * and useRecoveryReconcile keys its effect on that identity, so it would
+   * reconcile after every message instead of after every reconnect.
+   */
+  /**
+   * Latest `t`, read without being a dependency.
+   *
+   * `load` builds one user-facing fallback string, but listing `t` in its
+   * dependencies would rebuild `load` on every language change — and the effect
+   * that owns it would then re-fetch the thread and re-issue mark-read. This is
+   * an RT-1/RT-3 screen, so its fetch behaviour must not change; a ref gives the
+   * current translation without touching identity.
+   */
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  const messagesRef = useRef<PropertyMessage[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -108,7 +144,7 @@ export default function ConversationScreen() {
       markPropertyConversationRead(token, id).catch(() => {});
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : tRef.current('common.somethingWentWrong')
       );
       setLoadState('error');
     }
@@ -191,6 +227,70 @@ export default function ConversationScreen() {
     };
   }, [realtime, realtime?.isConnected, id, token, user?._id, loadState]);
 
+  /*
+   * Recover this thread's messages after a reconnect or a foreground.
+   *
+   * The Chats reconciliation cannot do this: it refreshes conversation ROWS and
+   * knows nothing about the message list on screen. So the thread repairs itself.
+   *
+   * Silent — `loadState` is never touched, so the conversation stays readable
+   * throughout and a failure leaves the existing bubbles alone.
+   */
+  const reconcileMessages = useCallback(async () => {
+    if (!token || !id) return;
+
+    const recovery = await collectRecoveryPages({
+      current: messagesRef.current,
+      fetchPage: ({ before }) =>
+        getPropertyMessages(token, id, { before, limit: PAGE_SIZE }),
+    });
+
+    if (recovery.messages.length === 0) return;
+
+    let appliedNew = false;
+
+    setMessages((current) => {
+      const { messages: next } = applyRecovery(current, recovery);
+      appliedNew = next.length !== current.length;
+      return next;
+    });
+
+    /*
+     * Only adopt the fetched cursor when the recovered block could NOT be bridged
+     * to local history — otherwise the existing cursor is still correct, because
+     * recovery only ever adds messages NEWER than the oldest one already loaded.
+     * Overwriting it would make "Load older" re-fetch history the customer
+     * already has, or skip past it.
+     */
+    if (!recovery.contiguous) {
+      setCursor(recovery.nextCursor);
+      setHasMore(recovery.hasMore);
+    }
+
+    if (appliedNew) {
+      // Reuses the existing one-shot scroll intent.
+      shouldScrollToEnd.current = true;
+
+      /*
+       * The customer has this thread OPEN, so recovered agent messages have
+       * genuinely been seen — clear the server counter through the existing
+       * route. This is why an open thread settles to 0 on foreground while an
+       * unrelated conversation stays unread: only the thread actually on screen
+       * marks itself read. Nothing is sent to the agent; still no read receipts.
+       */
+      const fromOther = recovery.messages.some((message) => message.sender !== user?._id);
+      if (fromOther) {
+        markPropertyConversationRead(token, id).catch(() => {});
+      }
+    }
+  }, [token, id, user?._id]);
+
+  useRecoveryReconcile(
+    // Only reconcile a thread that has actually finished loading.
+    loadState === 'success' ? realtime?.recoveryVersion ?? 0 : 0,
+    reconcileMessages
+  );
+
   const handleBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace('/');
@@ -243,7 +343,7 @@ export default function ConversationScreen() {
       // The typed text stays in the box. Discarding what someone wrote because
       // a request failed is the worst possible response to a failure.
       setSendError(
-        error instanceof ApiError ? error.message : 'Message could not be sent. Please try again.'
+        error instanceof ApiError ? error.message : t('messageThread.sendFailed')
       );
     } finally {
       setSending(false);
@@ -261,10 +361,10 @@ export default function ConversationScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <Header title="Message" subtitle="" onBack={handleBack} />
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
-          <Text style={styles.stateHeading}>Sign in to view this conversation</Text>
-          <Text style={styles.stateBody}>Messages are private to you and your agent.</Text>
+          <Text style={styles.stateHeading}>{t('messageThread.signInTitle')}</Text>
+          <Text style={styles.stateBody}>{t('messageThread.signInBody')}</Text>
           <Button
-            label="Sign In"
+            label={t('common.signIn')}
             variant="primary"
             onPress={() => router.push('/login')}
             style={styles.stateAction}
@@ -284,13 +384,13 @@ export default function ConversationScreen() {
 
       {loadState === 'loading' ? (
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
-          <Text style={styles.stateHeading}>Unable to load this conversation</Text>
+          <Text style={styles.stateHeading}>{t('messageThread.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
-          <Button label="Try Again" variant="primary" onPress={load} style={styles.stateAction} />
+          <Button label={t('common.retry')} variant="primary" onPress={load} style={styles.stateAction} />
         </View>
       ) : (
         <KeyboardAvoidingView style={styles.flex} behavior="padding">
@@ -307,13 +407,13 @@ export default function ConversationScreen() {
                     onPress={handleLoadOlder}
                     disabled={loadingOlder}
                     accessibilityRole="button"
-                    accessibilityLabel="Load older messages"
+                    accessibilityLabel={t('messageThread.loadOlder')}
                     accessibilityState={{ disabled: loadingOlder, busy: loadingOlder }}
                     style={styles.loadOlder}>
                     {loadingOlder ? (
-                      <ActivityIndicator size="small" color={Colors.brandGreen} />
+                      <ActivityIndicator size="small" color={theme.brandGreen} />
                     ) : (
-                      <Text style={styles.loadOlderText}>Load older messages</Text>
+                      <Text style={styles.loadOlderText}>{t('messageThread.loadOlder')}</Text>
                     )}
                   </Pressable>
                 ) : null}
@@ -349,8 +449,8 @@ export default function ConversationScreen() {
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
-                  placeholder="Write a message..."
-                  placeholderTextColor={Colors.textMuted}
+                  placeholder={t('messageThread.compose')}
+                  placeholderTextColor={theme.textMuted}
                   style={styles.input}
                   multiline
                   // Mirrors the server's cap so the limit is felt while typing
@@ -362,7 +462,7 @@ export default function ConversationScreen() {
                   onPress={handleSend}
                   disabled={!canSend}
                   accessibilityRole="button"
-                  accessibilityLabel="Send message"
+                  accessibilityLabel={t('messageThread.send')}
                   accessibilityState={{ disabled: !canSend, busy: sending }}
                   style={({ pressed }) => [
                     styles.sendButton,
@@ -370,9 +470,9 @@ export default function ConversationScreen() {
                     pressed && canSend && styles.sendButtonPressed,
                   ]}>
                   {sending ? (
-                    <ActivityIndicator size="small" color={Colors.textOnDark} />
+                    <ActivityIndicator size="small" color={theme.textOnDark} />
                   ) : (
-                    <Ionicons name="send" size={18} color={Colors.textOnDark} />
+                    <Ionicons name="send" size={18} color={theme.textOnDark} />
                   )}
                 </Pressable>
               </View>
@@ -395,15 +495,18 @@ function Header({
   subtitle: string;
   onBack: () => void;
 }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     <View style={styles.header}>
       <Pressable
         onPress={onBack}
         accessibilityRole="button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+        <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
       </Pressable>
       <View style={styles.headerText}>
         <Text style={styles.headerTitle} numberOfLines={1}>
@@ -420,12 +523,14 @@ function PropertyCard({
 }: {
   property: PropertyConversationDetail['property'];
 }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
 
   if (!property) {
     return (
       <View style={styles.propertyCard}>
-        <Text style={styles.propertyUnavailable}>Listing no longer available</Text>
+        <Text style={styles.propertyUnavailable}>{t('messageThread.listingGone')}</Text>
       </View>
     );
   }
@@ -451,6 +556,7 @@ function PropertyCard({
 }
 
 function MessageBubble({ message, mine }: { message: PropertyMessage; mine: boolean }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
@@ -480,8 +586,8 @@ function formatMessageTime(iso: string): string {
   return sameDay ? clock : `${date.getDate()} ${MONTHS[date.getMonth()]}, ${clock}`;
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   flex: { flex: 1 },
 
   header: {
@@ -491,19 +597,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerText: { flex: 1 },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   headerSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
 
   list: {
@@ -518,37 +624,37 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: theme.border,
+    backgroundColor: theme.cardBg,
     gap: 2,
   },
-  propertyCardPressed: { backgroundColor: Colors.marble },
+  propertyCardPressed: { backgroundColor: theme.marble },
   propertyTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   propertyMeta: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   propertyPrice: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.navy,
+    color: theme.navy,
     marginTop: 2,
   },
   propertyLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.xs,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     marginTop: Spacing.xs,
   },
   propertyUnavailable: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
 
   loadOlder: {
@@ -562,7 +668,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
 
   empty: {
@@ -574,7 +680,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
 
@@ -587,23 +693,23 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.lg,
   },
-  bubbleMine: { backgroundColor: Colors.brandGreen },
+  bubbleMine: { backgroundColor: theme.brandGreen },
   bubbleTheirs: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
   },
   bubbleText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
-  bubbleTextMine: { color: Colors.textOnDark },
+  bubbleTextMine: { color: theme.textOnDark },
   bubbleTime: {
     fontFamily: FontFamily.body,
     fontSize: 10,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 4,
     alignSelf: 'flex-end',
   },
@@ -611,8 +717,8 @@ const styles = StyleSheet.create({
 
   composer: {
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.navBg,
+    borderTopColor: theme.border,
+    backgroundColor: theme.navBg,
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm,
     // paddingBottom is applied inline: Spacing.sm + the safe-area inset, with
@@ -632,33 +738,33 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.softWhite,
+    borderColor: theme.border,
+    backgroundColor: theme.softWhite,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendButtonPressed: { backgroundColor: Colors.primaryPressed },
+  sendButtonPressed: { backgroundColor: theme.primaryPressed },
   sendButtonBlocked: { opacity: 0.4 },
   sendError: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.danger,
+    color: theme.danger,
     marginBottom: Spacing.sm,
   },
 
   closedNotice: {
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.marble,
+    borderTopColor: theme.border,
+    backgroundColor: theme.marble,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     // paddingBottom applied inline, same reasoning as the composer.
@@ -666,7 +772,7 @@ const styles = StyleSheet.create({
   closedText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
 
@@ -680,14 +786,14 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
   stateAction: { marginTop: Spacing.md, alignSelf: 'stretch' },

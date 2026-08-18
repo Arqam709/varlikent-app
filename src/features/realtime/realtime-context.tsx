@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import type { Socket } from 'socket.io-client';
 
 import { useAuth } from '@/features/auth/auth-context';
@@ -34,6 +35,16 @@ type RealtimeContextValue = {
   /** The live socket, or null when signed out. Read at subscription time. */
   socket: React.RefObject<Socket | null>;
   isConnected: boolean;
+  /**
+   * Increments every time this client may have MISSED events — a socket
+   * reconnection, or the app returning to the foreground. Stays 0 for the whole
+   * first connect, so signing in does not trigger a redundant round of
+   * reconciliation on top of the loads every screen already performs.
+   *
+   * Messaging screens reconcile against REST when this changes. See
+   * use-recovery-reconcile.ts.
+   */
+  recoveryVersion: number;
 };
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -42,10 +53,18 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const { token, status } = useAuth();
 
   const [isConnected, setIsConnected] = useState(false);
+  const [recoveryVersion, setRecoveryVersion] = useState(0);
 
   // A ref, not state: consumers must not re-render every time the socket's
   // internals change. Only `isConnected` is render-relevant.
   const socketRef = useRef<Socket | null>(null);
+
+  /**
+   * Whether a connection has ever succeeded for THIS socket instance. Reset per
+   * effect run, so a fresh sign-in counts as a first connect rather than as a
+   * reconnection.
+   */
+  const hasConnectedBeforeRef = useRef(false);
 
   useEffect(() => {
     // `status` is checked as well as `token` because AuthProvider starts at
@@ -57,10 +76,20 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     const socket = createSocket(token);
     socketRef.current = socket;
+    hasConnectedBeforeRef.current = false;
 
     const onConnect = () => {
       setIsConnected(true);
-      if (__DEV__) console.log('[realtime] connected');
+
+      if (hasConnectedBeforeRef.current) {
+        // A connection we HAD and lost is back, so events were missed while it
+        // was away. Signal messaging screens to reconcile against REST.
+        setRecoveryVersion((version) => version + 1);
+        if (__DEV__) console.log('[realtime] reconnected — reconciling');
+      } else {
+        hasConnectedBeforeRef.current = true;
+        if (__DEV__) console.log('[realtime] connected');
+      }
     };
 
     const onDisconnect = (reason: string) => {
@@ -89,13 +118,59 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       // with a stale token.
       socket.disconnect();
       socketRef.current = null;
+      hasConnectedBeforeRef.current = false;
       setIsConnected(false);
     };
   }, [token, status]);
 
+  /*
+   * Foreground recovery.
+   *
+   * ── Why the socket alone is not enough on a phone ───────────────────────
+   * When iOS or Android suspends the JS runtime, the socket can be dead without
+   * the client ever having been told — no 'disconnect' fires because no code was
+   * running to receive it. Socket.IO usually notices and reconnects on wake,
+   * which bumps recoveryVersion through onConnect above, but that is not
+   * guaranteed and not immediate. Treating "the app came back" as its own
+   * missed-events signal makes recovery reliable rather than probable.
+   *
+   * Only background/inactive → active counts. An active → active notification
+   * (which some platforms emit) must not trigger work.
+   *
+   * Bumping the SAME counter the socket uses means a wake that also reconnects
+   * costs at most two bumps, and the consumers' in-flight coalescing collapses
+   * those into one reconciliation. That is why there is no separate
+   * foregroundVersion.
+   */
+  useEffect(() => {
+    if (status !== 'authenticated' || !token) return undefined;
+
+    const previousRef = { current: AppState.currentState };
+
+    const handleAppStateChange = (next: AppStateStatus) => {
+      const cameBack = previousRef.current !== 'active' && next === 'active';
+      previousRef.current = next;
+
+      if (!cameBack) return;
+
+      // The socket may have been silently killed while suspended. Asking it to
+      // connect is a no-op when it is already healthy.
+      socketRef.current?.connect();
+
+      setRecoveryVersion((version) => version + 1);
+      if (__DEV__) console.log('[realtime] foregrounded — reconciling');
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    // Removed on logout, token change and unmount, so a backgrounded app that is
+    // signed out cannot wake up and start authenticated requests.
+    return () => subscription.remove();
+  }, [status, token]);
+
   const value = useMemo<RealtimeContextValue>(
-    () => ({ socket: socketRef, isConnected }),
-    [isConnected]
+    () => ({ socket: socketRef, isConnected, recoveryVersion }),
+    [isConnected, recoveryVersion]
   );
 
   return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>;

@@ -1,203 +1,318 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProfileHeader, SettingsRow, SettingsSection } from '@/components/account/settings-ui';
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { hasLocalPassword } from '@/features/account/account-api';
 import { useAuth } from '@/features/auth/auth-context';
+import { LANGUAGES, useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
 
+/**
+ * ACCOUNT — the settings index.
+ *
+ * A native settings-index layout (grouped rows, chevrons, detail routes) wearing
+ * Varlikent's identity: Cinzel for the wordmark and headings, Josefin Sans for
+ * rows, brand green for action and gold reserved for decoration.
+ *
+ * ── Rows are only here when they lead somewhere real ────────────────────
+ * Every row below has a working destination, verified against the backend and
+ * the existing mobile routes. Three rows from the original design brief are
+ * deliberately ABSENT rather than shipped as decoration:
+ *
+ *   My Favourites   — there is no favourites screen in the app yet. The data
+ *                     exists on the User, but a row that navigates nowhere is
+ *                     worse than no row.
+ *   Notifications   — as a PREFERENCES screen. The backend stores no
+ *                     notification preferences (only a list of new listings and
+ *                     a last-seen timestamp), so there is nothing to toggle. The
+ *                     existing listings feed is linked under Property Activity
+ *                     instead, labelled for what it actually is.
+ *   Sign-in Methods — the app only knows `provider`, i.e. which method CREATED
+ *                     the account. It cannot truthfully say whether Google and
+ *                     Microsoft are each linked, and inferring that would be a
+ *                     guess presented as fact.
+ */
 export default function AccountScreen() {
   const router = useRouter();
   const { user, status, logout } = useAuth();
+  const { theme } = useTheme();
+  const { t, isRTL, language } = useLanguage();
+
+  const currentLanguageLabel = LANGUAGES.find((entry) => entry.code === language)?.label ?? '';
+
+  /* ── Session still resolving ─────────────────────────────────────── */
+  if (status === 'loading') {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+        <Masthead />
+        <View style={styles.centered}>
+          <ActivityIndicator color={theme.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  /* ── Signed out ──────────────────────────────────────────────────── */
+  if (status !== 'authenticated' || !user) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+        <Masthead />
+        <View style={styles.centered}>
+          <Text style={[styles.gateHeading, { color: theme.text }]}>
+            {t('account.signedOutHeading')}
+          </Text>
+          <Text style={[styles.gateBody, { color: theme.textMuted }]}>
+            {t('account.signedOutBody')}
+          </Text>
+          <View style={styles.gateActions}>
+            <Button label={t('common.signIn')} variant="primary" onPress={() => router.push('/login')} />
+            <Button
+              label={t('common.createAccount')}
+              variant="secondary"
+              onPress={() => router.push('/register')}
+            />
+          </View>
+        </View>
+
+        {/* Language and Appearance work signed out too — they are device
+            preferences, not account data, so there is no reason to gate them. */}
+        <View style={styles.gateSettings}>
+          <SettingsSection title={t('account.sectionPreferences')}>
+            <SettingsRow
+              label={t('account.appearance')}
+              icon="color-palette-outline"
+              onPress={() => router.push('/account/appearance')}
+            />
+            <SettingsRow
+              label={t('account.language')}
+              icon="language-outline"
+              value={currentLanguageLabel}
+              onPress={() => router.push('/account/language')}
+              isLast
+            />
+          </SettingsSection>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  /* ── Signed in ───────────────────────────────────────────────────── */
+
+  // Derived from the real role, never hard-coded: an agent signing in on mobile
+  // must not be labelled "Member".
+  const roleLabel = t(`accountInformation.roles.${user.role}`);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <Masthead />
+
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.eyebrow}>Varlikent</Text>
-        <Text style={styles.title}>Account</Text>
-        <View style={styles.goldRule} />
+        <ProfileHeader
+          name={user.name}
+          email={user.email}
+          avatar={user.avatar || undefined}
+          roleLabel={roleLabel}
+          onPress={() => router.push('/account/personal-information')}
+        />
 
-        {status === 'loading' ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={Colors.brandGreen} />
-          </View>
-        ) : status === 'authenticated' ? (
-          <SignedIn
-            name={user?.name ?? ''}
-            email={user?.email ?? ''}
-            onSignOut={logout}
+        <SettingsSection title={t('account.sectionProfile')}>
+          <SettingsRow
+            label={t('account.personalInformation')}
+            icon="person-outline"
+            onPress={() => router.push('/account/personal-information')}
           />
-        ) : (
-          <SignedOut
-            onSignIn={() => router.push('/login')}
-            onCreateAccount={() => router.push('/register')}
+          <SettingsRow
+            label={t('account.profilePhoto')}
+            icon="camera-outline"
+            onPress={() => router.push('/account/profile-photo')}
+            isLast
           />
-        )}
+        </SettingsSection>
+
+        <SettingsSection title={t('account.sectionActivity')}>
+          <SettingsRow
+            label={t('account.propertyAlerts')}
+            icon="notifications-outline"
+            onPress={() => router.push('/notifications/alerts')}
+          />
+          <SettingsRow
+            label={t('account.notifications')}
+            icon="sparkles-outline"
+            onPress={() => router.push('/notifications')}
+            isLast
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('account.sectionPreferences')}>
+          <SettingsRow
+            label={t('account.appearance')}
+            icon="color-palette-outline"
+            onPress={() => router.push('/account/appearance')}
+          />
+          <SettingsRow
+            label={t('account.language')}
+            icon="language-outline"
+            value={currentLanguageLabel}
+            onPress={() => router.push('/account/language')}
+            isLast
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('account.sectionSecurity')}>
+          {/*
+            Shown for every account, including Google/Microsoft ones — but the
+            screen itself renders an explanation instead of a form when the
+            account has no Varlikent password. Hiding the row entirely would
+            leave a social customer with no way to learn WHY they cannot set one.
+          */}
+          <SettingsRow
+            label={t('account.passwordSecurity')}
+            icon="lock-closed-outline"
+            value={hasLocalPassword(user) ? undefined : t(`accountInformation.providers.${user.provider}`)}
+            onPress={() => router.push('/account/password')}
+          />
+          <SettingsRow
+            label={t('account.accountInformation')}
+            icon="information-circle-outline"
+            onPress={() => router.push('/account/information')}
+            isLast
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('account.sectionAccount')}>
+          <SettingsRow
+            label={t('account.deleteAccount')}
+            icon="trash-outline"
+            onPress={() => router.push('/account/delete-account')}
+            destructive
+            isLast
+          />
+        </SettingsSection>
+
+        {/*
+          Sign Out sits outside a card as a deliberate full-width action, the way
+          native settings screens separate "leave" from "configure". Uses the one
+          AuthContext.logout() — which clears the token and flips status, and so
+          also tears down the realtime socket and its AppState listener through
+          RealtimeProvider's own cleanup.
+        */}
+        <Pressable
+          onPress={logout}
+          accessibilityRole="button"
+          accessibilityLabel={t('account.signOut')}
+          style={({ pressed }) => [
+            styles.signOut,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+            },
+            pressed && { backgroundColor: theme.marble },
+          ]}>
+          <Text style={[styles.signOutText, { color: theme.text }]}>{t('account.signOut')}</Text>
+        </Pressable>
+
+        <Text
+          style={[
+            styles.footnote,
+            { color: theme.textMuted, textAlign: isRTL ? 'right' : 'left' },
+          ]}>
+          {user.email}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/** Entry point for a visitor who is not signed in. */
-function SignedOut({
-  onSignIn,
-  onCreateAccount,
-}: {
-  onSignIn: () => void;
-  onCreateAccount: () => void;
-}) {
-  return (
-    <View style={styles.block}>
-      <Text style={styles.heading}>Welcome to Varlikent</Text>
-      <Text style={styles.body}>Sign in to save properties and manage your account.</Text>
-
-      <View style={styles.buttons}>
-        <Button label="Sign In" variant="primary" onPress={onSignIn} />
-        <Button label="Create Account" variant="secondary" onPress={onCreateAccount} />
-      </View>
-    </View>
-  );
-}
-
-/** Minimal identity summary. Profile editing, favourites and settings come later. */
-function SignedIn({
-  name,
-  email,
-  onSignOut,
-}: {
-  name: string;
-  email: string;
-  onSignOut: () => void;
-}) {
-  /**
-   * A plain initial circle rather than the avatar. `avatar` exists on SafeUser
-   * but is an empty string for every email/password account, so rendering it
-   * would mean a broken-image state for exactly the users we can test with.
-   * The initial always works and needs no network request.
-   */
-  const initial = (name || email).trim().charAt(0).toUpperCase() || '?';
+/** The Varlikent wordmark block, kept from the original Account screen. */
+function Masthead() {
+  const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
 
   return (
-    <View style={styles.block}>
-      <View style={styles.identity}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
-        </View>
-
-        <View style={styles.identityText}>
-          {name ? (
-            <Text style={styles.name} numberOfLines={1}>
-              {name}
-            </Text>
-          ) : null}
-          <Text style={styles.email} numberOfLines={1}>
-            {email}
-          </Text>
-        </View>
-      </View>
-
-      {/*
-        Signing out does not navigate. The user stays on /account and this
-        screen re-renders into the signed-out branch, which is the least
-        surprising outcome — they asked to sign out, not to go somewhere.
-      */}
-      <View style={styles.buttons}>
-        <Button label="Sign Out" variant="secondary" onPress={onSignOut} />
-      </View>
+    <View style={[styles.masthead, { borderBottomColor: theme.border }]}>
+      <Text
+        style={[
+          styles.eyebrow,
+          { color: theme.accentText, textAlign: isRTL ? 'right' : 'left' },
+        ]}>
+        {t('account.eyebrow')}
+      </Text>
+      <Text
+        style={[styles.title, { color: theme.text, textAlign: isRTL ? 'right' : 'left' }]}>
+        {t('account.title')}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.softWhite,
-  },
-  scroll: {
-    flexGrow: 1,
+  safe: { flex: 1 },
+
+  masthead: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
   },
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.xl,
-    color: Colors.charcoal,
-    marginTop: Spacing.xs,
+    fontSize: FontSizes.lg,
+    marginTop: 2,
   },
-  goldRule: {
-    width: 56,
-    height: 1,
-    backgroundColor: Colors.gold,
-    marginVertical: Spacing.lg,
+
+  scroll: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
-  loading: {
-    paddingVertical: Spacing.xxl,
+
+  centered: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
-  block: {
-    gap: Spacing.md,
-  },
-  heading: {
+  gateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    textAlign: 'center',
   },
-  body: {
+  gateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    textAlign: 'center',
   },
-  buttons: {
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  identity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    backgroundColor: Colors.cardBg,
+  gateActions: { alignSelf: 'stretch', gap: Spacing.sm, marginTop: Spacing.lg },
+  gateSettings: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xl },
+
+  signOut: {
+    marginTop: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.brandGreen,
+    borderRadius: Radius.md,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: Colors.primaryText,
-  },
-  /** `flex: 1` lets the long email truncate instead of overflowing the card. */
-  identityText: {
-    flex: 1,
-    gap: 2,
-  },
-  name: {
+  signOutText: {
     fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: Colors.charcoal,
-  },
-  email: {
-    fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    letterSpacing: LetterSpacing.wide,
+  },
+
+  footnote: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.xs,
+    marginTop: Spacing.lg,
   },
 });

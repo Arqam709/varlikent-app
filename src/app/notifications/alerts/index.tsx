@@ -5,7 +5,11 @@ import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View }
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import {
   deletePropertyAlert,
@@ -30,6 +34,9 @@ import { formatPrice } from '@/utils/format-price';
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function PropertyAlertsScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { status, token } = useAuth();
 
@@ -46,11 +53,11 @@ export default function PropertyAlertsScreen() {
       setLoadState('success');
     } catch (error) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : t('common.somethingWentWrong')
       );
       setLoadState('error');
     }
-  }, [token]);
+  }, [token, t]);
 
   /**
    * Reload on focus so returning from the create/edit form shows the change
@@ -73,7 +80,7 @@ export default function PropertyAlertsScreen() {
    */
   const confirmDelete = (alert: PropertyAlert) => {
     Alert.alert(
-      'Delete alert?',
+      t('alerts.deleteConfirmTitle'),
       `${describeAlert(alert)} will no longer be matched against new properties.`,
       [
         { text: 'Cancel', style: 'cancel' },
@@ -88,8 +95,8 @@ export default function PropertyAlertsScreen() {
               setAlerts((current) => current.filter((a) => a._id !== alert._id));
             } catch (error) {
               Alert.alert(
-                'Could not delete',
-                error instanceof ApiError ? error.message : 'Please try again.'
+                t('alerts.deleteFailed'),
+                error instanceof ApiError ? error.message : t('alerts.tryAgain')
               );
             }
           },
@@ -104,12 +111,12 @@ export default function PropertyAlertsScreen() {
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
         </Pressable>
-        <Text style={styles.headerTitle}>Property Alerts</Text>
+        <Text style={styles.headerTitle}>{t('alerts.title')}</Text>
       </View>
 
       {/*
@@ -119,16 +126,16 @@ export default function PropertyAlertsScreen() {
       */}
       {status === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : status !== 'authenticated' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Sign in to manage alerts</Text>
+          <Text style={styles.stateHeading}>{t('alerts.signInTitle')}</Text>
           <Text style={styles.stateBody}>
             Property alerts are saved to your account.
           </Text>
           <Button
-            label="Log In"
+            label={t('common.signIn')}
             variant="primary"
             onPress={() => router.push('/login')}
             style={styles.stretch}
@@ -136,13 +143,13 @@ export default function PropertyAlertsScreen() {
         </View>
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Unable to load alerts</Text>
+          <Text style={styles.stateHeading}>{t('alerts.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
-          <Button label="Try Again" variant="primary" onPress={load} style={styles.stretch} />
+          <Button label={t('common.retry')} variant="primary" onPress={load} style={styles.stretch} />
         </View>
       ) : (
         <FlatList
@@ -152,7 +159,7 @@ export default function PropertyAlertsScreen() {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.intro}>
-              <Text style={styles.eyebrow}>Property Updates</Text>
+              <Text style={styles.eyebrow}>{t('alerts.eyebrow')}</Text>
               <Text style={styles.introHeading}>
                 Get notified about the properties you&apos;re actually looking for.
               </Text>
@@ -170,9 +177,9 @@ export default function PropertyAlertsScreen() {
           ListEmptyComponent={
             <View style={styles.centered}>
               <View style={styles.emptyIcon}>
-                <Ionicons name="options-outline" size={28} color={Colors.brandGreen} />
+                <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
               </View>
-              <Text style={styles.stateHeading}>No property alerts yet</Text>
+              <Text style={styles.stateHeading}>{t('alerts.emptyTitle')}</Text>
               <Text style={styles.stateBody}>
                 Create an alert and we&apos;ll highlight new listings that match your search.
               </Text>
@@ -202,6 +209,9 @@ function AlertCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const criteria: string[] = [];
 
   if (alert.listingType) criteria.push(alert.listingType === 'Rent' ? 'For Rent' : 'For Sale');
@@ -240,8 +250,8 @@ function AlertCard({
           accessibilityLabel={`Edit alert: ${describeAlert(alert)}`}
           hitSlop={8}
           style={styles.cardAction}>
-          <Ionicons name="create-outline" size={16} color={Colors.brandGreen} />
-          <Text style={styles.cardActionText}>Edit</Text>
+          <Ionicons name="create-outline" size={16} color={theme.brandGreen} />
+          <Text style={styles.cardActionText}>{t('alerts.edit')}</Text>
         </Pressable>
 
         <Pressable
@@ -250,16 +260,16 @@ function AlertCard({
           accessibilityLabel={`Delete alert: ${describeAlert(alert)}`}
           hitSlop={8}
           style={styles.cardAction}>
-          <Ionicons name="trash-outline" size={16} color={Colors.danger} />
-          <Text style={[styles.cardActionText, styles.deleteText]}>Delete</Text>
+          <Ionicons name="trash-outline" size={16} color={theme.danger} />
+          <Text style={[styles.cardActionText, styles.deleteText]}>{t('alerts.delete')}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -267,13 +277,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   list: { padding: Spacing.lg, gap: Spacing.sm, flexGrow: 1 },
@@ -281,7 +291,7 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -289,25 +299,25 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
     lineHeight: 26,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: Spacing.xs,
   },
 
   card: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
   cardTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.sm },
   chip: {
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -315,7 +325,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   cardActions: {
     flexDirection: 'row',
@@ -323,7 +333,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: theme.border,
   },
   cardAction: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   cardActionText: {
@@ -331,9 +341,9 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
-  deleteText: { color: Colors.danger },
+  deleteText: { color: theme.danger },
 
   create: { marginTop: Spacing.md },
   centered: {
@@ -347,7 +357,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: Radius.full,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
@@ -355,14 +365,14 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
   stretch: { alignSelf: 'stretch', marginTop: Spacing.md },

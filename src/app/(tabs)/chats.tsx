@@ -6,11 +6,21 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Tex
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { getPropertyConversations } from '@/features/property-messaging/property-messaging-api';
+import { useRealtime } from '@/features/realtime/realtime-context';
 import { ApiError } from '@/services/api-client';
-import type { PropertyConversationSummary } from '@/types/property-messaging';
+import {
+  PROPERTY_MESSAGE_NEW_EVENT,
+  type PropertyConversationSummary,
+  type PropertyMessageNewEvent,
+} from '@/types/property-messaging';
+import { applyMessageEventToConversations } from '@/utils/apply-message-event';
 import { formatChatTime } from '@/utils/format-chat-time';
 
 
@@ -20,8 +30,12 @@ type LoadState = 'loading' | 'success' | 'error';
 type LoadMode = 'initial' | 'refresh' | 'silent';
 
 export default function ChatsScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { user, token, status } = useAuth();
+  const realtime = useRealtime();
 
   const [conversations, setConversations] = useState<PropertyConversationSummary[]>([]);
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -32,6 +46,12 @@ export default function ChatsScreen() {
   const requestRef = useRef(0);
   /** Whether a first successful load has happened, so focus can go silent. */
   const hasLoadedRef = useRef(false);
+  /**
+   * In-flight guard for the unknown-conversation refetch, so a burst of events
+   * for conversations this inbox has not loaded collapses into one GET rather
+   * than one per message.
+   */
+  const unknownRefetchRef = useRef(false);
 
   const load = useCallback(
     async (mode: LoadMode) => {
@@ -54,7 +74,7 @@ export default function ChatsScreen() {
         if (requestId !== requestRef.current) return;
 
         setErrorMessage(
-          error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+          error instanceof ApiError ? error.message : t('common.somethingWentWrong')
         );
         // A failed refresh keeps the chats already on screen rather than
         // replacing a working list with an error — the same rule the
@@ -64,7 +84,9 @@ export default function ChatsScreen() {
         setRefreshing(false);
       }
     },
-    [token]
+    // `t` is listed because the catch block builds a user-facing message;
+    // without it a failure would keep the language active at definition time.
+    [token, t]
   );
 
   useFocusEffect(
@@ -86,15 +108,53 @@ export default function ChatsScreen() {
     }, [status, token, load])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      const socket = realtime?.socket?.current;
+      if (!socket || status !== 'authenticated') return undefined;
+
+      const handleNewMessage = (payload: PropertyMessageNewEvent) => {
+        if (!payload?.conversationId) return;
+
+        setConversations((current) => {
+          const { conversations, unknown } = applyMessageEventToConversations(current, payload, {
+            currentUserId: user?._id ?? null,
+          
+          });
+
+          if (unknown) {
+            if (!unknownRefetchRef.current) {
+              unknownRefetchRef.current = true;
+              load('silent').finally(() => {
+                unknownRefetchRef.current = false;
+              });
+            }
+            return current;
+          }
+
+          return conversations;
+        });
+      };
+
+      socket.on(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+
+      return () => {
+        // Only this screen's own handler. Never removeAllListeners — the open
+        // thread subscribes to the same event and would lose its subscription.
+        socket.off(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+      };
+    }, [realtime, realtime?.isConnected, status, user?._id, load])
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Chats</Text>
+        <Text style={styles.headerTitle}>{t('tabs.chats')}</Text>
       </View>
 
       {status === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : status !== 'authenticated' ? (
         <SignInGate
@@ -103,14 +163,14 @@ export default function ChatsScreen() {
         />
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Unable to load chats</Text>
+          <Text style={styles.stateHeading}>{t('chats.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
           <Button
-            label="Try Again"
+            label={t("common.retry")}
             variant="primary"
             onPress={() => load('initial')}
             style={styles.stretch}
@@ -126,8 +186,8 @@ export default function ChatsScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => load('refresh')}
-              tintColor={Colors.brandGreen}
-              colors={[Colors.brandGreen]}
+              tintColor={theme.brandGreen}
+              colors={[theme.brandGreen]}
             />
           }
           renderItem={({ item }) => (
@@ -137,19 +197,18 @@ export default function ChatsScreen() {
               onPress={() => router.push({ pathname: '/messages/[id]', params: { id: item._id } })}
             />
           )}
-          // Only reachable on a genuinely empty inbox — loading and error are
-          // handled above, so no chats never reads as a failure.
+          
           ListEmptyComponent={
             <View style={styles.centered}>
               <View style={styles.emptyIcon}>
-                <Ionicons name="chatbubbles-outline" size={28} color={Colors.brandGreen} />
+                <Ionicons name="chatbubbles-outline" size={28} color={theme.brandGreen} />
               </View>
-              <Text style={styles.stateHeading}>No chats yet</Text>
+              <Text style={styles.stateHeading}>{t('chats.emptyTitle')}</Text>
               <Text style={styles.stateBody}>
-                When you message an agent about a property, your conversation will appear here.
+                {t('chats.emptyBody')}
               </Text>
               <Button
-                label="Browse Properties"
+                label={t("chats.browseProperties")}
                 variant="secondary"
                 onPress={() => router.push('/properties')}
                 style={styles.stretch}
@@ -165,19 +224,22 @@ export default function ChatsScreen() {
 /* ─────────────────────── Logged-out gate ─────────────────────── */
 
 function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     <View style={styles.centered}>
       <View style={styles.emptyIcon}>
-        <Ionicons name="chatbubbles-outline" size={28} color={Colors.brandGreen} />
+        <Ionicons name="chatbubbles-outline" size={28} color={theme.brandGreen} />
       </View>
 
-      <Text style={styles.gateEyebrow}>Stay in touch</Text>
-      <Text style={styles.stateHeading}>Message our agents directly</Text>
+      <Text style={styles.gateEyebrow}>{t('chats.gateEyebrow')}</Text>
+      <Text style={styles.stateHeading}>{t('chats.gateTitle')}</Text>
       <Text style={styles.stateBody}>
         Sign in to ask about a property and keep every conversation in one place.
       </Text>
 
-      {/* Reuses the existing auth routes — no duplicate auth UI. */}
+    
       <View style={styles.gateActions}>
         <Button label="Log In" variant="primary" onPress={onLogin} />
         <Button label="Create Account" variant="secondary" onPress={onRegister} />
@@ -205,6 +267,8 @@ function ChatRow({
   currentUserId: string | null;
   onPress: () => void;
 }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
   // The server already resolved "the other person" — for a customer that is
   // the agent. The participant serializer is privacy-minimal: name and avatar
   // only, no email or phone, and there is no professional title in V1.
@@ -270,7 +334,7 @@ function ChatRow({
             </Text>
           )}
 
-          {isClosed ? <Text style={styles.closedTag}>Closed</Text> : null}
+          {isClosed ? <Text style={styles.closedTag}>{t('chats.closed')}</Text> : null}
 
           {/* The server's own per-caller count. Never recomputed from history. */}
           {unread ? (
@@ -286,18 +350,18 @@ function ChatRow({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   headerTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
 
   list: {
@@ -318,7 +382,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: Radius.full,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
@@ -326,7 +390,7 @@ const styles = StyleSheet.create({
   gateEyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -334,14 +398,14 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
 
@@ -349,20 +413,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
-  rowPressed: { borderColor: Colors.brandGreen, backgroundColor: Colors.marble },
+  rowPressed: { borderColor: theme.brandGreen, backgroundColor: theme.marble },
 
   avatar: {
     width: 48,
     height: 48,
     borderRadius: Radius.full,
     overflow: 'hidden',
-    backgroundColor: Colors.brandGreen,
+    backgroundColor: theme.brandGreen,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -370,7 +434,7 @@ const styles = StyleSheet.create({
   avatarInitials: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
 
   /** `flex: 1` lets long titles wrap instead of pushing the row wider. */
@@ -385,7 +449,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
   },
   // Unread emphasis stays restrained: a weight and colour shift, no highlight
   // block. This is a Varlikent surface, not a WhatsApp reproduction.
@@ -393,14 +457,14 @@ const styles = StyleSheet.create({
   time: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
-  timeUnread: { color: Colors.brandGreen, fontFamily: FontFamily.bodyMedium },
+  timeUnread: { color: theme.brandGreen, fontFamily: FontFamily.bodyMedium },
 
   propertyTitle: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: 2,
   },
 
@@ -414,16 +478,16 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
-  previewUnread: { fontFamily: FontFamily.bodyMedium, color: Colors.charcoal },
+  previewUnread: { fontFamily: FontFamily.bodyMedium, color: theme.charcoal },
 
   closedTag: {
     fontFamily: FontFamily.bodyMedium,
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
 
   badge: {
@@ -431,13 +495,13 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: Radius.full,
     paddingHorizontal: 6,
-    backgroundColor: Colors.brandGreen,
+    backgroundColor: theme.brandGreen,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.xs,
-    color: Colors.textOnDark,
+    color: theme.textOnDark,
   },
 });

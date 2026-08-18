@@ -6,7 +6,11 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
-import { Colors, FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { useTheme } from '@/features/theme/theme-context';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
+import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import {
   getNotifications,
@@ -35,6 +39,9 @@ type LoadState = 'loading' | 'success' | 'error';
 type Tab = 'all' | 'matches';
 
 export default function NotificationsScreen() {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const router = useRouter();
   const { status, token } = useAuth();
 
@@ -62,11 +69,11 @@ export default function NotificationsScreen() {
     } catch (error) {
       // A notification failure must never sign the user out.
       setErrorMessage(
-        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+        error instanceof ApiError ? error.message : t('common.somethingWentWrong')
       );
       setLoadState('error');
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     // Only authenticated users hit the API. A logged-out visitor sees the
@@ -85,22 +92,22 @@ export default function NotificationsScreen() {
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={Colors.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
         </Pressable>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
 
         {/* Manage alerts, only useful once signed in. */}
         {status === 'authenticated' ? (
           <Pressable
             onPress={() => router.push('/notifications/alerts')}
             accessibilityRole="button"
-            accessibilityLabel="Manage property alerts"
+            accessibilityLabel={t('notifications.manageAccessibility')}
             hitSlop={10}
             style={styles.manageButton}>
-            <Ionicons name="options-outline" size={20} color={Colors.charcoal} />
+            <Ionicons name="options-outline" size={20} color={theme.charcoal} />
           </Pressable>
         ) : null}
       </View>
@@ -109,7 +116,7 @@ export default function NotificationsScreen() {
         // Session restore still running — showing the sign-in gate here would
         // briefly accuse a signed-in user of being logged out.
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : status !== 'authenticated' ? (
         <SignInGate
@@ -118,11 +125,11 @@ export default function NotificationsScreen() {
         />
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={Colors.brandGreen} />
+          <ActivityIndicator color={theme.brandGreen} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
-          <Text style={styles.stateHeading}>Unable to load notifications</Text>
+          <Text style={styles.stateHeading}>{t('notifications.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
           <Button label="Try Again" variant="primary" onPress={load} style={styles.stretch} />
         </View>
@@ -130,13 +137,13 @@ export default function NotificationsScreen() {
         <>
           <View style={styles.segmented}>
             <SegmentButton
-              label="All New"
+              label={t('notifications.filterAll')}
               count={notifications.length}
               active={tab === 'all'}
               onPress={() => setTab('all')}
             />
             <SegmentButton
-              label="Matches"
+              label={t('notifications.filterMatches')}
               count={matchedIds.length}
               active={tab === 'matches'}
               onPress={() => setTab('matches')}
@@ -170,14 +177,14 @@ export default function NotificationsScreen() {
                 alertCount === 0 ? (
                   <View style={styles.centered}>
                     <View style={styles.emptyIcon}>
-                      <Ionicons name="options-outline" size={28} color={Colors.brandGreen} />
+                      <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
                     </View>
-                    <Text style={styles.stateHeading}>No property alerts yet</Text>
+                    <Text style={styles.stateHeading}>{t('notifications.noAlertsTitle')}</Text>
                     <Text style={styles.stateBody}>
                       Create an alert and we&apos;ll highlight new listings that match your search.
                     </Text>
                     <Button
-                      label="Create Alert"
+                      label={t('notifications.createAlert')}
                       variant="primary"
                       onPress={() => router.push('/notifications/alerts/edit')}
                       style={styles.stretch}
@@ -186,14 +193,14 @@ export default function NotificationsScreen() {
                 ) : (
                   <View style={styles.centered}>
                     <View style={styles.emptyIcon}>
-                      <Ionicons name="options-outline" size={28} color={Colors.brandGreen} />
+                      <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
                     </View>
-                    <Text style={styles.stateHeading}>No new matches</Text>
+                    <Text style={styles.stateHeading}>{t('notifications.emptyMatches')}</Text>
                     <Text style={styles.stateBody}>
                       We&apos;ll highlight new properties that fit your saved alerts.
                     </Text>
                     <Button
-                      label="Manage Alerts"
+                      label={t('notifications.manageAlerts')}
                       variant="secondary"
                       onPress={() => router.push('/notifications/alerts')}
                       style={styles.stretch}
@@ -203,12 +210,12 @@ export default function NotificationsScreen() {
               ) : (
                 <View style={styles.centered}>
                   <View style={styles.emptyIcon}>
-                    <Ionicons name="notifications-outline" size={28} color={Colors.brandGreen} />
+                    <Ionicons name="notifications-outline" size={28} color={theme.brandGreen} />
                   </View>
                   <Text style={styles.stateHeading}>You&apos;re up to date</Text>
-                  <Text style={styles.stateBody}>No new properties since your last visit.</Text>
+                  <Text style={styles.stateBody}>{t('notifications.emptyAll')}</Text>
                   <Button
-                    label="Browse Properties"
+                    label={t('chats.browseProperties')}
                     variant="secondary"
                     onPress={() => router.push('/properties')}
                     style={styles.stretch}
@@ -235,6 +242,7 @@ function SegmentButton({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -252,22 +260,25 @@ function SegmentButton({
 /* ─────────────────────── Logged-out gate ─────────────────────── */
 
 function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   return (
     <View style={styles.centered}>
       <View style={styles.emptyIcon}>
-        <Ionicons name="notifications-outline" size={28} color={Colors.brandGreen} />
+        <Ionicons name="notifications-outline" size={28} color={theme.brandGreen} />
       </View>
 
-      <Text style={styles.gateEyebrow}>Stay Updated</Text>
-      <Text style={styles.stateHeading}>Never miss a new property</Text>
+      <Text style={styles.gateEyebrow}>{t('notifications.eyebrow')}</Text>
+      <Text style={styles.stateHeading}>{t('notifications.neverMiss')}</Text>
       <Text style={styles.stateBody}>
         Sign in or create an account to get updates when new properties are added to Varlikent.
       </Text>
 
       {/* Reuses the existing auth routes — no duplicate auth UI. */}
       <View style={styles.gateActions}>
-        <Button label="Log In" variant="primary" onPress={onLogin} />
-        <Button label="Create Account" variant="secondary" onPress={onRegister} />
+        <Button label={t('common.signIn')} variant="primary" onPress={onLogin} />
+        <Button label={t('common.createAccount')} variant="secondary" onPress={onRegister} />
       </View>
     </View>
   );
@@ -275,20 +286,26 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
 
 /* ─────────────────────── Notification row ─────────────────────── */
 
-/** "2h ago" / "3d ago" — relative time reads better than a date in a feed. */
-function relativeTime(iso: string): string {
+/**
+ * "2h ago" / "3d ago" — relative time reads better than a date in a feed.
+ *
+ * `t` is a PARAMETER rather than a hook call: this is a plain helper, not a
+ * component, so it cannot use useLanguage(). Passing it keeps the function pure
+ * and still fully translated.
+ */
+function relativeTime(iso: string, t: (key: string, vars?: Record<string, string>) => string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
 
   const minutes = Math.floor((Date.now() - then) / 60000);
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t('notifications.justNow');
+  if (minutes < 60) return t('notifications.minutesAgo', { n: String(minutes) });
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('notifications.hoursAgo', { n: String(hours) });
 
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return t('notifications.daysAgo', { n: String(days) });
 
   return new Date(then).toLocaleDateString();
 }
@@ -303,6 +320,8 @@ function NotificationRow({
   matched?: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+  const { t } = useLanguage();
   // Same resolver as the list and detail screens — no stock photos, and the
   // brand mark stands in when a listing has no photography.
   const imageUrl = getPropertyImages(notification)[0] ?? null;
@@ -338,7 +357,7 @@ function NotificationRow({
           <Text style={styles.kicker}>
             {matched ? 'Matches your alert' : 'New property listed'}
           </Text>
-          <Text style={styles.time}>{relativeTime(notification.createdAt)}</Text>
+          <Text style={styles.time}>{relativeTime(notification.createdAt, t)}</Text>
         </View>
 
         <Text style={styles.price}>
@@ -355,8 +374,8 @@ function NotificationRow({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.softWhite },
+const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.softWhite },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,13 +383,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     // Pushes the manage-alerts icon to the right edge.
     flex: 1,
   },
@@ -378,7 +397,7 @@ const styles = StyleSheet.create({
 
   segmented: {
     flexDirection: 'row',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     borderRadius: Radius.full,
     padding: 3,
     marginHorizontal: Spacing.lg,
@@ -392,13 +411,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 38,
   },
-  segmentActive: { backgroundColor: Colors.brandGreen },
+  segmentActive: { backgroundColor: theme.brandGreen },
   segmentText: {
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
-  segmentTextActive: { fontFamily: FontFamily.bodySemiBold, color: Colors.primaryText },
+  segmentTextActive: { fontFamily: FontFamily.bodySemiBold, color: theme.primaryText },
 
   list: {
     padding: Spacing.lg,
@@ -418,7 +437,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: Radius.full,
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
@@ -426,7 +445,7 @@ const styles = StyleSheet.create({
   gateEyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -434,33 +453,33 @@ const styles = StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     textAlign: 'center',
   },
   stateBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 22,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     textAlign: 'center',
   },
 
   row: {
     flexDirection: 'row',
     gap: Spacing.md,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: theme.cardBg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: theme.border,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
-  rowPressed: { borderColor: Colors.brandGreen, backgroundColor: Colors.marble },
+  rowPressed: { borderColor: theme.brandGreen, backgroundColor: theme.marble },
   thumb: {
     width: 72,
     height: 72,
     borderRadius: Radius.sm,
     overflow: 'hidden',
-    backgroundColor: Colors.marble,
+    backgroundColor: theme.marble,
   },
   thumbImage: { width: '100%', height: '100%' },
   thumbPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -477,30 +496,30 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: Colors.brandGreen,
+    color: theme.brandGreen,
   },
   time: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
   },
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: Colors.navy,
+    color: theme.navy,
     marginTop: Spacing.xs,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 18,
-    color: Colors.charcoal,
+    color: theme.charcoal,
     marginTop: 2,
   },
   meta: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: Colors.textMuted,
+    color: theme.textMuted,
     marginTop: Spacing.xs,
   },
 });
