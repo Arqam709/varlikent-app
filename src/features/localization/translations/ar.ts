@@ -55,6 +55,11 @@ export const ar: TranslationShape = {
   },
 
   propertyDetails: {
+    details: 'تفاصيل العقار',
+    features: 'المزايا',
+    listedBy: 'مُدرج بواسطة',
+    about: 'عن هذا العقار',
+    loadFailed: 'تعذّر تحميل العقار',
     title: 'تفاصيل العقار',
     loadError: 'تعذّر تحميل العقار',
     message: 'رسالة',
@@ -80,6 +85,7 @@ export const ar: TranslationShape = {
   },
 
   messageThread: {
+    propertyLink: 'عرض العقار',
     title: 'رسالة',
     agent: 'مستشار',
     loadOlder: 'تحميل الرسائل الأقدم',
@@ -114,6 +120,7 @@ export const ar: TranslationShape = {
   },
 
   alerts: {
+    minBedrooms: 'الحد الأدنى لغرف النوم',
     title: 'تنبيهات العقارات',
     eyebrow: 'تحديثات العقارات',
     loadError: 'تعذّر تحميل التنبيهات',
@@ -141,6 +148,81 @@ export const ar: TranslationShape = {
   },
 
   services: {
+    howWeWork: 'كيف نعمل',
+    theTransformation: 'التحوّل',
+    intro: 'من الرسمة الأولى إلى البيع النهائي — نغطّي كل مرحلة من دورة حياة العقار.',
+    items: {
+      architecture: {
+        title: 'العمارة',
+        short: 'تصاميم أيقونية مستوحاة من تراث إسطنبول ومبنية للمستقبل.',
+        description: 'نصمّم مبانيَ تدوم — متجذّرة في تراث إسطنبول ومصوغة للمستقبل.',
+        websiteLabel: 'Varlikent / العمارة',
+        capabilitiesLabel: 'ما نقدّمه',
+        capabilitiesHeading: 'الخدمات',
+        caps: {
+          conceptDesign: { title: 'التصور والتصميم', desc: 'من الموجز الأولي إلى المخططات المعمارية التفصيلية — مساحات ملهمة.' },
+          structuralEngineering: { title: 'الهندسة الإنشائية', desc: 'أنظمة متينة مطابقة للكود لكل أنماط المباني.' },
+          urbanPlanning: { title: 'التخطيط العمراني', desc: 'مخططات رئيسية متوافقة مع النسيج العمراني المتطور لإسطنبول.' },
+          projectManagement: { title: 'إدارة المشاريع', desc: 'إشراف كامل من وضع الحجر الأساس حتى التسليم.' },
+        },
+        process: { heading: 'المنهجية', steps: { s1: 'الموجز والبحث', s2: 'التصميم المبدئي', s3: 'التطوير الفني', s4: 'الإشراف على التنفيذ', } },
+        closingHeading: 'هل لديك رؤية؟',
+        closingBody: 'تواصل معنا لمناقشة مشروعك.',
+      },
+      construction: {
+        title: 'الإنشاء',
+        short: 'مبانٍ متكاملة مسلّمة وفق أعلى معايير الجودة والزلازل.',
+        description: 'إنشاء عالي الأداء لأكثر مشاريع إسطنبول طموحاً.',
+        websiteLabel: 'Varlikent / الإنشاء',
+        capabilitiesLabel: 'ما نبنيه',
+        capabilitiesHeading: 'خدمات الإنشاء',
+        caps: {
+          generalContracting: { title: 'المقاولات العامة', desc: 'إنشاء متكامل للمشاريع السكنية والتجارية ومتعددة الاستخدام.' },
+          structuralWorks: { title: 'الأعمال الإنشائية', desc: 'حلول الخرسانة المسلحة والهياكل الفولاذية وفق معايير المناطق الزلزالية.' },
+          mepEngineering: { title: 'الأنظمة الكهروميكانيكية', desc: 'أنظمة ميكانيكية وكهربائية وصحية مدمجة بالكامل.' },
+          envelopeFacade: { title: 'الواجهات والأغلفة', desc: 'جدران زجاجية وأنظمة تكسية وعزل عالي الأداء.' },
+        },
+        process: { heading: 'منهجيتنا', steps: { s1: 'مسح الموقع', s2: 'الأساسات', s3: 'الهيكل الإنشائي', s4: 'التشطيب', s5: 'التسليم', } },
+        note: { eyebrow: 'مبني ليصمد', heading: 'هندسة مقاومة للزلازل', body: 'تقع إسطنبول في منطقة زلزالية نشطة. كل منشأ نسلّمه مصمّم وفق الكودات التركية الزلزالية الحالية، مع التحقق من هوامش الأمان في كل مرحلة — لا افتراضها.' },
+        closingHeading: 'جاهز للبدء؟',
+        closingBody: 'تعاون مع فريق الإنشاء لدينا لمشروعك القادم في إسطنبول.',
+      },
+      renovation: {
+        title: 'التجديد',
+        short: 'ترقيات دقيقة تحوّل المساحات القائمة إلى عقارات فاخرة.',
+        description: 'حوّل أي مساحة بتشطيبات فاخرة وتخطيط ذكي وحرفية عالية.',
+        websiteLabel: 'Varlikent / التجديد',
+        capabilitiesLabel: 'ما نقوم به',
+        capabilitiesHeading: 'خدمات التجديد',
+        caps: {
+          windowsDoors: { title: 'استبدال النوافذ والأبواب', desc: 'ألمنيوم معزول حرارياً ونجارة خشبية مع زجاج عازل للصوت.' },
+          structuralAlterations: { title: 'التعديلات الإنشائية', desc: 'تعديلات آمنة للعناصر الحاملة وإزالة الجدران ورفع الأسقف.' },
+          electricalLighting: { title: 'الكهرباء والإضاءة', desc: 'تمديدات كاملة ودمج المنزل الذكي وتصميم إضاءة مخصص.' },
+          bathroomKitchen: { title: 'الحمّام والمطبخ', desc: 'أسطح رخامية وخزائن مخصصة وأجهزة فاخرة.' },
+        },
+        comparison: { heading: 'قبل وبعد', beforeLabel: 'قبل', afterLabel: 'بعد',
+          before: { b1: 'تشطيبات قديمة', b2: 'إضاءة طبيعية ضعيفة', b3: 'توزيع غير فعّال', b4: 'تجهيزات من التسعينيات', },
+          after: { a1: 'أسطح رخامية فاخرة', a2: 'تصميم إضاءة معماري', a3: 'تخطيط مفتوح', a4: 'دمج المنزل الذكي', } },
+        closingHeading: 'حوّل مساحتك',
+        closingBody: 'لنناقش مشروع تجديدك ونحوّل رؤيتك إلى واقع.',
+      },
+      interiorDesign: {
+        title: 'التصميم الداخلي',
+        short: 'ديكورات داخلية مختارة بعناية لحياة راقية وسلسة.',
+        description: 'مساحات تنبض بالرقي — من الفكرة الأولى إلى آخر تفصيل.',
+        websiteLabel: 'Varlikent / التصميم الداخلي',
+        capabilitiesLabel: 'خبراتنا',
+        capabilitiesHeading: 'خدمات التصميم الداخلي',
+        caps: {
+          conceptMoodBoards: { title: 'التصور ولوحات الإلهام', desc: 'توجه بصري لكل غرفة — قصص لونية ولوحات خامات وانسياب مكاني.' },
+          furnitureSourcing: { title: 'توريد الأثاث', desc: 'اختيارات من موردين إيطاليين وإسكندنافيين مميزين، مع التوصيل والتركيب.' },
+          artAccessories: { title: 'الفن والإكسسوارات', desc: 'أعمال فنية أصلية ومنحوتات وقطع ديكورية ترتقي بكل ركن.' },
+          lightingDesign: { title: 'تصميم الإضاءة', desc: 'إضاءة متدرّجة لخلق الأجواء وإبراز العمارة.' },
+        },
+        closingHeading: 'صمّم مساحة أحلامك',
+        closingBody: 'احجز استشارة مجانية لمدة ٣٠ دقيقة مع فريق التصميم.',
+      },
+    },
     title: 'الخدمات',
     eyebrow: 'خبراتنا',
     explore: 'استكشاف الخدمة',
@@ -149,6 +231,12 @@ export const ar: TranslationShape = {
   },
 
   filters: {
+    district: 'المنطقة',
+    propertyType: 'نوع العقار',
+    price: 'السعر',
+    bedrooms: 'غرف النوم',
+    any: 'الكل',
+    apply: 'تطبيق التصفية',
     title: 'عوامل التصفية',
     reset: 'إعادة تعيين',
     retry: 'إعادة المحاولة',
@@ -172,6 +260,12 @@ export const ar: TranslationShape = {
   },
 
   home: {
+    heroEyebrow: 'إسطنبول · عقارات',
+    buyTitle: 'اشترِ منزلاً',
+    buySubtitle: 'تصفّح العقارات للبيع',
+    rentTitle: 'استأجر منزلاً',
+    rentSubtitle: 'اعثر على مكان للإيجار',
+    featuredLoadError: 'تعذّر تحميل العقارات المميّزة.',
     discoverEyebrow: 'اكتشف',
     discoverTitle: 'اعثر على منزلك القادم',
     searchPlaceholder: 'ابحث عن عقارات في إسطنبول',
@@ -194,6 +288,12 @@ export const ar: TranslationShape = {
   },
 
   properties: {
+    clearFilters: 'مسح التصفية',
+    bed: 'غرفة نوم',
+    beds: 'غرف نوم',
+    bath: 'حمّام',
+    baths: 'حمّامات',
+    all: 'الكل',
     title: 'العقارات',
     eyebrow: 'إسطنبول',
     tagline: 'اعثر على منزلك القادم',

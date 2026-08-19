@@ -177,7 +177,7 @@ export default function EditAlertScreen() {
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{isEditing ? 'Edit Alert' : 'New Alert'}</Text>
       </View>
@@ -194,7 +194,7 @@ export default function EditAlertScreen() {
         </View>
       ) : loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : (
         <KeyboardAvoidingView
@@ -246,7 +246,7 @@ export default function EditAlertScreen() {
               </View>
             </Section>
 
-            <Section title="Property Type">
+            <Section title={t('filters.propertyType')}>
               <View style={styles.chips}>
                 <Chip
                   label={t('alerts.anyType')}
@@ -264,7 +264,7 @@ export default function EditAlertScreen() {
               </View>
             </Section>
 
-            <Section title="Price">
+            <Section title={t('filters.price')}>
               {/* All stored prices are TRY, so the ₺ prefixes state the unit. */}
               <View style={styles.priceRow}>
                 <View style={styles.priceField}>
@@ -299,7 +299,7 @@ export default function EditAlertScreen() {
               ) : null}
             </Section>
 
-            <Section title="Minimum Bedrooms">
+            <Section title={t('alerts.minBedrooms')}>
               <View style={styles.chips}>
                 <Chip
                   label={t('alerts.any')}
@@ -387,7 +387,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   scroll: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
@@ -423,7 +423,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   chipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
   chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: theme.primaryText },
 
@@ -475,7 +475,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stretch: { alignSelf: 'stretch', marginTop: Spacing.md },

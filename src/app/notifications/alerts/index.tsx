@@ -114,7 +114,7 @@ export default function PropertyAlertsScreen() {
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('alerts.title')}</Text>
       </View>
@@ -126,7 +126,7 @@ export default function PropertyAlertsScreen() {
       */}
       {status === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : status !== 'authenticated' ? (
         <View style={styles.centered}>
@@ -143,7 +143,7 @@ export default function PropertyAlertsScreen() {
         </View>
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
@@ -177,7 +177,7 @@ export default function PropertyAlertsScreen() {
           ListEmptyComponent={
             <View style={styles.centered}>
               <View style={styles.emptyIcon}>
-                <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
+                <Ionicons name="options-outline" size={28} color={theme.primaryInk} />
               </View>
               <Text style={styles.stateHeading}>{t('alerts.emptyTitle')}</Text>
               <Text style={styles.stateBody}>
@@ -250,7 +250,7 @@ function AlertCard({
           accessibilityLabel={`Edit alert: ${describeAlert(alert)}`}
           hitSlop={8}
           style={styles.cardAction}>
-          <Ionicons name="create-outline" size={16} color={theme.brandGreen} />
+          <Ionicons name="create-outline" size={16} color={theme.primaryInk} />
           <Text style={styles.cardActionText}>{t('alerts.edit')}</Text>
         </Pressable>
 
@@ -283,7 +283,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   list: { padding: Spacing.lg, gap: Spacing.sm, flexGrow: 1 },
@@ -291,7 +291,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -299,7 +299,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
     lineHeight: 26,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
 
@@ -313,7 +313,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   cardTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.sm },
   chip: {
@@ -341,7 +341,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
   deleteText: { color: theme.danger },
 
@@ -365,7 +365,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {

@@ -7,7 +7,7 @@ import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
-import { SERVICES, SERVICES_INTRO } from '@/features/services/services-data';
+import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function HomeServicesPreview() {
   const { t } = useLanguage();
@@ -19,7 +19,7 @@ export default function HomeServicesPreview() {
     <View style={styles.section}>
       <Text style={styles.eyebrow}>{t('home.expertiseEyebrow')}</Text>
       <Text style={styles.heading}>{t('home.beyondRealEstate')}</Text>
-      <Text style={styles.intro}>{SERVICES_INTRO}</Text>
+      <Text style={styles.intro}>{t(SERVICES_INTRO_KEY)}</Text>
 
       <View style={styles.grid}>
         {SERVICES.map((service) => (
@@ -29,10 +29,10 @@ export default function HomeServicesPreview() {
               router.push({ pathname: '/services/[service]', params: { service: service.id } })
             }
             accessibilityRole="button"
-            accessibilityLabel={`${service.title}. ${service.short}`}
+            accessibilityLabel={`${t(serviceKey(service, 'title'))}. ${t(serviceKey(service, 'short'))}`}
             style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}>
-            <Ionicons name={service.icon} size={22} color={theme.brandGreen} />
-            <Text style={styles.tileTitle}>{service.title}</Text>
+            <Ionicons name={service.icon} size={22} color={theme.primaryInk} />
+            <Text style={styles.tileTitle}>{t(serviceKey(service, 'title'))}</Text>
           </Pressable>
         ))}
       </View>
@@ -40,10 +40,10 @@ export default function HomeServicesPreview() {
       <Pressable
         onPress={() => router.push('/services')}
         accessibilityRole="button"
-        accessibilityLabel="View all services"
+        accessibilityLabel={t('home.viewAllServices')}
         style={({ pressed }) => [styles.viewAll, pressed && styles.viewAllPressed]}>
         <Text style={styles.viewAllText}>{t('home.viewAllServices')}</Text>
-        <Ionicons name="arrow-forward" size={16} color={theme.brandGreen} />
+        <Ionicons name="arrow-forward" size={16} color={theme.primaryInk} />
       </Pressable>
     </View>
   );
@@ -58,14 +58,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   intro: {
@@ -110,7 +110,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   tileTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   viewAll: {
@@ -134,6 +134,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.sm,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

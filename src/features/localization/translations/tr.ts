@@ -49,6 +49,11 @@ export const tr: TranslationShape = {
   },
 
   propertyDetails: {
+    details: 'İlan detayları',
+    features: 'Özellikler',
+    listedBy: 'İlan sahibi',
+    about: 'Bu mülk hakkında',
+    loadFailed: 'İlan yüklenemedi',
     title: 'İlan Detayları',
     loadError: 'İlan yüklenemedi',
     message: 'Mesaj',
@@ -74,6 +79,7 @@ export const tr: TranslationShape = {
   },
 
   messageThread: {
+    propertyLink: 'İlanı Görüntüle',
     title: 'Mesaj',
     agent: 'Danışman',
     loadOlder: 'Daha eski mesajları yükle',
@@ -108,6 +114,7 @@ export const tr: TranslationShape = {
   },
 
   alerts: {
+    minBedrooms: 'En Az Yatak Odası',
     title: 'Emlak Uyarıları',
     eyebrow: 'Emlak Güncellemeleri',
     loadError: 'Uyarılar yüklenemedi',
@@ -135,6 +142,81 @@ export const tr: TranslationShape = {
   },
 
   services: {
+    howWeWork: 'Nasıl Çalışıyoruz',
+    theTransformation: 'Dönüşüm',
+    intro: 'İlk eskizden son satışa kadar — mülk yaşam döngüsünün her aşamasını kapsyoruz.',
+    items: {
+      architecture: {
+        title: 'Mimarlık',
+        short: 'İstanbul mirasına dayanan ve geleceğe yönelik ikonik tasarımlar.',
+        description: 'Kalıcı yapılar tasarlıyoruz — İstanbul\'un mirasına dayanan, geleceğe göre biçimlenen.',
+        websiteLabel: 'Varlikent / Mimarlık',
+        capabilitiesLabel: 'Neler Sunuyoruz',
+        capabilitiesHeading: 'Hizmetler',
+        caps: {
+          conceptDesign: { title: 'Konsept ve Tasarım', desc: 'İlk brifingten detaylı mimari projelere — ilham veren mekanlar.' },
+          structuralEngineering: { title: 'Yapı Mühendisliği', desc: 'Her yapı tipi için sağlam, yönetmeliğe uygun sistemler.' },
+          urbanPlanning: { title: 'Kentsel Planlama', desc: 'İstanbul\'un gelişen kentsel dokusuyla uyumlu master planlar.' },
+          projectManagement: { title: 'Proje Yönetimi', desc: 'Temel atımından teslime kadar tam denetim.' },
+        },
+        process: { heading: 'Süreç', steps: { s1: 'Brifing ve Araştırma', s2: 'Konsept Tasarım', s3: 'Teknik Geliştirme', s4: 'İnşaat Denetimi', } },
+        closingHeading: 'Bir vizyonunuz mu var?',
+        closingBody: 'Projenizi görüşmek için bize ulaşın.',
+      },
+      construction: {
+        title: 'İnşaat',
+        short: 'En yüksek deprem ve kalite standartlarında teslim edilen anahtar teslim yapılar.',
+        description: 'İstanbul\'un en iddialı projeleri için yüksek performanslı inşaat.',
+        websiteLabel: 'Varlikent / İnşaat',
+        capabilitiesLabel: 'Neler İnşa Ediyoruz',
+        capabilitiesHeading: 'İnşaat Hizmetleri',
+        caps: {
+          generalContracting: { title: 'Genel Müteahhitlik', desc: 'Konut, ticari ve karma kullanımlı projeler için anahtar teslim inşaat.' },
+          structuralWorks: { title: 'Kaba Yapı İşleri', desc: 'Deprem bölgesi standartlarına göre betonarme ve çelik çerçeve çözümleri.' },
+          mepEngineering: { title: 'Mekanik ve Elektrik', desc: 'Yapıya tam entegre mekanik, elektrik ve tesisat sistemleri.' },
+          envelopeFacade: { title: 'Cephe ve Kabuk', desc: 'Cam giydirme cepheler, kaplama sistemleri ve yüksek performanslı yalıtım.' },
+        },
+        process: { heading: 'Sürecimiz', steps: { s1: 'Saha Etdü', s2: 'Temel', s3: 'Taşıyıcı Sistem', s4: 'İnce İşler', s5: 'Teslim', } },
+        note: { eyebrow: 'Dayanıklı İnşa', heading: 'Depreme Dayanıklı Mühendislik', body: 'İstanbul aktif bir deprem bölgesindedir. Teslim ettiğimiz her yapı, güncel Türk deprem yönetmeliklerine göre mühendislik hesabıyla tasarlanır ve güvenlik payları inşaatın her aşamasında doğrulanır — varsayılmaz.' },
+        closingHeading: 'Temel atmaya hazır mısınız?',
+        closingBody: 'İstanbul\'daki bir sonraki projeniz için inşaat ekibimizle çalışın.',
+      },
+      renovation: {
+        title: 'Renovasyon',
+        short: 'Mevcut mekanları premium mülklere dönüştüren hassas yükseltmeler.',
+        description: 'Premium malzemeler, akıllı planlama ve usta işçiliğiyle her mekanı dönüştürün.',
+        websiteLabel: 'Varlikent / Renovasyon',
+        capabilitiesLabel: 'Neler Yapıyoruz',
+        capabilitiesHeading: 'Renovasyon Hizmetleri',
+        caps: {
+          windowsDoors: { title: 'Pencere ve Kapı Değişimi', desc: 'Isı yalıtımlı alüminyum ve ahşap doğrama, akustik cam ile.' },
+          structuralAlterations: { title: 'Yapısal Değişiklikler', desc: 'Güvenli taşıyıcı müdahaleler, duvar kaldırma ve tavan yükseltme.' },
+          electricalLighting: { title: 'Elektrik ve Aydınlatma', desc: 'Komple tesisat yenileme, akıllı ev entegrasyonu ve özel aydınlatma tasarımı.' },
+          bathroomKitchen: { title: 'Banyo ve Mutfak', desc: 'Mermer ıslak hacimler, özel dolaplar ve premium ankastre montajı.' },
+        },
+        comparison: { heading: 'Önce ve Sonra', beforeLabel: 'Önce', afterLabel: 'Sonra',
+          before: { b1: 'Eskimiş yüzeyler', b2: 'Yetersiz doğal ışık', b3: 'Verimsiz plan', b4: '1990\'ların orijinal armatürleri', },
+          after: { a1: 'Premium mermer yüzeyler', a2: 'Mimari aydınlatma tasarımı', a3: 'Açık plan düzenleme', a4: 'Akıllı ev entegrasyonu', } },
+        closingHeading: 'Mekanınızı Dönüştürün',
+        closingBody: 'Renovasyon projenizi konuşalım ve vizyonunuzu hayata geçirelim.',
+      },
+      interiorDesign: {
+        title: 'İç Tasarım',
+        short: 'Sofistike ve zahmetsiz yaşam için tasarlanmış özenle seçilmiş iç mekanlar.',
+        description: 'İlk konseptten son detaya kadar sofistikelik soluyan mekanlar.',
+        websiteLabel: 'Varlikent / İç Tasarım',
+        capabilitiesLabel: 'Uzmanlığımız',
+        capabilitiesHeading: 'İç Tasarım Hizmetleri',
+        caps: {
+          conceptMoodBoards: { title: 'Konsept ve Mood Board', desc: 'Her oda için görsel yön — renk kurguları, malzeme paletleri ve mekan akışı.' },
+          furnitureSourcing: { title: 'Mobilya Tedariği', desc: 'İtalyan ve İskandinav premium tedarikçilerden seçki, teslim ve montaj dahil.' },
+          artAccessories: { title: 'Sanat ve Aksesuar', desc: 'Her köşeyi yükselten özgün eserler, heykeller ve dekoratif objeler.' },
+          lightingDesign: { title: 'Aydınlatma Tasarımı', desc: 'Atmosfer yaratan ve mimariyi vurgulayan katmanlı aydınlatma.' },
+        },
+        closingHeading: 'Hayalinizdeki Mekanı Tasarlayın',
+        closingBody: 'Tasarım ekibimizle 30 dakikalık ücretsiz bir görüşme ayırtın.',
+      },
+    },
     title: 'Hizmetler',
     eyebrow: 'Uzmanlığımız',
     explore: 'Hizmeti İncele',
@@ -143,6 +225,12 @@ export const tr: TranslationShape = {
   },
 
   filters: {
+    district: 'İlçe',
+    propertyType: 'Mülk Türü',
+    price: 'Fiyat',
+    bedrooms: 'Yatak Odası',
+    any: 'Farketmez',
+    apply: 'Filtreleri Uygula',
     title: 'Filtreler',
     reset: 'Sıfırla',
     retry: 'Tekrar Dene',
@@ -166,6 +254,12 @@ export const tr: TranslationShape = {
   },
 
   home: {
+    heroEyebrow: 'İstanbul · Gayrimenkul',
+    buyTitle: 'Ev Satın Alın',
+    buySubtitle: 'Satılık ilanları keşfedin',
+    rentTitle: 'Ev Kiralayın',
+    rentSubtitle: 'Kiralayacak bir yer bulun',
+    featuredLoadError: 'Öne çıkan ilanlar yüklenemedi.',
     discoverEyebrow: 'Keşfedin',
     discoverTitle: 'Yeni evinizi bulun',
     searchPlaceholder: 'İstanbul\'da ilan ara',
@@ -188,6 +282,12 @@ export const tr: TranslationShape = {
   },
 
   properties: {
+    clearFilters: 'Filtreleri Temizle',
+    bed: 'Yatak Odası',
+    beds: 'Yatak Odası',
+    bath: 'Banyo',
+    baths: 'Banyo',
+    all: 'Tümü',
     title: 'Emlak',
     eyebrow: 'İstanbul',
     tagline: 'Yeni evinizi bulun',

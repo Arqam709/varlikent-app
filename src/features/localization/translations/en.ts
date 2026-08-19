@@ -56,6 +56,11 @@ export const en = {
   },
 
   propertyDetails: {
+    details: 'Property details',
+    features: 'Features',
+    listedBy: 'Listed by',
+    about: 'About this property',
+    loadFailed: 'Unable to load property',
     title: 'Property Details',
     loadError: 'Unable to load property',
     message: 'Message',
@@ -81,6 +86,7 @@ export const en = {
   },
 
   messageThread: {
+    propertyLink: 'View Property',
     title: 'Message',
     agent: 'Agent',
     loadOlder: 'Load older messages',
@@ -115,6 +121,7 @@ export const en = {
   },
 
   alerts: {
+    minBedrooms: 'Minimum Bedrooms',
     title: 'Property Alerts',
     eyebrow: 'Property Updates',
     loadError: 'Unable to load alerts',
@@ -142,6 +149,81 @@ export const en = {
   },
 
   services: {
+    howWeWork: 'How We Work',
+    theTransformation: 'The Transformation',
+    intro: 'From the first sketch to the final sale — we cover every stage of the property lifecycle.',
+    items: {
+      architecture: {
+        title: 'Architecture',
+        short: 'Iconic designs rooted in Istanbul\'s heritage, built for the future.',
+        description: 'We design buildings that endure — rooted in Istanbul\'s heritage, shaped for the future.',
+        websiteLabel: 'Varlikent / Architecture',
+        capabilitiesLabel: 'What We Offer',
+        capabilitiesHeading: 'Services',
+        caps: {
+          conceptDesign: { title: 'Concept & Design', desc: 'From initial brief to detailed architectural plans — space that inspires.' },
+          structuralEngineering: { title: 'Structural Engineering', desc: 'Robust, code-compliant systems for every building typology.' },
+          urbanPlanning: { title: 'Urban Planning', desc: 'Master plans aligned with Istanbul\'s evolving urban fabric.' },
+          projectManagement: { title: 'Project Management', desc: 'Full oversight from groundbreaking to handover.' },
+        },
+        process: { heading: 'Process', steps: { s1: 'Brief & Research', s2: 'Concept Design', s3: 'Technical Development', s4: 'Construction Oversight', } },
+        closingHeading: 'Have a vision?',
+        closingBody: 'Contact us to discuss your project.',
+      },
+      construction: {
+        title: 'Construction',
+        short: 'Turn-key builds delivered to the highest seismic and quality standards.',
+        description: 'High-performance construction for Istanbul\'s most ambitious developments.',
+        websiteLabel: 'Varlikent / Construction',
+        capabilitiesLabel: 'What We Build',
+        capabilitiesHeading: 'Construction Services',
+        caps: {
+          generalContracting: { title: 'General Contracting', desc: 'Turn-key construction for residential, commercial and mixed-use developments.' },
+          structuralWorks: { title: 'Structural Works', desc: 'Reinforced concrete and steel frame solutions built to seismic zone standards.' },
+          mepEngineering: { title: 'MEP Engineering', desc: 'Mechanical, electrical and plumbing systems fully integrated into the build.' },
+          envelopeFacade: { title: 'Envelope & Façade', desc: 'Glass curtain walls, cladding systems and high-performance insulation.' },
+        },
+        process: { heading: 'Our Process', steps: { s1: 'Site Survey', s2: 'Foundation', s3: 'Structural Frame', s4: 'Fit-Out', s5: 'Handover', } },
+        note: { eyebrow: 'Built to Withstand', heading: 'Earthquake-Resistant Engineering', body: 'Istanbul sits in an active seismic zone. Every structure we deliver is engineered to current Turkish seismic design codes, with safety margins verified at each stage of construction — not assumed.' },
+        closingHeading: 'Ready to Break Ground?',
+        closingBody: 'Partner with our construction team for your next Istanbul development.',
+      },
+      renovation: {
+        title: 'Renovation',
+        short: 'Precision upgrades that transform existing spaces into premium properties.',
+        description: 'Transform any space with premium finishes, intelligent layout, and expert craftsmanship.',
+        websiteLabel: 'Varlikent / Renovation',
+        capabilitiesLabel: 'What We Do',
+        capabilitiesHeading: 'Renovation Services',
+        caps: {
+          windowsDoors: { title: 'Window & Door Replacement', desc: 'Thermally broken aluminium and timber joinery with acoustic glazing.' },
+          structuralAlterations: { title: 'Structural Alterations', desc: 'Safe load-bearing modifications, wall removals and ceiling raising.' },
+          electricalLighting: { title: 'Electrical & Lighting', desc: 'Full rewire, smart home integration and bespoke lighting design.' },
+          bathroomKitchen: { title: 'Bathroom & Kitchen', desc: 'Marble wet rooms, bespoke cabinetry and premium appliance fit-out.' },
+        },
+        comparison: { heading: 'Before & After', beforeLabel: 'Before', afterLabel: 'After',
+          before: { b1: 'Dated finishes', b2: 'Poor natural lighting', b3: 'Inefficient layout', b4: 'Original 1990s fixtures', },
+          after: { a1: 'Premium marble surfaces', a2: 'Architectural lighting design', a3: 'Open-plan remodel', a4: 'Smart home integration', } },
+        closingHeading: 'Transform Your Space',
+        closingBody: 'Let\'s discuss your renovation project and bring your vision to life.',
+      },
+      interiorDesign: {
+        title: 'Interior Design',
+        short: 'Curated interiors crafted for sophisticated, effortless living.',
+        description: 'Spaces that breathe sophistication — from the first concept to the final detail.',
+        websiteLabel: 'Varlikent / Interior Design',
+        capabilitiesLabel: 'Our Expertise',
+        capabilitiesHeading: 'Interior Design Services',
+        caps: {
+          conceptMoodBoards: { title: 'Concept & Mood Boards', desc: 'Visual direction for every room — colour stories, material palettes and spatial flow.' },
+          furnitureSourcing: { title: 'Furniture Sourcing', desc: 'Curated selection from Italian and Scandinavian premium suppliers, delivered and installed.' },
+          artAccessories: { title: 'Art & Accessories', desc: 'Original artwork, sculptures and decorative objects that elevate every corner.' },
+          lightingDesign: { title: 'Lighting Design', desc: 'Layered ambient, task and accent lighting to create mood and highlight architecture.' },
+        },
+        closingHeading: 'Design Your Dream Space',
+        closingBody: 'Book a complimentary 30-minute consultation with our design team.',
+      },
+    },
     title: 'Services',
     eyebrow: 'Our Expertise',
     explore: 'Explore Service',
@@ -150,6 +232,12 @@ export const en = {
   },
 
   filters: {
+    district: 'District',
+    propertyType: 'Property Type',
+    price: 'Price',
+    bedrooms: 'Bedrooms',
+    any: 'Any',
+    apply: 'Apply Filters',
     title: 'Filters',
     reset: 'Reset',
     retry: 'Retry',
@@ -173,6 +261,12 @@ export const en = {
   },
 
   home: {
+    heroEyebrow: 'Istanbul · Real Estate',
+    buyTitle: 'Buy a Home',
+    buySubtitle: 'Explore properties for sale',
+    rentTitle: 'Rent a Home',
+    rentSubtitle: 'Find a place to rent',
+    featuredLoadError: 'Featured properties couldn’t load.',
     discoverEyebrow: 'Discover',
     discoverTitle: 'Find your next home',
     searchPlaceholder: 'Search properties in Istanbul',
@@ -195,6 +289,12 @@ export const en = {
   },
 
   properties: {
+    clearFilters: 'Clear Filters',
+    bed: 'Bed',
+    beds: 'Beds',
+    bath: 'Bath',
+    baths: 'Baths',
+    all: 'All',
     title: 'Properties',
     eyebrow: 'Istanbul',
     tagline: 'Find your next home',

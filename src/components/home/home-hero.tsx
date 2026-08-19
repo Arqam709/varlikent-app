@@ -77,7 +77,7 @@ export default function HomeHero() {
           Eyebrow sits ABOVE the headline here. The website places it below,
           which reads oddly once the composition is compressed to phone width.
         */}
-        <Text style={styles.eyebrow}>Istanbul · Real Estate</Text>
+        <Text style={styles.eyebrow}>{t('home.heroEyebrow')}</Text>
 
         {/*
           Explicit line breaks reproduce the website's three-line composition.
@@ -100,7 +100,7 @@ export default function HomeHero() {
             "All" — see the param handling in (tabs)/properties.tsx.
           */}
           <Button
-            label="View Properties"
+            label={t('home.viewProperties')}
             variant="primary"
             onPress={() => router.push('/properties')}
           />
@@ -117,7 +117,7 @@ export default function HomeHero() {
             eyebrow, three-line headline, rule and both buttons.
           */}
           <Button
-            label="Our Services"
+            label={t('home.ourServices')}
             variant="outlineLight"
             onPress={() => router.push('/services')}
           />

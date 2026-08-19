@@ -6,49 +6,9 @@ import { ar } from './translations/ar';
 import { en, type TranslationShape } from './translations/en';
 import { tr } from './translations/tr';
 
-/**
- * ── THE ONE DIRECTION DECISION ──────────────────────────────────────────
- *
- * The native layout engine is pinned to LTR for the lifetime of the app, and
- * ALL right-to-left rendering is done in JavaScript from `isRTL`.
- *
- * This exists because the previous approach had two independent direction
- * states that could disagree, and they did:
- *
- *   JS      `isRTL`, derived from the selected language — flips instantly
- *   NATIVE  `I18nManager.isRTL`, set by forceRTL() — only takes effect after a
- *           reload, and persists across launches
- *
- * Our styles are written as `isRTL ? 'row-reverse' : 'row'`, which is correct
- * ONLY while the native layer is LTR. Once forceRTL(true) had latched and the
- * app reloaded, the platform itself rendered `'row'` right-to-left and resolved
- * `textAlign: 'left'` to the right edge. Switching back to English then emitted
- * `'row'` / `'left'` — which now MEANT right-to-left. The result was English
- * words in an RTL layout, with no way back until another restart.
- *
- * Pinning native to LTR removes the second state entirely: `'row'` always means
- * left-to-right, the JS flip is the only flip, switching is symmetric in both
- * directions, and NO RESTART IS EVER REQUIRED.
- *
- * The cost, stated honestly: the navigator's own swipe-back gesture edge and
- * its push/pop animation direction stay LTR in Arabic. Everything the app draws
- * — text alignment, row order, chevrons, list layout, inputs — is correct. That
- * is a far better trade than a direction toggle that only works one way.
- *
- * Runs at MODULE SCOPE, before React renders, because I18nManager must be
- * settled before any view is created.
- */
+
 I18nManager.allowRTL(false);
 
-/**
- * Undo a native RTL flag left behind by an earlier build.
- *
- * Only ever true on a device that ran the previous forceRTL implementation, or
- * one whose OS locale is itself RTL. `allowRTL(false)` above prevents it
- * happening again; this clears what is already stored. It takes effect on the
- * next launch, which is why the Language screen surfaces a one-time restart
- * notice while the flag is still set.
- */
 const NATIVE_RTL_AT_LAUNCH = I18nManager.isRTL;
 
 if (NATIVE_RTL_AT_LAUNCH) {

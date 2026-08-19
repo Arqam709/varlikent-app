@@ -8,14 +8,7 @@ import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { THEME_IDS, THEME_META, type ThemeId } from '@/features/theme/themes';
 
-/**
- * APPEARANCE — the five Varlikent themes.
- *
- * Each option carries a three-colour swatch taken from that theme's own
- * palette, so the choice is made by looking rather than by reading a name. The
- * whole screen is themed by the ACTIVE palette, which means selecting a theme
- * repaints this screen instantly — the change is demonstrated, not described.
- */
+
 export default function AppearanceScreen() {
   const router = useRouter();
   const { theme, themeId, setTheme } = useTheme();
@@ -28,8 +21,7 @@ export default function AppearanceScreen() {
 
   const handleSelect = (next: ThemeId) => {
     if (next === themeId) return;
-    // Not awaited: state updates immediately, the device write cannot fail
-    // loudly, and the account sync is deliberately best-effort.
+    
     void setTheme(next);
   };
 
@@ -58,17 +50,12 @@ export default function AppearanceScreen() {
                   styles.card,
                   {
                     backgroundColor: theme.surface,
-                    // The selected card is outlined in the brand action colour
-                    // and thickened, so selection survives without relying on
-                    // colour alone.
                     borderColor: selected ? theme.primaryInk : theme.border,
                     borderWidth: selected ? 2 : 1,
                     flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                   pressed && { backgroundColor: theme.marble },
                 ]}>
-                {/* Swatch: dark ground, light ground, accent — the three values
-                    that distinguish these themes at a glance. */}
                 <View style={styles.swatch}>
                   {meta.swatch.map((color, index) => (
                     <View

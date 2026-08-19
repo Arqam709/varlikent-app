@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
@@ -95,7 +96,7 @@ export default function NotificationsScreen() {
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
 
@@ -107,7 +108,7 @@ export default function NotificationsScreen() {
             accessibilityLabel={t('notifications.manageAccessibility')}
             hitSlop={10}
             style={styles.manageButton}>
-            <Ionicons name="options-outline" size={20} color={theme.charcoal} />
+            <Ionicons name="options-outline" size={20} color={theme.text} />
           </Pressable>
         ) : null}
       </View>
@@ -116,7 +117,7 @@ export default function NotificationsScreen() {
         // Session restore still running — showing the sign-in gate here would
         // briefly accuse a signed-in user of being logged out.
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : status !== 'authenticated' ? (
         <SignInGate
@@ -125,13 +126,13 @@ export default function NotificationsScreen() {
         />
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
           <Text style={styles.stateHeading}>{t('notifications.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
-          <Button label="Try Again" variant="primary" onPress={load} style={styles.stretch} />
+          <Button label={t('common.retry')} variant="primary" onPress={load} style={styles.stretch} />
         </View>
       ) : (
         <>
@@ -177,7 +178,7 @@ export default function NotificationsScreen() {
                 alertCount === 0 ? (
                   <View style={styles.centered}>
                     <View style={styles.emptyIcon}>
-                      <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
+                      <Ionicons name="options-outline" size={28} color={theme.primaryInk} />
                     </View>
                     <Text style={styles.stateHeading}>{t('notifications.noAlertsTitle')}</Text>
                     <Text style={styles.stateBody}>
@@ -193,7 +194,7 @@ export default function NotificationsScreen() {
                 ) : (
                   <View style={styles.centered}>
                     <View style={styles.emptyIcon}>
-                      <Ionicons name="options-outline" size={28} color={theme.brandGreen} />
+                      <Ionicons name="options-outline" size={28} color={theme.primaryInk} />
                     </View>
                     <Text style={styles.stateHeading}>{t('notifications.emptyMatches')}</Text>
                     <Text style={styles.stateBody}>
@@ -210,7 +211,7 @@ export default function NotificationsScreen() {
               ) : (
                 <View style={styles.centered}>
                   <View style={styles.emptyIcon}>
-                    <Ionicons name="notifications-outline" size={28} color={theme.brandGreen} />
+                    <Ionicons name="notifications-outline" size={28} color={theme.primaryInk} />
                   </View>
                   <Text style={styles.stateHeading}>You&apos;re up to date</Text>
                   <Text style={styles.stateBody}>{t('notifications.emptyAll')}</Text>
@@ -266,7 +267,7 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
   return (
     <View style={styles.centered}>
       <View style={styles.emptyIcon}>
-        <Ionicons name="notifications-outline" size={28} color={theme.brandGreen} />
+        <Ionicons name="notifications-outline" size={28} color={theme.primaryInk} />
       </View>
 
       <Text style={styles.gateEyebrow}>{t('notifications.eyebrow')}</Text>
@@ -325,7 +326,6 @@ function NotificationRow({
   // Same resolver as the list and detail screens — no stock photos, and the
   // brand mark stands in when a listing has no photography.
   const imageUrl = getPropertyImages(notification)[0] ?? null;
-  const isRent = notification.listingType === 'Rent';
 
   return (
     <Pressable
@@ -367,7 +367,7 @@ function NotificationRow({
           {notification.title}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {notification.district}, Istanbul · {isRent ? 'For Rent' : 'For Sale'}
+          {notification.district}, Istanbul · {t(listingTypeKey(notification.listingType))}
         </Text>
       </View>
     </Pressable>
@@ -389,7 +389,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
     // Pushes the manage-alerts icon to the right edge.
     flex: 1,
   },
@@ -445,7 +445,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   gateEyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -453,7 +453,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {
@@ -496,7 +496,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
   time: {
     fontFamily: FontFamily.body,
@@ -506,14 +506,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.navy,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 18,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: 2,
   },
   meta: {

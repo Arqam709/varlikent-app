@@ -59,16 +59,16 @@ export default function HomeDiscovery() {
       <View style={styles.actions}>
         <QuickAction
           icon="home-outline"
-          title="Buy a Home"
-          subtitle="Explore properties for sale"
+          title={t('home.buyTitle')}
+          subtitle={t('home.buySubtitle')}
           onPress={() =>
             router.push({ pathname: '/properties', params: { listingType: 'Sale' } })
           }
         />
         <QuickAction
           icon="key-outline"
-          title="Rent a Home"
-          subtitle="Find a place to rent"
+          title={t('home.rentTitle')}
+          subtitle={t('home.rentSubtitle')}
           onPress={() =>
             router.push({ pathname: '/properties', params: { listingType: 'Rent' } })
           }
@@ -100,7 +100,7 @@ function QuickAction({
       accessibilityLabel={`${title}. ${subtitle}.`}
       style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}>
       <View style={styles.actionIcon}>
-        <Ionicons name={icon} size={20} color={theme.brandGreen} />
+        <Ionicons name={icon} size={20} color={theme.primaryInk} />
       </View>
 
       {/* `flex: 1` lets the text block absorb the row and wrap if it must. */}
@@ -129,14 +129,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
 
@@ -196,7 +196,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   actionTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   actionSubtitle: {
     fontFamily: FontFamily.body,

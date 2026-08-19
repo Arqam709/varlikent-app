@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { listingBadgeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
@@ -82,20 +83,20 @@ export default function PropertyDetailScreen() {
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('propertyDetails.title')}</Text>
       </View>
 
       {loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' || !property ? (
         <View style={styles.centered}>
           <Text style={styles.stateHeading}>{t('propertyDetails.loadError')}</Text>
           <Text style={styles.stateBody}>{errorMessage}</Text>
-          <Button label="Try Again" variant="primary" onPress={load} style={styles.retry} />
+          <Button label={t('common.retry')} variant="primary" onPress={load} style={styles.retry} />
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -142,13 +143,14 @@ function Gallery({
   index: number;
   onIndexChange: (i: number) => void;
 }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const images = getPropertyImages(property);
 
   const isRent = property.listingType === 'Rent';
   const isFeatured = Boolean(property.featured) && !isRent;
-  const badgeLabel = isRent ? 'For Rent' : isFeatured ? 'Featured' : 'For Sale';
+  const badgeLabel = t(listingBadgeKey(property.listingType, property.featured));
   const badgeColor = isRent ? theme.brandGreen : isFeatured ? theme.goldWarm : theme.navy;
 
   return (
@@ -214,10 +216,11 @@ function Gallery({
  * missing value but a meaningless one.
  */
 function Specs({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const specs = [
-    property.beds > 0 ? { value: String(property.beds), label: property.beds === 1 ? 'Bed' : 'Beds' } : null,
-    property.baths > 0 ? { value: String(property.baths), label: property.baths === 1 ? 'Bath' : 'Baths' } : null,
+    property.beds > 0 ? { value: String(property.beds), label: property.beds === 1 ? 'Bed' : t('propertyDetails.beds') } : null,
+    property.baths > 0 ? { value: String(property.baths), label: property.baths === 1 ? 'Bath' : t('propertyDetails.baths') } : null,
     property.sqm > 0 ? { value: String(property.sqm), label: 'm²' } : null,
   ].filter((s): s is { value: string; label: string } => s !== null);
 
@@ -236,12 +239,13 @@ function Specs({ property }: { property: PropertyDetail }) {
 }
 
 function Description({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const text = property.description?.trim();
   if (!text) return null;
 
   return (
-    <Section title="About this property">
+    <Section title={t('propertyDetails.about')}>
       {/* Verified plain text on the live data — no HTML to strip. */}
       <Text style={styles.body}>{text}</Text>
     </Section>
@@ -254,6 +258,7 @@ function Description({ property }: { property: PropertyDetail }) {
  * renders Type / Listing / District / Status and, on 20 of 34, Parking.
  */
 function DetailRows({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const rows: [string, string][] = [];
   const push = (label: string, value: string | number | undefined) => {
@@ -276,7 +281,7 @@ function DetailRows({ property }: { property: PropertyDetail }) {
   if (rows.length === 0) return null;
 
   return (
-    <Section title="Property details">
+    <Section title={t('propertyDetails.details')}>
       <View style={styles.rows}>
         {rows.map(([label, value]) => (
           <View key={label} style={styles.row}>
@@ -291,6 +296,7 @@ function DetailRows({ property }: { property: PropertyDetail }) {
 
 /** Positive features only — a list of "Pool: No" tells a buyer nothing. */
 function Features({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const features = (
@@ -308,11 +314,11 @@ function Features({ property }: { property: PropertyDetail }) {
   if (features.length === 0) return null;
 
   return (
-    <Section title="Features">
+    <Section title={t('propertyDetails.features')}>
       <View style={styles.features}>
         {features.map((feature) => (
           <View key={feature} style={styles.feature}>
-            <Ionicons name="checkmark-circle" size={16} color={theme.brandGreen} />
+            <Ionicons name="checkmark-circle" size={16} color={theme.primaryInk} />
             <Text style={styles.featureText}>{feature}</Text>
           </View>
         ))}
@@ -406,7 +412,7 @@ function Agent({ property }: { property: PropertyDetail }) {
   if (!name && !phone && !email) return null;
 
   return (
-    <Section title="Listed by">
+    <Section title={t('propertyDetails.listedBy')}>
       <View style={styles.agent}>
         <View style={styles.agentHeader}>
           <View style={styles.agentIdentity}>
@@ -468,7 +474,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   scroll: { paddingBottom: Spacing.xxl },
 
@@ -514,7 +520,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: theme.navy,
+    color: theme.text,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
   },
@@ -522,7 +528,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.md,
     lineHeight: 24,
-    color: theme.charcoal,
+    color: theme.text,
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
   },
@@ -564,7 +570,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   specValue: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
   },
   specLabel: {
     fontFamily: FontFamily.body,
@@ -584,7 +590,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   sectionTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,
   },
@@ -607,7 +613,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   rowValue: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   features: {
@@ -620,7 +626,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   featureText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   agent: {
@@ -646,7 +652,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   agentName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   agentLine: {
     fontFamily: FontFamily.body,
@@ -698,7 +704,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {

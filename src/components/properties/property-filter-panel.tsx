@@ -170,7 +170,7 @@ export default function PropertyFilterPanel({
                 accessibilityRole="button"
                 accessibilityLabel={t('filters.close')}
                 hitSlop={8}>
-                <Ionicons name="close" size={22} color={theme.charcoal} />
+                <Ionicons name="close" size={22} color={theme.text} />
               </Pressable>
             </View>
           </View>
@@ -181,9 +181,9 @@ export default function PropertyFilterPanel({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             {/* ── District ───────────────────────────────────────────── */}
-            <Section title="District">
+            <Section title={t('filters.district')}>
               {areasState === 'loading' ? (
-                <ActivityIndicator color={theme.brandGreen} style={styles.inlineLoader} />
+                <ActivityIndicator color={theme.primaryInk} style={styles.inlineLoader} />
               ) : areasState === 'error' ? (
                 // A district failure never blocks the rest of the panel.
                 <View style={styles.inlineError}>
@@ -214,7 +214,7 @@ export default function PropertyFilterPanel({
             </Section>
 
             {/* ── Property type ──────────────────────────────────────── */}
-            <Section title="Property Type">
+            <Section title={t('filters.propertyType')}>
               <View style={styles.chips}>
                 <Chip
                   label={t('filters.anyType')}
@@ -233,7 +233,7 @@ export default function PropertyFilterPanel({
             </Section>
 
             {/* ── Price ──────────────────────────────────────────────── */}
-            <Section title="Price">
+            <Section title={t('filters.price')}>
               {/*
                 Every stored `price` is in Turkish Lira — verified across the
                 inventory — so a numeric range is directly comparable. The ₺
@@ -246,7 +246,7 @@ export default function PropertyFilterPanel({
                   <TextInput
                     value={draft.minPrice}
                     onChangeText={onPriceChange('minPrice')}
-                    placeholder="Min"
+                    placeholder={t('filters.min')}
                     placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
@@ -258,7 +258,7 @@ export default function PropertyFilterPanel({
                   <TextInput
                     value={draft.maxPrice}
                     onChangeText={onPriceChange('maxPrice')}
-                    placeholder="Max"
+                    placeholder={t('filters.max')}
                     placeholderTextColor={theme.textMuted}
                     keyboardType="number-pad"
                     style={styles.priceInput}
@@ -274,10 +274,10 @@ export default function PropertyFilterPanel({
             </Section>
 
             {/* ── Bedrooms ───────────────────────────────────────────── */}
-            <Section title="Bedrooms">
+            <Section title={t('filters.bedrooms')}>
               <View style={styles.chips}>
                 <Chip
-                  label="Any"
+                  label={t('filters.any')}
                   selected={draft.beds === undefined}
                   onPress={() => setDraft((d) => ({ ...d, beds: undefined }))}
                 />
@@ -296,7 +296,7 @@ export default function PropertyFilterPanel({
 
           <View style={styles.footer}>
             <Button
-              label="Apply Filters"
+              label={t('filters.apply')}
               variant="primary"
               onPress={handleApply}
               disabled={priceInvalid}
@@ -370,13 +370,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   sheetTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   reset: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
   scroll: { flexGrow: 0 },
   scrollContent: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
@@ -408,7 +408,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   chipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
   chipTextSelected: { fontFamily: FontFamily.bodySemiBold, color: theme.primaryText },
   chipBadge: {
@@ -465,7 +465,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   retryLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 
   footer: {

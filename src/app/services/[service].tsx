@@ -8,7 +8,12 @@ import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
-import { getServiceById, type Service } from '@/features/services/services-data';
+import {
+  capabilityNumeral,
+  getService,
+  serviceKey,
+  type ServiceStructure,
+} from '@/features/services/services-data';
 
 export default function ServiceDetailScreen() {
   const { t } = useLanguage();
@@ -17,7 +22,7 @@ export default function ServiceDetailScreen() {
   const router = useRouter();
 
   /** Validated, never cast — see getServiceById. */
-  const service = getServiceById(serviceParam);
+  const service = getService(serviceParam);
 
   const handleBack = () => {
     // Uses real history, so Home → tile → Back lands on Home, while
@@ -56,38 +61,50 @@ export default function ServiceDetailScreen() {
 
         <Capabilities service={service} />
 
-        {service.process ? (
-          <Section eyebrow="How We Work" heading={service.process.heading}>
+        {service.processSteps > 0 ? (
+          <Section
+            eyebrow={t('services.howWeWork')}
+            heading={t(serviceKey(service, 'process.heading'))}>
             <View style={styles.steps}>
-              {service.process.steps.map((step, index) => (
-                <View key={step} style={styles.step}>
-                  <Text style={styles.stepNumber}>{String(index + 1).padStart(2, '0')}</Text>
-                  <Text style={styles.stepLabel}>{step}</Text>
+              {Array.from({ length: service.processSteps }, (_, index) => (
+                <View key={index} style={styles.step}>
+                  <Text style={styles.stepNumber}>{capabilityNumeral(index)}</Text>
+                  <Text style={styles.stepLabel}>
+                    {t(serviceKey(service, `process.steps.s${index + 1}`))}
+                  </Text>
                 </View>
               ))}
             </View>
           </Section>
         ) : null}
 
-        {service.comparison ? (
-          <Section eyebrow="The Transformation" heading={service.comparison.heading}>
+        {service.comparisonRows > 0 ? (
+          <Section
+            eyebrow={t('services.theTransformation')}
+            heading={t(serviceKey(service, 'comparison.heading'))}>
             <View style={styles.compare}>
               <CompareColumn
-                label={service.comparison.beforeLabel}
-                items={service.comparison.before}
+                label={t(serviceKey(service, 'comparison.beforeLabel'))}
+                items={Array.from({ length: service.comparisonRows }, (_, i) =>
+                  t(serviceKey(service, `comparison.before.b${i + 1}`))
+                )}
                 muted
               />
               <CompareColumn
-                label={service.comparison.afterLabel}
-                items={service.comparison.after}
+                label={t(serviceKey(service, 'comparison.afterLabel'))}
+                items={Array.from({ length: service.comparisonRows }, (_, i) =>
+                  t(serviceKey(service, `comparison.after.a${i + 1}`))
+                )}
               />
             </View>
           </Section>
         ) : null}
 
-        {service.note ? (
-          <Section eyebrow={service.note.eyebrow} heading={service.note.heading}>
-            <Text style={styles.noteBody}>{service.note.body}</Text>
+        {service.hasNote ? (
+          <Section
+            eyebrow={t(serviceKey(service, 'note.eyebrow'))}
+            heading={t(serviceKey(service, 'note.heading'))}>
+            <Text style={styles.noteBody}>{t(serviceKey(service, 'note.body'))}</Text>
           </Section>
         ) : null}
 
@@ -102,8 +119,8 @@ export default function ServiceDetailScreen() {
         */}
         <View style={styles.closing}>
           <View style={styles.goldRule} />
-          <Text style={styles.closingHeading}>{service.closingHeading}</Text>
-          <Text style={styles.closingBody}>{service.closingBody}</Text>
+          <Text style={styles.closingHeading}>{t(serviceKey(service, 'closingHeading'))}</Text>
+          <Text style={styles.closingBody}>{t(serviceKey(service, 'closingBody'))}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -126,22 +143,23 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
         accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+        <Ionicons name="chevron-back" size={22} color={theme.text} />
       </Pressable>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>
   );
 }
 
-function ServiceHero({ service }: { service: Service }) {
+function ServiceHero({ service }: { service: ServiceStructure }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   return (
     <View style={styles.hero}>
       {/* The website's own breadcrumb, uppercased as an overline. */}
-      <Text style={styles.heroLabel}>{service.websiteLabel}</Text>
-      <Text style={styles.heroTitle}>{service.title}</Text>
-      <Text style={styles.heroSubtitle}>{service.description}</Text>
+      <Text style={styles.heroLabel}>{t(serviceKey(service, 'websiteLabel'))}</Text>
+      <Text style={styles.heroTitle}>{t(serviceKey(service, 'title'))}</Text>
+      <Text style={styles.heroSubtitle}>{t(serviceKey(service, 'description'))}</Text>
 
       {/*
         An icon rather than photography, for all four alike.
@@ -153,7 +171,7 @@ function ServiceHero({ service }: { service: Service }) {
         association. Consistency wins until real imagery exists.
       */}
       <View style={styles.heroIcon}>
-        <Ionicons name={service.icon} size={30} color={theme.brandGreen} />
+        <Ionicons name={service.icon} size={30} color={theme.primaryInk} />
       </View>
 
       <View style={styles.goldRule} />
@@ -161,17 +179,24 @@ function ServiceHero({ service }: { service: Service }) {
   );
 }
 
-function Capabilities({ service }: { service: Service }) {
+function Capabilities({ service }: { service: ServiceStructure }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   return (
-    <Section eyebrow={service.capabilitiesLabel} heading={service.capabilitiesHeading}>
+    <Section
+      eyebrow={t(serviceKey(service, 'capabilitiesLabel'))}
+      heading={t(serviceKey(service, 'capabilitiesHeading'))}>
       <View style={styles.capabilities}>
-        {service.capabilities.map((capability) => (
-          <View key={capability.num} style={styles.capability}>
-            <Text style={styles.capabilityNum}>{capability.num}</Text>
+        {service.capabilities.map((slug, index) => (
+          <View key={slug} style={styles.capability}>
+            <Text style={styles.capabilityNum}>{capabilityNumeral(index)}</Text>
             <View style={styles.capabilityText}>
-              <Text style={styles.capabilityTitle}>{capability.title}</Text>
-              <Text style={styles.capabilityDesc}>{capability.desc}</Text>
+              <Text style={styles.capabilityTitle}>
+                {t(serviceKey(service, `caps.${slug}.title`))}
+              </Text>
+              <Text style={styles.capabilityDesc}>
+                {t(serviceKey(service, `caps.${slug}.desc`))}
+              </Text>
             </View>
           </View>
         ))}
@@ -236,7 +261,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   scroll: { paddingBottom: Spacing.xxl },
 
@@ -248,7 +273,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   heroLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -256,7 +281,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: 30,
     lineHeight: 38,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.sm,
   },
   heroSubtitle: {
@@ -297,7 +322,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   sectionHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
     marginBottom: Spacing.lg,
   },
@@ -308,7 +333,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   capabilityNum: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: theme.gold,
+    color: theme.accentText,
     letterSpacing: LetterSpacing.wide,
     // Fixed width keeps the numerals in a clean column as text wraps.
     width: 28,
@@ -318,7 +343,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   capabilityTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   capabilityDesc: {
     fontFamily: FontFamily.body,
@@ -342,14 +367,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stepNumber: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     width: 24,
   },
   stepLabel: {
     flex: 1,
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   // ── Before / After ───────────────────────────────────────────────
@@ -372,7 +397,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   /** Only the "After" column carries brand colour — the improvement. */
-  compareLabelAfter: { color: theme.brandGreen },
+  compareLabelAfter: { color: theme.primaryInk },
   compareItem: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
@@ -396,7 +421,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   closingHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.lg,
   },
   closingBody: {
@@ -418,7 +443,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   notFoundTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   notFoundBody: {
@@ -444,6 +469,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.sm,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

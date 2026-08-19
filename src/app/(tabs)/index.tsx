@@ -77,7 +77,7 @@ export default function HomeScreen() {
             }
             hitSlop={10}
             style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}>
-            <Ionicons name="notifications-outline" size={22} color={theme.charcoal} />
+            <Ionicons name="notifications-outline" size={22} color={theme.text} />
 
             {/* Never rendered for anonymous users — unreadCount stays 0. */}
             {unreadCount > 0 ? (
@@ -131,7 +131,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
     letterSpacing: 3,
   },
   /** `overflow: 'visible'` so the badge can sit proud of the icon. */

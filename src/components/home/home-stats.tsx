@@ -108,7 +108,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: 22,
     lineHeight: 28,
-    color: theme.charcoal,
+    color: theme.text,
   },
   label: {
     fontFamily: FontFamily.bodyMedium,

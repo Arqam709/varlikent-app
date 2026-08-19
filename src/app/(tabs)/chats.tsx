@@ -154,7 +154,7 @@ export default function ChatsScreen() {
 
       {status === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : status !== 'authenticated' ? (
         <SignInGate
@@ -163,7 +163,7 @@ export default function ChatsScreen() {
         />
       ) : loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
@@ -187,7 +187,7 @@ export default function ChatsScreen() {
               refreshing={refreshing}
               onRefresh={() => load('refresh')}
               tintColor={theme.brandGreen}
-              colors={[theme.brandGreen]}
+              colors={[theme.primaryInk]}
             />
           }
           renderItem={({ item }) => (
@@ -201,7 +201,7 @@ export default function ChatsScreen() {
           ListEmptyComponent={
             <View style={styles.centered}>
               <View style={styles.emptyIcon}>
-                <Ionicons name="chatbubbles-outline" size={28} color={theme.brandGreen} />
+                <Ionicons name="chatbubbles-outline" size={28} color={theme.primaryInk} />
               </View>
               <Text style={styles.stateHeading}>{t('chats.emptyTitle')}</Text>
               <Text style={styles.stateBody}>
@@ -230,7 +230,7 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
   return (
     <View style={styles.centered}>
       <View style={styles.emptyIcon}>
-        <Ionicons name="chatbubbles-outline" size={28} color={theme.brandGreen} />
+        <Ionicons name="chatbubbles-outline" size={28} color={theme.primaryInk} />
       </View>
 
       <Text style={styles.gateEyebrow}>{t('chats.gateEyebrow')}</Text>
@@ -241,8 +241,8 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
 
     
       <View style={styles.gateActions}>
-        <Button label="Log In" variant="primary" onPress={onLogin} />
-        <Button label="Create Account" variant="secondary" onPress={onRegister} />
+        <Button label={t('common.signIn')} variant="primary" onPress={onLogin} />
+        <Button label={t('common.createAccount')} variant="secondary" onPress={onRegister} />
       </View>
     </View>
   );
@@ -361,7 +361,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   list: {
@@ -390,7 +390,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   gateEyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
@@ -398,7 +398,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {
@@ -449,7 +449,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.bodyMedium,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   // Unread emphasis stays restrained: a weight and colour shift, no highlight
   // block. This is a Varlikent surface, not a WhatsApp reproduction.
@@ -459,7 +459,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.xs,
     color: theme.textMuted,
   },
-  timeUnread: { color: theme.brandGreen, fontFamily: FontFamily.bodyMedium },
+  timeUnread: { color: theme.primaryInk, fontFamily: FontFamily.bodyMedium },
 
   propertyTitle: {
     fontFamily: FontFamily.heading,
@@ -480,7 +480,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.sm,
     color: theme.textMuted,
   },
-  previewUnread: { fontFamily: FontFamily.bodyMedium, color: theme.charcoal },
+  previewUnread: { fontFamily: FontFamily.bodyMedium, color: theme.text },
 
   closedTag: {
     fontFamily: FontFamily.bodyMedium,

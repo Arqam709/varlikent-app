@@ -8,25 +8,6 @@ import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import type { ThemePalette } from '@/features/theme/themes';
 
-/**
- * The building blocks of the Account settings screens.
- *
- * ── Why styles are built per render rather than with StyleSheet.create ──
- * Every colour here comes from the ACTIVE theme, and there are five of them.
- * `StyleSheet.create` is evaluated once at module load, so a static sheet would
- * freeze whichever palette happened to be current at import time and never
- * change again. Layout values (spacing, radii, font sizes) are theme-independent
- * and do stay in a static sheet below — only the colours are dynamic.
- *
- * ── RTL ─────────────────────────────────────────────────────────────────
- * Rows read `isRTL` and flip their own `flexDirection` and text alignment. This
- * is what makes Arabic correct on the current launch rather than only after a
- * restart, because it does not depend on the native layout direction having been
- * applied. The chevron flips to point the way "forward" actually is.
- */
-
-/* ── Section ──────────────────────────────────────────────────────────── */
-
 export function SettingsSection({
   title,
   children,
@@ -233,7 +214,7 @@ export function AccountHeader({ title, onBack }: { title: string; onBack: () => 
   );
 }
 
-/** A short explanatory line under a screen title. */
+
 export function ScreenIntro({ text }: { text: string }) {
   const { theme } = useTheme();
   const { isRTL } = useLanguage();
@@ -407,3 +388,4 @@ const staticStyles = StyleSheet.create({
 
 export { staticStyles as accountStyles };
 export type { ThemePalette };
+

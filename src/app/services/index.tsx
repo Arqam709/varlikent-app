@@ -8,7 +8,7 @@ import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
-import { SERVICES, SERVICES_INTRO } from '@/features/services/services-data';
+import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function ServicesScreen() {
   const { t } = useLanguage();
@@ -35,7 +35,7 @@ export default function ServicesScreen() {
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('services.title')}</Text>
       </View>
@@ -50,7 +50,7 @@ export default function ServicesScreen() {
           <Text style={styles.eyebrow}>{t('services.eyebrow')}</Text>
           <Text style={styles.title}>{t('services.title')}</Text>
           <View style={styles.goldRule} />
-          <Text style={styles.introText}>{SERVICES_INTRO}</Text>
+          <Text style={styles.introText}>{t(SERVICES_INTRO_KEY)}</Text>
         </View>
 
         {SERVICES.map((service, index) => (
@@ -64,7 +64,7 @@ export default function ServicesScreen() {
               router.push({ pathname: '/services/[service]', params: { service: service.id } })
             }
             accessibilityRole="button"
-            accessibilityLabel={`${service.title}. ${service.short}`}
+            accessibilityLabel={`${t(serviceKey(service, 'title'))}. ${t(serviceKey(service, 'short'))}`}
             style={({ pressed }) => [styles.service, pressed && styles.servicePressed]}>
             <View style={styles.serviceHeader}>
               {/* Numbered 01–04, padded so the column stays aligned. */}
@@ -72,18 +72,18 @@ export default function ServicesScreen() {
                 {String(index + 1).padStart(2, '0')}
               </Text>
               <View style={styles.serviceIcon}>
-                <Ionicons name={service.icon} size={24} color={theme.brandGreen} />
+                <Ionicons name={service.icon} size={24} color={theme.primaryInk} />
               </View>
             </View>
 
-            <Text style={styles.serviceTitle}>{service.title}</Text>
-            <Text style={styles.serviceDescription}>{service.description}</Text>
-            <Text style={styles.serviceShort}>{service.short}</Text>
+            <Text style={styles.serviceTitle}>{t(serviceKey(service, 'title'))}</Text>
+            <Text style={styles.serviceDescription}>{t(serviceKey(service, 'description'))}</Text>
+            <Text style={styles.serviceShort}>{t(serviceKey(service, 'short'))}</Text>
 
             {/* One restrained affordance per card — no arrow noise elsewhere. */}
             <View style={styles.serviceAction}>
               <Text style={styles.serviceActionText}>{t('services.explore')}</Text>
-              <Ionicons name="arrow-forward" size={14} color={theme.brandGreen} />
+              <Ionicons name="arrow-forward" size={14} color={theme.primaryInk} />
             </View>
           </Pressable>
         ))}
@@ -107,7 +107,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
 
   scroll: { paddingBottom: Spacing.xxl },
@@ -120,14 +120,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   goldRule: {
@@ -162,7 +162,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
     // Gold used once per section as a quiet editorial marker, nothing more.
-    color: theme.gold,
+    color: theme.accentText,
     letterSpacing: LetterSpacing.wide,
   },
   serviceIcon: {
@@ -176,7 +176,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   serviceTitle: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
   },
   serviceDescription: {
     fontFamily: FontFamily.body,
@@ -207,6 +207,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

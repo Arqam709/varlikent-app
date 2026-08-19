@@ -359,7 +359,7 @@ export default function ConversationScreen() {
   if (status === 'unauthenticated') {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Header title="Message" subtitle="" onBack={handleBack} />
+        <Header title={t('messageThread.title')} subtitle="" onBack={handleBack} />
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
           <Text style={styles.stateHeading}>{t('messageThread.signInTitle')}</Text>
           <Text style={styles.stateBody}>{t('messageThread.signInBody')}</Text>
@@ -384,7 +384,7 @@ export default function ConversationScreen() {
 
       {loadState === 'loading' ? (
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
@@ -411,7 +411,7 @@ export default function ConversationScreen() {
                     accessibilityState={{ disabled: loadingOlder, busy: loadingOlder }}
                     style={styles.loadOlder}>
                     {loadingOlder ? (
-                      <ActivityIndicator size="small" color={theme.brandGreen} />
+                      <ActivityIndicator size="small" color={theme.primaryInk} />
                     ) : (
                       <Text style={styles.loadOlderText}>{t('messageThread.loadOlder')}</Text>
                     )}
@@ -506,7 +506,7 @@ function Header({
         accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={theme.charcoal} />
+        <Ionicons name="chevron-back" size={22} color={theme.text} />
       </Pressable>
       <View style={styles.headerText}>
         <Text style={styles.headerTitle} numberOfLines={1}>
@@ -550,7 +550,7 @@ function PropertyCard({
       <Text style={styles.propertyPrice}>
         {formatPrice(property.price, property.listingType, property.priceLabel)}
       </Text>
-      <Text style={styles.propertyLink}>View Property ›</Text>
+      <Text style={styles.propertyLink}>{t('messageThread.propertyLink')} ›</Text>
     </Pressable>
   );
 }
@@ -604,7 +604,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
-    color: theme.charcoal,
+    color: theme.text,
   },
   headerSubtitle: {
     fontFamily: FontFamily.body,
@@ -632,7 +632,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   propertyTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
   propertyMeta: {
     fontFamily: FontFamily.body,
@@ -642,13 +642,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   propertyPrice: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.navy,
+    color: theme.text,
     marginTop: 2,
   },
   propertyLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.xs,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     marginTop: Spacing.xs,
   },
   propertyUnavailable: {
@@ -668,7 +668,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.xs,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 
   empty: {
@@ -703,7 +703,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: theme.charcoal,
+    color: theme.text,
   },
   bubbleTextMine: { color: theme.textOnDark },
   bubbleTime: {
@@ -742,7 +742,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     backgroundColor: theme.softWhite,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
   },
   sendButton: {
     width: 44,
@@ -786,7 +786,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {

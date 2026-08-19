@@ -149,6 +149,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   toggle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.xs,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

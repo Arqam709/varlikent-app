@@ -2,6 +2,8 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
+import { bathsKey, bedsKey, listingBadgeKey } from '@/utils/property-labels';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -19,6 +21,7 @@ type Props = {
 };
 
 export default function PropertyCard({ property, onPress }: Props) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const imageUrl = getPropertyImages(property)[0] ?? null;
@@ -27,7 +30,7 @@ export default function PropertyCard({ property, onPress }: Props) {
   // Website rule: a rental never shows the Featured badge, even when flagged.
   const isFeatured = Boolean(property.featured) && !isRent;
 
-  const badgeLabel = isRent ? 'For Rent' : isFeatured ? 'Featured' : 'For Sale';
+  const badgeLabel = t(listingBadgeKey(property.listingType, property.featured));
   const badgeColor = isRent ? theme.brandGreen : isFeatured ? theme.goldWarm : theme.navy;
 
   const content = (
@@ -68,9 +71,9 @@ export default function PropertyCard({ property, onPress }: Props) {
         <Text style={styles.propertyType}>{property.propertyType}</Text>
 
         <View style={styles.stats}>
-          <Text style={styles.stat}>{property.beds} Beds</Text>
+          <Text style={styles.stat}>{property.beds} {t(bedsKey(property.beds))}</Text>
           <Text style={styles.statDivider}>·</Text>
-          <Text style={styles.stat}>{property.baths} Baths</Text>
+          <Text style={styles.stat}>{property.baths} {t(bathsKey(property.baths))}</Text>
           <Text style={styles.statDivider}>·</Text>
           <Text style={styles.stat}>{property.sqm} m²</Text>
         </View>
@@ -149,13 +152,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.navy,
+    color: theme.text,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 20,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   location: {
@@ -189,6 +192,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   statDivider: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: theme.border,
+    color: theme.textMuted,
   },
 });

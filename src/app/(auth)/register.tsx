@@ -218,13 +218,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
     letterSpacing: 3,
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: theme.charcoal,
+    color: theme.text,
   },
   subtitle: {
     fontFamily: FontFamily.body,
@@ -257,6 +257,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   footerLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

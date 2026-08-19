@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import { listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
@@ -78,13 +79,13 @@ export default function HomeFeaturedProperties() {
 
       {loadState === 'loading' ? (
         <View style={styles.stateBox}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         // Compact and inline: the hero, discovery, Buy/Rent and stats around
         // it all stay fully usable.
         <View style={styles.stateBox}>
-          <Text style={styles.errorText}>Featured properties couldn&apos;t load.</Text>
+          <Text style={styles.errorText}>{t('home.featuredLoadError')}</Text>
           <Pressable onPress={load} accessibilityRole="button" hitSlop={8}>
             <Text style={styles.retry}>{t('common.retry')}</Text>
           </Pressable>
@@ -119,11 +120,12 @@ function FeaturedCard({
   width: number;
   onPress: () => void;
 }) {
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const imageUrl = getPropertyImages(property)[0] ?? null;
   const isRent = property.listingType === 'Rent';
-  const badgeLabel = isRent ? 'For Rent' : 'For Sale';
+  const badgeLabel = t(listingTypeKey(property.listingType));
   const badgeColor = isRent ? theme.brandGreen : theme.navy;
 
   return (
@@ -192,20 +194,20 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   heading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   viewAll: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 
   list: {
@@ -253,13 +255,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   price: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.md,
-    color: theme.navy,
+    color: theme.text,
   },
   title: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
     lineHeight: 19,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   location: {
@@ -295,6 +297,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   retry: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });

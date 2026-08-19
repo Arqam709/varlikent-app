@@ -219,7 +219,7 @@ export default function PropertiesScreen() {
 
       {loadState === 'loading' ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={theme.brandGreen} />
+          <ActivityIndicator color={theme.primaryInk} />
         </View>
       ) : loadState === 'error' ? (
         <View style={styles.centered}>
@@ -252,7 +252,7 @@ export default function PropertiesScreen() {
               refreshing={refreshing}
               onRefresh={() => load(true)}
               tintColor={theme.brandGreen}
-              colors={[theme.brandGreen]}
+              colors={[theme.primaryInk]}
             />
           }
           // Only reachable on a genuine empty result — 'loading' and 'error'
@@ -276,7 +276,7 @@ export default function PropertiesScreen() {
               */}
               {activeFilterCount > 0 ? (
                 <Button
-                  label="Clear Filters"
+                  label={t('properties.clearFilters')}
                   variant="secondary"
                   onPress={() => setFilters({})}
                   style={styles.retry}
@@ -322,14 +322,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   eyebrow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
     letterSpacing: LetterSpacing.widest,
     textTransform: 'uppercase',
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: theme.charcoal,
+    color: theme.text,
     marginTop: Spacing.xs,
   },
   subtitle: {
@@ -397,7 +397,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   },
   filterTextActive: {
     fontFamily: FontFamily.bodySemiBold,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
   count: {
     fontFamily: FontFamily.body,
@@ -420,7 +420,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   stateHeading: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
-    color: theme.charcoal,
+    color: theme.text,
     textAlign: 'center',
   },
   stateBody: {

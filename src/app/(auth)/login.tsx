@@ -135,7 +135,7 @@ export default function LoginScreen() {
 
           <View style={styles.form}>
             <TextField
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
@@ -145,7 +145,7 @@ export default function LoginScreen() {
             />
 
             <TextField
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
               placeholder="••••••••"
@@ -165,7 +165,7 @@ export default function LoginScreen() {
             {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
             <Button
-              label="Sign In"
+              label={t('common.signIn')}
               variant="primary"
               onPress={handleSubmit}
               loading={submitting}
@@ -221,13 +221,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   wordmark: {
     fontFamily: FontFamily.heading,
     fontSize: FontSizes.sm,
-    color: theme.charcoal,
+    color: theme.text,
     letterSpacing: 3,
   },
   title: {
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.xl,
-    color: theme.charcoal,
+    color: theme.text,
   },
   subtitle: {
     fontFamily: FontFamily.body,
@@ -242,7 +242,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   forgot: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.xs,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
   error: {
     fontFamily: FontFamily.body,
@@ -265,6 +265,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   footerLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
-    color: theme.brandGreen,
+    color: theme.primaryInk,
   },
 });
