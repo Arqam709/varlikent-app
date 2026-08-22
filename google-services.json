@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "167570824886",
+    "project_id": "varlikent-d0555",
+    "storage_bucket": "varlikent-d0555.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167570824886:android:b80c773bdefd2f28d09017",
+        "android_client_info": {
+          "package_name": "com.varlikent.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnerl3UDwDZNNvoM2zYb8fD-lf7K2uABI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
