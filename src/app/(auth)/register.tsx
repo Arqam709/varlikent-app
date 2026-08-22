@@ -11,27 +11,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 import Button from '@/components/ui/button';
 import TextField from '@/components/ui/text-field';
 import { FontFamily, FontSizes, Spacing } from '@/constants/theme';
-import { useLanguage } from '@/features/localization/language-context';
-import { useThemedStyles } from '@/features/theme/use-themed-styles';
-import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
+import { useLanguage } from '@/features/localization/language-context';
+import type { ThemePalette } from '@/features/theme/themes';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import { ApiError } from '@/services/api-client';
+import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 
-/**
- * REGISTER  →  route "/register"
- *
- * Same `(auth)` group as Login, so the group name is dropped from the URL.
- *
- * UI AND ROUTING ONLY. No API call, no token, no validation — the backend
- * enforces a 6-character minimum and the password match, and we will surface
- * those errors when the form is connected.
- *
- * Copy is taken verbatim from the website's locales/translations.js (`auth.*`).
- */
+
 export default function RegisterScreen() {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
@@ -52,16 +42,7 @@ export default function RegisterScreen() {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
 
-    /**
-     * Minimal client-side checks only. Two of them mirror backend rules so the
-     * user gets an instant answer instead of a round trip (6-char minimum,
-     * required fields); the third — password confirmation — is purely a
-     * client concern, because the backend never receives confirmPassword and
-     * so cannot check it.
-     *
-     * Real validation still belongs to the backend, and its messages are shown
-     * verbatim when they come back.
-     */
+  
     if (!trimmedName || !trimmedEmail || !password) {
       setErrorMessage(t('register.allFieldsRequired'));
       return;

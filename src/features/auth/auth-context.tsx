@@ -3,10 +3,20 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { ApiError } from '@/services/api-client';
 import type { SafeUser } from '@/types/user';
 import * as authApi from './auth-api';
+import { signInWithGoogleNative } from './google-signin';
 import { sanitizeUser } from './sanitize-user';
 import { getToken, removeToken, saveToken } from './token-storage';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
+/**
+ * What a Google sign-in attempt did.
+ *
+ * 'cancelled' is a first-class outcome rather than an error: backing out of the
+ * account sheet is a normal thing to do, and it must not surface as a failure
+ * banner. Callers navigate on 'signed-in' and do nothing at all on 'cancelled'.
+ */
+export type GoogleLoginOutcome = 'signed-in' | 'cancelled';
 
 type AuthContextValue = {
   user: SafeUser | null;
@@ -14,6 +24,19 @@ type AuthContextValue = {
   status: AuthStatus;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  /**
+   * Signs in with Google and adopts the resulting Varlikent session.
+   *
+   * Serves both Login and Register: Google authentication has no separate
+   * sign-up endpoint, because the backend's resolveGoogleUser() already finds,
+   * links or creates as appropriate. The user should never have to know which
+   * of those happened.
+   *
+   * Resolves 'cancelled' when the user dismisses the account sheet — no error,
+   * no request, no state change. Throws ApiError for backend rejections and
+   * GoogleSignInFailure for native/configuration problems.
+   */
+  loginWithGoogle: () => Promise<GoogleLoginOutcome>;
   logout: () => Promise<void>;
   /**
    * Replaces the signed-in user with a fresh copy returned by the server.
@@ -106,6 +129,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applySession]
   );
 
+  const loginWithGoogle = useCallback(async (): Promise<GoogleLoginOutcome> => {
+    const result = await signInWithGoogleNative();
+
+    if (result.type === 'cancelled') {
+      return 'cancelled';
+    }
+
+    /**
+     * The Google token's entire life is this one statement. It is passed to the
+     * backend, exchanged for a Varlikent JWT, and then goes out of scope — never
+     * stored, never held in state, never logged. Everything after this point is
+     * identical to an email/password sign-in.
+     */
+    const response = await authApi.googleLogin(result.idToken);
+    await applySession(response.token, response.user);
+
+    return 'signed-in';
+  }, [applySession]);
+
   const logout = useCallback(async () => {
     await removeToken().catch(() => {});
     setUser(null);
@@ -125,8 +167,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // useMemo keeps the context value referentially stable, so consumers do not
   // re-render on every provider render.
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, status, login, register, logout, applyUser }),
-    [user, token, status, login, register, logout, applyUser]
+    () => ({ user, token, status, login, register, loginWithGoogle, logout, applyUser }),
+    [user, token, status, login, register, loginWithGoogle, logout, applyUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

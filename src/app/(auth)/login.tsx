@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
+import GoogleSignInSection from '@/components/auth/google-sign-in-section';
 import Button from '@/components/ui/button';
 import TextField from '@/components/ui/text-field';
 import { FontFamily, FontSizes, Spacing } from '@/constants/theme';
@@ -152,9 +153,16 @@ export default function LoginScreen() {
               secure
               autoComplete="password"
               textContentType="password"
-              // Visual only for this step — /forgot-password does not exist yet,
-              // so it is plain Text rather than something that looks tappable.
-              labelAccessory={<Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>}
+              // Now a real link: /forgot-password exists as of Phase 6A.
+              // hitSlop widens the touch target without changing the label row.
+              labelAccessory={
+                <Pressable
+                  onPress={() => router.push('/forgot-password')}
+                  accessibilityRole="link"
+                  hitSlop={8}>
+                  <Text style={styles.forgot}>{t('auth.forgotPassword')}</Text>
+                </Pressable>
+              }
             />
 
             {/*
@@ -170,6 +178,16 @@ export default function LoginScreen() {
               onPress={handleSubmit}
               loading={submitting}
               loadingLabel="Signing In..."
+            />
+
+            {/*
+              Google shares this screen's single error slot and its navigation,
+              so the two ways in behave identically once authenticated.
+            */}
+            <GoogleSignInSection
+              disabled={submitting}
+              onError={setErrorMessage}
+              onSuccess={() => router.replace('/')}
             />
           </View>
 

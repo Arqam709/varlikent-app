@@ -49,6 +49,13 @@ type Props = {
   disabled?: boolean;
   /** Shown in place of `label` while loading, e.g. "Signing In...". */
   loadingLabel?: string;
+  /**
+   * Optional mark rendered before the label, e.g. a provider logo.
+   *
+   * Swapped out for the spinner while loading, so the row never shows both
+   * at once. Optional, so every existing call site is unaffected.
+   */
+  icon?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -60,6 +67,7 @@ export default function Button({
   loading = false,
   disabled = false,
   loadingLabel,
+  icon,
   style,
 }: Props) {
   const styles = useThemedStyles(makeStyles);
@@ -110,6 +118,7 @@ export default function Button({
             color={isPrimary || isOutlineLight ? theme.textOnDark : theme.brandGreen}
           />
         )}
+        {!loading && icon}
         <Text
           style={[
             styles.label,

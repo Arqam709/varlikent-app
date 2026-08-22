@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import FavouriteButton from '@/components/properties/favourite-button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
 import { bathsKey, bedsKey, listingBadgeKey } from '@/utils/property-labels';
@@ -53,6 +54,13 @@ export default function PropertyCard({ property, onPress }: Props) {
         <View style={[styles.badge, { backgroundColor: badgeColor }]}>
           <Text style={styles.badgeText}>{badgeLabel}</Text>
         </View>
+
+        {/*
+          Top-right, so it never collides with the left-edge listing badge. It
+          is positioned inside imageArea, which is what keeps it clipped to the
+          card's rounded corners.
+        */}
+        <FavouriteButton propertyId={property._id} />
       </View>
 
       <View style={styles.body}>

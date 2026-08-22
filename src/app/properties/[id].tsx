@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import FavouriteButton from '@/components/properties/favourite-button';
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { listingBadgeKey } from '@/utils/property-labels';
@@ -86,6 +87,15 @@ export default function PropertyDetailScreen() {
           <Ionicons name="chevron-back" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{t('propertyDetails.title')}</Text>
+
+        {/*
+          Rendered only once the property exists — the header is also on screen
+          during loading and error, when there is no id to favourite. flex on
+          the title pushes this to the trailing edge, which RTL mirrors for free.
+        */}
+        {property ? (
+          <FavouriteButton propertyId={property._id} variant="header" />
+        ) : null}
       </View>
 
       {loadState === 'loading' ? (
@@ -471,7 +481,11 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
+  /** Takes the slack so the favourite control sits at the trailing edge. */
   headerTitle: {
+    // Takes the slack in the header row, so the favourite control sits at the
+    // trailing edge. flex handles RTL without a direction-specific margin.
+    flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.md,
     color: theme.text,

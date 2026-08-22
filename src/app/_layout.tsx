@@ -12,6 +12,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import BrandSplash from '@/components/brand-splash';
 import { AuthProvider } from '@/features/auth/auth-context';
+import { FavouritesProvider } from '@/features/favourites/favourites-context';
+import { PushProvider } from '@/features/push/push-context';
 import { LanguageProvider } from '@/features/localization/language-context';
 import { RealtimeProvider } from '@/features/realtime/realtime-context';
 import { ThemeProvider, useTheme } from '@/features/theme/theme-context';
@@ -158,6 +160,11 @@ export default function RootLayout() {
                            themePreference when this device has no stored choice,
                            so it must be able to call useAuth().
         RealtimeProvider   depends on AUTH — needs the JWT to open its socket.
+        PushProvider       depends on AUTH — registers this device once a
+                           session exists, and releases it on sign-out.
+        FavouritesProvider depends on AUTH — seeds its id Set from
+                           user.favourites, which every auth response already
+                           carries, so it makes no request of its own.
 
       Theme and Realtime are siblings under Auth because neither needs the other;
       keeping them independent means a socket problem cannot affect theming, and
@@ -167,38 +174,42 @@ export default function RootLayout() {
     */
     <LanguageProvider>
       <AuthProvider>
-        <ThemeProvider>
-          <RealtimeProvider>
-        {/*
-          `headerShown: false` in screenOptions applies to EVERY screen in this
-          Stack — that is what removes the default "index" title bar. We turn it
-          off globally because Varlikent will have its own custom header and
-          bottom tabs; a screen that wants a native header can opt back in.
-        */}
-        <Stack screenOptions={{ headerShown: false }} />
-
-        {/*
-          The splash is rendered AFTER <Stack>, so it sits on top. The app mounts
-          and lays out underneath while the animation plays, meaning the fade-out
-          reveals a screen that is already rendered — no blank frame, no second
-          loading beat.
-
-          Once BrandSplash reports completion this whole element is removed from
-          the tree, so it costs nothing for the rest of the session.
-        */}
-        {!splashFinished && <BrandSplash onFinish={handleSplashFinish} />}
+        <PushProvider>
+          <FavouritesProvider>
+            <ThemeProvider>
+              <RealtimeProvider>
+            {/*
+              `headerShown: false` in screenOptions applies to EVERY screen in this
+              Stack — that is what removes the default "index" title bar. We turn it
+              off globally because Varlikent will have its own custom header and
+              bottom tabs; a screen that wants a native header can opt back in.
+            */}
+            <Stack screenOptions={{ headerShown: false }} />
 
             {/*
-              Status-bar icons follow the ACTIVE THEME, not the OS setting.
-              `'auto'` asks the system, which knows nothing about the palette we
-              painted — so Dark Luxury on a light-mode phone got dark icons on a
-              near-black bar, and vice versa. ThemedStatusBar reads `isDark` from
-              the theme instead. The splash keeps its fixed light icons because
-              its ground is near-black regardless of theme.
+              The splash is rendered AFTER <Stack>, so it sits on top. The app mounts
+              and lays out underneath while the animation plays, meaning the fade-out
+              reveals a screen that is already rendered — no blank frame, no second
+              loading beat.
+
+              Once BrandSplash reports completion this whole element is removed from
+              the tree, so it costs nothing for the rest of the session.
             */}
-            {splashFinished ? <ThemedStatusBar /> : <StatusBar style="light" />}
-          </RealtimeProvider>
-        </ThemeProvider>
+            {!splashFinished && <BrandSplash onFinish={handleSplashFinish} />}
+
+                {/*
+                  Status-bar icons follow the ACTIVE THEME, not the OS setting.
+                  `'auto'` asks the system, which knows nothing about the palette we
+                  painted — so Dark Luxury on a light-mode phone got dark icons on a
+                  near-black bar, and vice versa. ThemedStatusBar reads `isDark` from
+                  the theme instead. The splash keeps its fixed light icons because
+                  its ground is near-black regardless of theme.
+                */}
+                {splashFinished ? <ThemedStatusBar /> : <StatusBar style="light" />}
+              </RealtimeProvider>
+            </ThemeProvider>
+          </FavouritesProvider>
+        </PushProvider>
       </AuthProvider>
     </LanguageProvider>
   );

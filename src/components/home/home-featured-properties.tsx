@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
+import FavouriteButton from '@/components/properties/favourite-button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
@@ -157,6 +158,12 @@ function FeaturedCard({
         <View style={[styles.badge, { backgroundColor: badgeColor }]}>
           <Text style={styles.badgeText}>{badgeLabel}</Text>
         </View>
+
+        {/*
+          The SAME control as the Properties card — this card stays a separate
+          implementation for now, but its favourite behaviour is not duplicated.
+        */}
+        <FavouriteButton propertyId={property._id} />
       </View>
 
       <View style={styles.body}>

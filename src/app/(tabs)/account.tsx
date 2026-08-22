@@ -19,12 +19,9 @@ import { useTheme } from '@/features/theme/theme-context';
  *
  * ── Rows are only here when they lead somewhere real ────────────────────
  * Every row below has a working destination, verified against the backend and
- * the existing mobile routes. Three rows from the original design brief are
+ * the existing mobile routes. Two rows from the original design brief are
  * deliberately ABSENT rather than shipped as decoration:
  *
- *   My Favourites   — there is no favourites screen in the app yet. The data
- *                     exists on the User, but a row that navigates nowhere is
- *                     worse than no row.
  *   Notifications   — as a PREFERENCES screen. The backend stores no
  *                     notification preferences (only a list of new listings and
  *                     a last-seen timestamp), so there is nothing to toggle. The
@@ -135,6 +132,11 @@ export default function AccountScreen() {
         </SettingsSection>
 
         <SettingsSection title={t('account.sectionActivity')}>
+          <SettingsRow
+            label={t('favourites.title')}
+            icon="heart-outline"
+            onPress={() => router.push('/favourites')}
+          />
           <SettingsRow
             label={t('account.propertyAlerts')}
             icon="notifications-outline"

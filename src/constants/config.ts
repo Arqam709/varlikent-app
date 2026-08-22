@@ -63,3 +63,32 @@ export const REQUEST_TIMEOUT_MS = 60_000;
  * Nothing reads or writes it yet — that is Step 5.
  */
 export const AUTH_TOKEN_KEY = 'varlikent_auth_token';
+
+/**
+ * The Varlikent WEB/SERVER Google OAuth client ID.
+ *
+ * ── Why the WEB client, on an Android app ────────────────────────────────
+ * This is the counter-intuitive part of native Google Sign-In, and getting it
+ * wrong is the single most common way the flow fails. There are two Google
+ * OAuth clients involved on Android and they do different jobs:
+ *
+ *   Android client  binds `com.varlikent.app` + the signing SHA-1. It is how
+ *                   Google recognises the installed app as legitimate. It is
+ *                   never named in code and never sent anywhere.
+ *   Web/server      the audience the ID token is minted FOR. Passing it as
+ *                   Nitro's `webClientId` is what makes Google set `aud` to
+ *                   this value — which is exactly the client the backend
+ *                   already trusts as GOOGLE_CLIENT_ID for the website.
+ *
+ * So the mobile app deliberately reuses the website's client ID here. That is
+ * what lets one backend allowlist serve both, with no per-platform entry.
+ * Putting the ANDROID client ID here instead produces a DEVELOPER_ERROR from
+ * the native SDK.
+ *
+ * Public by nature — the website already serves the same value to every
+ * visitor — so EXPO_PUBLIC_ is appropriate despite Metro inlining it in clear
+ * text. There is deliberately NO fallback default: a wrong-but-present client
+ * ID would fail deep inside Google's SDK, whereas an empty one is caught up
+ * front by the sign-in wrapper and reported as a configuration problem.
+ */
+export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
