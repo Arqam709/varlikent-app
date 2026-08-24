@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { isActiveConversation } from './active-conversation';
+
 /**
  * NATIVE PUSH ADAPTER
  *
@@ -49,12 +51,31 @@ export type PushTokenResult =
  * twice.
  */
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data as
+      | { type?: string; conversationId?: string }
+      | undefined;
+
+    /**
+     * The one case where a banner would be wrong: a message notification for
+     * the thread already open in front of the user. Socket.IO has just
+     * rendered that message in the chat, so a banner would announce something
+     * they are reading.
+     *
+     * Suppressed only in the FOREGROUND — this handler does not run for a
+     * backgrounded or terminated app, so those notifications are unaffected.
+     * It is still listed in the tray, so nothing is lost.
+     */
+    const readingThisThread =
+      data?.type === 'message' && isActiveConversation(data.conversationId);
+
+    return {
+      shouldShowBanner: !readingThisThread,
+      shouldShowList: true,
+      shouldPlaySound: !readingThisThread,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 /**

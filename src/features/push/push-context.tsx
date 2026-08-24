@@ -33,6 +33,7 @@ import {
  */
 type PushData =
   | { type: 'test' }
+  | { type: 'message'; conversationId?: string; propertyId?: string }
   | { type: 'property_match'; propertyId?: string }
   | { type?: string; [key: string]: unknown };
 
@@ -117,7 +118,21 @@ export function PushProvider({ children }: { children: React.ReactNode }) {
     const handle = (data: PushData | undefined) => {
       if (!data) return;
 
-      // Phase 8B: navigate to the matched property. Guarded on the id so a
+      /**
+       * A reply from the agent opens the exact thread.
+       *
+       * Guarded on the id: a payload missing or mistyping conversationId is
+       * ignored rather than pushing a route with an undefined param, which
+       * would land on a screen that can only fail. The conversation screen
+       * still authorises the id against the session — a notification is a
+       * routing hint, never a grant.
+       */
+      if (data.type === 'message' && typeof data.conversationId === 'string') {
+        router.push({ pathname: '/messages/[id]', params: { id: data.conversationId } });
+        return;
+      }
+
+      // Phase 8C: navigate to the matched property. Guarded on the id so a
       // malformed payload cannot push a route with an undefined param.
       if (data.type === 'property_match' && typeof data.propertyId === 'string') {
         router.push({ pathname: '/properties/[id]', params: { id: data.propertyId } });

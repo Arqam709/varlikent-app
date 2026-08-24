@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,6 +22,7 @@ import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
+import { setActiveConversation } from '@/features/push/active-conversation';
 import {
   getPropertyConversation,
   getPropertyMessages,
@@ -56,6 +57,24 @@ export default function ConversationScreen() {
   const router = useRouter();
   const { user, token, status } = useAuth();
   const realtime = useRealtime();
+
+  /**
+   * Tells the push layer which thread is on screen.
+   *
+   * A message notification for THIS conversation is suppressed while it is
+   * visible, because Socket.IO has already rendered the message in the list —
+   * a banner would announce something the user is already reading. Cleared on
+   * blur, so navigating away restores normal banners immediately.
+   *
+   * Only affects the FOREGROUND: background and terminated notifications never
+   * reach the handler that consults this.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      setActiveConversation(id ?? null);
+      return () => setActiveConversation(null);
+    }, [id])
+  );
 
   const [conversation, setConversation] = useState<PropertyConversationDetail | null>(null);
   const [messages, setMessages] = useState<PropertyMessage[]>([]);
