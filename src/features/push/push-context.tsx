@@ -34,6 +34,7 @@ import {
 type PushData =
   | { type: 'test' }
   | { type: 'message'; conversationId?: string; propertyId?: string }
+  | { type: 'new_property'; propertyId?: string }
   | { type: 'property_match'; propertyId?: string }
   | { type?: string; [key: string]: unknown };
 
@@ -134,7 +135,16 @@ export function PushProvider({ children }: { children: React.ReactNode }) {
 
       // Phase 8C: navigate to the matched property. Guarded on the id so a
       // malformed payload cannot push a route with an undefined param.
-      if (data.type === 'property_match' && typeof data.propertyId === 'string') {
+      /**
+       * A newly listed property, and a saved-alert match, open the same screen.
+       * They are separate types because the notifications READ differently —
+       * one says a listing appeared, the other says it matches a saved search —
+       * and 8C.2 needs to tell them apart when deciding who gets which.
+       */
+      if (
+        (data.type === 'new_property' || data.type === 'property_match') &&
+        typeof data.propertyId === 'string'
+      ) {
         router.push({ pathname: '/properties/[id]', params: { id: data.propertyId } });
         return;
       }
