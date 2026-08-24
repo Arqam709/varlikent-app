@@ -49,6 +49,8 @@ export const tr: TranslationShape = {
   },
 
   propertyDetails: {
+    shareProperty: 'Mülkü paylaş',
+    shareCallToAction: "Varlikent'te görüntüle:",
     details: 'İlan detayları',
     features: 'Özellikler',
     listedBy: 'İlan sahibi',

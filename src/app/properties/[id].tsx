@@ -7,6 +7,7 @@ import {
     FlatList,
     Pressable,
     ScrollView,
+    Share,
     StyleSheet,
     Text,
     View,
@@ -18,6 +19,7 @@ import FavouriteButton from '@/components/properties/favourite-button';
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { listingBadgeKey } from '@/utils/property-labels';
+import { buildPropertyShareMessage, buildPropertyUrl } from '@/utils/property-share';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
@@ -69,6 +71,39 @@ export default function PropertyDetailScreen() {
     load();
   }, [load]);
 
+  /**
+   * Hands the listing to the OS share sheet.
+   *
+   * Shares an ordinary `https://www.varlikent.com/properties/<id>` URL, so the
+   * recipient lands on the app if they have it and the website if they do not —
+   * one link that works for everyone.
+   */
+  const handleShare = async () => {
+    const url = buildPropertyUrl(property?._id);
+
+    // The control is only rendered once a property has loaded, so this is a
+    // guard rather than an expected branch.
+    if (!property || !url) return;
+
+    try {
+      await Share.share({
+        message: buildPropertyShareMessage({
+          property,
+          url,
+          callToAction: t('propertyDetails.shareCallToAction'),
+        }),
+      });
+    } catch {
+      /**
+       * Dismissing the sheet is not an error on either platform — Android
+       * resolves with 'dismissedAction' and iOS simply resolves — so a
+       * rejection here means the sheet could not open at all. There is nothing
+       * the user can do about that, and interrupting a property they are
+       * reading with an alert would be worse than the silence.
+       */
+    }
+  };
+
   /** Back, with a fallback for the deep-link case where there is no history. */
   const handleBack = () => {
     if (router.canGoBack()) router.back();
@@ -90,11 +125,22 @@ export default function PropertyDetailScreen() {
 
         {/*
           Rendered only once the property exists — the header is also on screen
-          during loading and error, when there is no id to favourite. flex on
-          the title pushes this to the trailing edge, which RTL mirrors for free.
+          during loading and error, when there is no property to favourite or
+          share. flex on the title pushes these to the trailing edge, which RTL
+          mirrors for free.
         */}
         {property ? (
-          <FavouriteButton propertyId={property._id} variant="header" />
+          <>
+            <FavouriteButton propertyId={property._id} variant="header" />
+            <Pressable
+              onPress={handleShare}
+              accessibilityRole="button"
+              accessibilityLabel={t('propertyDetails.shareProperty')}
+              hitSlop={10}
+              style={styles.headerAction}>
+              <Ionicons name="share-social-outline" size={22} color={theme.text} />
+            </Pressable>
+          </>
         ) : null}
       </View>
 
@@ -481,9 +527,11 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     borderBottomColor: theme.border,
   },
   backButton: { padding: Spacing.xs },
-  /** Takes the slack so the favourite control sits at the trailing edge. */
+  /** Same padding as backButton, so the header's icons are optically even. */
+  headerAction: { padding: Spacing.xs },
+  /** Takes the slack so the header actions sit at the trailing edge. */
   headerTitle: {
-    // Takes the slack in the header row, so the favourite control sits at the
+    // Takes the slack in the header row, so the header actions sit at the
     // trailing edge. flex handles RTL without a direction-specific margin.
     flex: 1,
     fontFamily: FontFamily.bodySemiBold,

@@ -92,3 +92,23 @@ export const AUTH_TOKEN_KEY = 'varlikent_auth_token';
  * front by the sign-in wrapper and reported as a configuration problem.
  */
 export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '';
+
+/**
+ * The PUBLIC website, used to build links a customer will share.
+ *
+ * ── Why this is not derived from API_BASE_URL ────────────────────────────
+ * They answer different questions. `API_BASE_URL` is "where does this build
+ * talk to the backend", and it legitimately points at Render, at localhost, or
+ * at a LAN address like http://192.168.100.200:5000 during development.
+ * `WEB_BASE_URL` is "what address does a stranger open in a browser" — and a
+ * shared property link must work on somebody else's phone, on another network,
+ * possibly months later.
+ *
+ * Deriving one from the other would eventually put a developer's LAN IP into a
+ * WhatsApp message. So this is a constant with no environment override: there
+ * is exactly one correct public website, and a dev build sharing a link should
+ * still share the real one.
+ *
+ * No trailing slash — callers append a path beginning with `/`.
+ */
+export const WEB_BASE_URL = 'https://www.varlikent.com';

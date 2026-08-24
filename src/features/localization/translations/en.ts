@@ -56,6 +56,8 @@ export const en = {
   },
 
   propertyDetails: {
+    shareProperty: 'Share property',
+    shareCallToAction: 'View on Varlikent:',
     details: 'Property details',
     features: 'Features',
     listedBy: 'Listed by',

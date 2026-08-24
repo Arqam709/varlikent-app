@@ -55,6 +55,8 @@ export const ar: TranslationShape = {
   },
 
   propertyDetails: {
+    shareProperty: 'مشاركة العقار',
+    shareCallToAction: 'اعرضه على Varlikent:',
     details: 'تفاصيل العقار',
     features: 'المزايا',
     listedBy: 'مُدرج بواسطة',

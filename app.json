@@ -32,6 +32,11 @@
         {
           "scheme": "https",
           "host": "www.varlikent.com",
+          "pathPrefix": "/properties/"
+        },
+        {
+          "scheme": "https",
+          "host": "www.varlikent.com",
           "pathPrefix": "/reset-password"
         }
       ]
