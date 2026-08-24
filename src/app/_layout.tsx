@@ -160,8 +160,8 @@ export default function RootLayout() {
                            themePreference when this device has no stored choice,
                            so it must be able to call useAuth().
         RealtimeProvider   depends on AUTH — needs the JWT to open its socket.
-        PushProvider       depends on AUTH — registers this device once a
-                           session exists, and releases it on sign-out.
+        PushProvider       depends on AUTH — waits for session restore, then
+                           keeps the device anonymous or account-associated.
         FavouritesProvider depends on AUTH — seeds its id Set from
                            user.favourites, which every auth response already
                            carries, so it makes no request of its own.

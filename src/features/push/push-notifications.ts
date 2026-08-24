@@ -17,9 +17,9 @@ import { isActiveConversation } from './active-conversation';
  * conversation lives here, everything Varlikent-specific lives above it.
  *
  * ── Why nothing is cached on the device ──────────────────────────────────
- * The token is re-read on every authenticated launch and re-sent. Expo can
- * rotate it, and the backend upsert makes repetition free, so a local copy
- * could only ever go stale and be wrong in a way nothing would detect.
+ * The token is re-read on every app process and re-sent. Expo can rotate it,
+ * and the backend upsert makes repetition free, so durable local caching could
+ * only go stale. PushProvider keeps one in-memory copy across auth changes.
  */
 
 /** Why a registration attempt produced no token. */

@@ -13,6 +13,23 @@ import type { MessageResponse } from '@/types/api';
 type PushDeviceResponse = Pick<MessageResponse, 'success'>;
 
 /**
+ * Registers public push capability without attaching an account.
+ *
+ * There is deliberately no JWT and no user id. The backend may create or
+ * refresh an anonymous row, but it will not detach a token already owned by an
+ * authenticated account merely because an anonymous caller knows the token.
+ */
+export function registerAnonymousPushDevice(
+  expoPushToken: string,
+  platform: 'android' | 'ios'
+): Promise<PushDeviceResponse> {
+  return apiRequest<PushDeviceResponse>('/push/devices/anonymous', {
+    method: 'POST',
+    body: { token: expoPushToken, platform },
+  });
+}
+
+/**
  * Registers this installation for push.
  *
  * Idempotent server-side (upsert keyed on the token), so calling it on every
@@ -33,12 +50,12 @@ export function registerPushDevice(
 }
 
 /**
- * Stops notifications for this installation.
+ * Detaches personal ownership while preserving public notifications.
  *
  * Called while the user is still authenticated — it needs their JWT to prove
  * ownership, so it must run BEFORE the session is cleared on sign-out.
  */
-export function unregisterPushDevice(
+export function detachPushDevice(
   token: string,
   expoPushToken: string
 ): Promise<PushDeviceResponse> {

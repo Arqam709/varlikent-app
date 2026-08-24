@@ -2,7 +2,11 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
 import { useAuth } from '@/features/auth/auth-context';
-import { registerPushDevice, unregisterPushDevice } from './push-api';
+import {
+  detachPushDevice,
+  registerAnonymousPushDevice,
+  registerPushDevice,
+} from './push-api';
 import {
   addNotificationResponseListener,
   getLastNotificationResponse,
@@ -17,11 +21,9 @@ import {
  * being scattered through screens.
  *
  * ── Why registration is keyed on the account ─────────────────────────────
- * A push token belongs to a phone; a registration belongs to a person. When the
- * account changes, the same token has to be re-registered so it points at the
- * new user — otherwise the previous account keeps receiving notifications on a
- * device somebody else is now holding. The backend upsert reassigns ownership,
- * so this side only has to notice that the account changed.
+ * A push token belongs to an installation and remains useful while signed out.
+ * Its optional backend user association is what enables PERSONAL pushes. Auth
+ * changes therefore update ownership without regenerating the Expo token.
  */
 
 /**
@@ -42,72 +44,68 @@ export function PushProvider({ children }: { children: React.ReactNode }) {
   const { status, token } = useAuth();
   const router = useRouter();
 
-  /**
-   * The Expo token this session registered, kept so sign-out can deregister
-   * exactly it. Held in a ref rather than state because nothing renders from
-   * it and a change must not cause a re-render.
-   */
-  const registeredTokenRef = useRef<string | null>(null);
+  /** One native-token read per app process; auth changes reuse this value. */
+  const deviceRef = useRef<{
+    token: string;
+    platform: 'android' | 'ios';
+  } | null>(null);
 
-  /** Which JWT the current registration was made with. */
-  const registeredForTokenRef = useRef<string | null>(null);
+  /**
+   * JWTs that may own the token server-side.
+   *
+   * A request can reach the server and then lose its response. Keeping every
+   * attempted association lets logout detach whichever account actually won,
+   * without accepting an unsafe unauthenticated detach endpoint.
+   */
+  const associationJwtCandidatesRef = useRef(new Set<string>());
+
+  /** Serializes auth transitions so an old login cannot finish after logout. */
+  const syncQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
-    let cancelled = false;
+    // Session restoration must finish before deciding whether this is an
+    // anonymous or account-linked registration.
+    if (status === 'loading') return;
 
-    /**
-     * Signed out: release the device, using the JWT we still hold from the
-     * previous session. Ordering matters — once AuthContext clears the token
-     * there is nothing left to prove ownership with, so the attempt is made
-     * here, on the transition, and simply skipped if it is already too late.
-     */
-    if (status !== 'authenticated' || !token) {
-      const expoToken = registeredTokenRef.current;
-      const previousJwt = registeredForTokenRef.current;
+    const requestedStatus = status;
+    const requestedJwt = token;
 
-      registeredTokenRef.current = null;
-      registeredForTokenRef.current = null;
+    syncQueueRef.current = syncQueueRef.current
+      .catch(() => {})
+      .then(async () => {
+        let device = deviceRef.current;
+        if (!device) {
+          const result = await getPushToken();
+          if (result.type !== 'token') return;
+          device = { token: result.token, platform: result.platform };
+          deviceRef.current = device;
+        }
 
-      if (expoToken && previousJwt) {
-        // Failure is silently acceptable: the backend also deactivates a token
-        // the moment Expo reports it undeliverable, so a missed deregistration
-        // self-corrects rather than notifying the wrong person forever.
-        unregisterPushDevice(previousJwt, expoToken).catch(() => {});
-      }
-      return;
-    }
+        if (requestedStatus === 'authenticated' && requestedJwt) {
+          associationJwtCandidatesRef.current.add(requestedJwt);
+          await registerPushDevice(requestedJwt, device.token, device.platform);
+          return;
+        }
 
-    // Same account, already registered — nothing to do. Without this the effect
-    // would re-register on every unrelated auth re-render.
-    if (registeredForTokenRef.current === token) return;
+        // Queue ordering guarantees every prior association attempt has
+        // settled before detach starts. The JWT value is retained in this ref
+        // even though AuthContext has already removed it from SecureStore.
+        for (const jwt of [...associationJwtCandidatesRef.current]) {
+          try {
+            await detachPushDevice(jwt, device.token);
+            associationJwtCandidatesRef.current.delete(jwt);
+          } catch {
+            // Keep the candidate for a later auth transition. Push lifecycle
+            // failures never block logout or make the app unusable.
+          }
+        }
 
-    const register = async () => {
-      const result = await getPushToken();
-
-      if (cancelled || result.type !== 'token') return;
-
-      try {
-        await registerPushDevice(token, result.token, result.platform);
-        if (cancelled) return;
-
-        registeredTokenRef.current = result.token;
-        registeredForTokenRef.current = token;
-      } catch {
-        /**
-         * Push is an enhancement, never a gate. A failed registration must not
-         * surface an error over a screen the user opened for another reason,
-         * and must not block sign-in — it is simply retried on the next launch.
-         */
-      }
-    };
-
-    register();
-
-    return () => {
-      cancelled = true;
-    };
+        await registerAnonymousPushDevice(device.token, device.platform);
+      })
+      .catch(() => {
+        // Push is an enhancement, never a gate for startup, login or logout.
+      });
   }, [status, token]);
-
   /**
    * Where a tapped notification goes.
    *
