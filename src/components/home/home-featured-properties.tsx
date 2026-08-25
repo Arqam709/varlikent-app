@@ -29,7 +29,7 @@ const MAX_CARDS = 6;
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function HomeFeaturedProperties() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function HomeFeaturedProperties() {
 
   return (
     <View style={styles.section}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <View style={styles.headerText}>
           {/* "Handpicked" is the website's own label for this section. */}
           <Text style={styles.eyebrow}>{t('home.featuredEyebrow')}</Text>
@@ -72,7 +72,7 @@ export default function HomeFeaturedProperties() {
         <Pressable
           onPress={() => router.push('/properties')}
           accessibilityRole="button"
-          accessibilityLabel="View all properties"
+          accessibilityLabel={t('home.viewAllPropertiesA11y')}
           hitSlop={8}>
           <Text style={styles.viewAll}>{t('home.viewAll')}</Text>
         </Pressable>

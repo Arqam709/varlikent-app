@@ -256,6 +256,13 @@ export const tr: TranslationShape = {
   },
 
   home: {
+    notificationsWithCount: 'Bildirimler, {count} yeni',
+    searchA11y: 'Mülk ara. Mülk listesini açar.',
+    viewAllPropertiesA11y: 'Tüm mülkleri görüntüle',
+    statPropertiesA11y: '500’den fazla mülk',
+    statYearsA11y: '10 yıldan fazla',
+    statDistrictsA11y: '40’tan fazla ilçe',
+    statSatisfactionA11y: 'yüzde 98 memnuniyet',
     heroEyebrow: 'İstanbul · Gayrimenkul',
     buyTitle: 'Ev Satın Alın',
     buySubtitle: 'Satılık ilanları keşfedin',

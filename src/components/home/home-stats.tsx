@@ -45,24 +45,24 @@ type Stat = {
  * import and freeze whichever language happened to be active, which is the
  * same class of bug as a module-level themed StyleSheet.
  */
-const STAT_FIGURES: { value: string; key: string; a11yLabel: string }[] = [
-  { value: '500+', key: 'home.statProperties', a11yLabel: '500 plus properties' },
-  { value: '10+', key: 'home.statYears', a11yLabel: '10 plus years' },
-  { value: '40+', key: 'home.statDistricts', a11yLabel: '40 plus districts' },
-  { value: '98%', key: 'home.statSatisfaction', a11yLabel: '98 percent satisfaction' },
+const STAT_FIGURES: { value: string; key: string; a11yKey: string }[] = [
+  { value: '500+', key: 'home.statProperties', a11yKey: 'home.statPropertiesA11y' },
+  { value: '10+', key: 'home.statYears', a11yKey: 'home.statYearsA11y' },
+  { value: '40+', key: 'home.statDistricts', a11yKey: 'home.statDistrictsA11y' },
+  { value: '98%', key: 'home.statSatisfaction', a11yKey: 'home.statSatisfactionA11y' },
 ];
 
 export default function HomeStats() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
 
   const STATS: Stat[] = STAT_FIGURES.map((figure) => ({
     value: figure.value,
     label: t(figure.key),
-    a11yLabel: figure.a11yLabel,
+    a11yLabel: t(figure.a11yKey),
   }));
   return (
-    <View style={styles.strip}>
+    <View style={[styles.strip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       {STATS.map((stat) => (
         /**
          * `accessible` collapses the number and its caption into ONE

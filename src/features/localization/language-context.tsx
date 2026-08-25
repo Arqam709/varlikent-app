@@ -17,16 +17,49 @@ if (NATIVE_RTL_AT_LAUNCH) {
 
 export type LanguageCode = 'en' | 'tr' | 'ar';
 
-/** The three languages the website offers, in the order the picker shows them. */
-export const LANGUAGES: { code: LanguageCode; label: string; englishLabel: string }[] = [
-  { code: 'en', label: 'English', englishLabel: 'English' },
-  { code: 'tr', label: 'Türkçe', englishLabel: 'Turkish' },
-  { code: 'ar', label: 'العربية', englishLabel: 'Arabic' },
+/**
+ * Everything the app knows about one language.
+ *
+ * `label` is the language's own name for itself and `englishLabel` is for
+ * screen readers, which announce the current UI language's voice — "العربية"
+ * read aloud by an English voice is noise.
+ */
+export type LanguageMeta = {
+  code: LanguageCode;
+  label: string;
+  englishLabel: string;
+  /**
+   * Whether this language reads right-to-left.
+   *
+   * Lives here rather than in a separate list on purpose. A parallel
+   * `RTL_LANGUAGES` array is a second place to remember, and the failure mode is
+   * silent: adding Urdu would give a correct picker entry and a
+   * left-to-right layout. Kept beside the language it describes, the two
+   * cannot drift.
+   */
+  rtl: boolean;
+};
+
+/** The languages this build offers, in the order the picker shows them. */
+export const LANGUAGES: LanguageMeta[] = [
+  { code: 'en', label: 'English', englishLabel: 'English', rtl: false },
+  { code: 'tr', label: 'Türkçe', englishLabel: 'Turkish', rtl: false },
+  { code: 'ar', label: 'العربية', englishLabel: 'Arabic', rtl: true },
 ];
 
 const BUNDLES: Record<LanguageCode, TranslationShape> = { en, tr, ar };
 
-const RTL_LANGUAGES: LanguageCode[] = ['ar'];
+/**
+ * The registry entry for a language code.
+ *
+ * Falls back to the first entry rather than returning undefined: every caller
+ * wants a direction and a label, and there is no useful "unknown language"
+ * rendering. `language` is a `LanguageCode`, so the fallback is unreachable in
+ * practice — it exists so this returns a value rather than a maybe.
+ */
+export function getLanguageMeta(code: LanguageCode): LanguageMeta {
+  return LANGUAGES.find((entry) => entry.code === code) ?? LANGUAGES[0];
+}
 
 type LanguageContextValue = {
   language: LanguageCode;
@@ -36,9 +69,10 @@ type LanguageContextValue = {
   /**
    * Whether the SELECTED language reads right-to-left.
    *
-   * Derived purely from `language` — never from I18nManager, which is pinned to
-   * LTR. This is the single source of truth for direction, so the rendered
-   * layout and the chosen language cannot disagree.
+   * Derived from the LANGUAGES registry entry for `language` — never from
+   * I18nManager, which is pinned to LTR. The registry is the single source of
+   * truth for direction, so the rendered layout and the chosen language cannot
+   * disagree.
    */
   isRTL: boolean;
   /**
@@ -121,7 +155,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     [language]
   );
 
-  const isRTL = RTL_LANGUAGES.includes(language);
+  // Derived from the registry, so the picker and the layout can never
+  // disagree about which languages read right-to-left.
+  const isRTL = getLanguageMeta(language).rtl;
 
   const value = useMemo<LanguageContextValue>(
     () => ({

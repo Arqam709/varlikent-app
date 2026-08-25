@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/constants/config';
+import type { SharedThemeId } from '@/features/theme/theme-contract';
 import { ApiError, apiRequest } from '@/services/api-client';
 import type { SafeUser } from '@/types/user';
 
@@ -24,7 +25,18 @@ export async function updatePassword(
   await apiRequest('/users/me/password', { method: 'PUT', token, body: input });
 }
 
-export async function updateThemePreference(token: string, theme: string): Promise<void> {
+/**
+ * Stores the account's theme preference.
+ *
+ * Typed to `SharedThemeId`, not `string`: the endpoint validates against the
+ * canonical eight and returns 400 for anything else, so a local-only mobile id
+ * reaching here is a bug that should be caught at compile time rather than
+ * swallowed at runtime. Translate with `toSharedThemeId` before calling.
+ */
+export async function updateThemePreference(
+  token: string,
+  theme: SharedThemeId
+): Promise<void> {
   await apiRequest('/users/me/theme', { method: 'PUT', token, body: { theme } });
 }
 

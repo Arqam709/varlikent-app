@@ -3,37 +3,41 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from '@/features/auth/auth-context';
 import { readStoredTheme, writeStoredTheme } from '@/features/preferences/preferences-storage';
 import { updateThemePreference } from '@/features/account/account-api';
+import { fromSharedThemeId, toSharedThemeId } from './theme-contract';
 import { THEMES, THEME_META, toThemeId, type ThemeId, type ThemePalette } from './themes';
 
 /**
  * The active Varlikent theme.
  *
  * ── Persistence: device-local, mirrored to the account ──────────────────
- * This is the same two-place strategy the website uses, and it was chosen after
- * reading how the website actually behaves:
+ * The website reads `localStorage.getItem('vk_theme')` for its initial value,
+ * and on change writes BOTH localStorage and `PUT /api/users/me/theme`
+ * (→ `User.themePreference`).
  *
- *   ThemeContext.jsx reads `localStorage.getItem('vk_theme')` for its initial
- *   value, and on change writes BOTH localStorage and
- *   `PUT /api/users/me/theme` (→ `User.themePreference`).
+ * It ALSO reads that field back: `ThemeContext.jsx` applies
+ * `user.themePreference` once per signed-in user and overwrites its own
+ * localStorage with it. The field is therefore authoritative on the website at
+ * login, and a value written from a phone really does reach the browser.
  *
- * Notably the website WRITES `themePreference` but never reads it back — its
- * initial value comes from localStorage only. So the server field exists and is
- * kept current, but nothing yet treats it as authoritative.
- *
- * Mobile mirrors that exactly:
+ * Mobile's own precedence:
  *   • AsyncStorage is authoritative for THIS DEVICE, and is read first so the
  *     app opens in the right theme with no flash.
- *   • `PUT /users/me/theme` is still called, so the account record stays
- *     consistent with what the customer chose and the field does not rot.
+ *   • `PUT /users/me/theme` is called on change, so the account record stays
+ *     consistent with what the customer chose.
  *   • `user.themePreference` is used only as a FALLBACK, when this device has no
  *     stored choice yet — so a returning customer's account preference greets
  *     them on a fresh install, without a phone silently overriding a deliberate
  *     choice made on this device.
  *
- * ── Does changing the theme on mobile change it on the website? ──────────
- * Not today, because the website never reads the field. If it is ever changed
- * to read `themePreference`, the two would converge automatically — which is
- * the behaviour the field name implies. Deliberately no schema change here.
+ * ── The two vocabularies ────────────────────────────────────────────────
+ * Mobile's local ids are NOT what the server stores. The backend validates
+ * against eight canonical website ids and rejects anything else with a 400 —
+ * which is exactly what used to happen to `classic`, `dark` and `light` on
+ * every single sync, invisibly, because the failure is swallowed by design.
+ *
+ * Every crossing of that boundary now goes through theme-contract.ts, and a
+ * theme with no honest shared equivalent (Dark Luxury) is simply not synced
+ * rather than being reported to the account as something it is not.
  */
 
 type ThemeContextValue = {
@@ -91,7 +95,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready || hasDeviceChoiceRef.current || !user) return;
 
-    const fromAccount = toThemeId(user.themePreference);
+    /*
+     * The stored value speaks the CANONICAL vocabulary, so it is translated
+     * rather than merely validated. `null` means this build has no palette for
+     * the customer's account theme (one of the six not yet ported) — the
+     * current theme is then deliberately left alone and nothing is written to
+     * storage, so their real preference survives on the server untouched until
+     * Phase 10F can honour it.
+     */
+    const fromAccount = fromSharedThemeId(user.themePreference);
     if (fromAccount) setThemeId(fromAccount);
   }, [ready, user]);
 
@@ -111,9 +123,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
        * has already changed on screen and been saved locally, so a failed sync
        * (offline, Render asleep) must not surface an error for an action that
        * visibly succeeded.
+       *
+       * `shared` is null for a mobile-only theme, and then NO request is made at
+       * all. That is the intended outcome rather than a skipped error path: the
+       * previous account preference is left standing, which is more honest than
+       * overwriting it with a palette the customer is not looking at.
        */
-      if (token) {
-        updateThemePreference(token, next).catch(() => {});
+      const shared = toSharedThemeId(next);
+
+      if (token && shared) {
+        updateThemePreference(token, shared).catch(() => {});
       }
     },
     [token]

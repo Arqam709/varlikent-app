@@ -12,6 +12,7 @@ import HomeFeaturedProperties from '@/components/home/home-featured-properties';
 import HomeHero from '@/components/home/home-hero';
 import HomeServicesPreview from '@/components/home/home-services-preview';
 import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -23,6 +24,7 @@ import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 export default function HomeScreen() {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const router = useRouter();
   const { status, token } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -64,8 +66,8 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}>
         {/* ── Brand header ─────────────────────────────────────────── */}
-        <View style={styles.header}>
-          <View style={styles.brand}>
+        <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.brand, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <VarlikentIcon width={26} height={24} />
             <Text style={styles.wordmark}>VARLIKENT</Text>
           </View>
@@ -73,7 +75,9 @@ export default function HomeScreen() {
             onPress={() => router.push('/notifications')}
             accessibilityRole="button"
             accessibilityLabel={
-              unreadCount > 0 ? `Notifications, ${unreadCount} new` : 'Notifications'
+              unreadCount > 0
+                ? t('home.notificationsWithCount', { count: String(unreadCount) })
+                : t('home.notifications')
             }
             hitSlop={10}
             style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}>

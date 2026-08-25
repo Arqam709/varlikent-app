@@ -262,6 +262,13 @@ export const ar: TranslationShape = {
   },
 
   home: {
+    notificationsWithCount: 'الإشعارات، {count} جديدة',
+    searchA11y: 'ابحث عن العقارات. يفتح قائمة العقارات.',
+    viewAllPropertiesA11y: 'عرض جميع العقارات',
+    statPropertiesA11y: 'أكثر من 500 عقار',
+    statYearsA11y: 'أكثر من 10 سنوات',
+    statDistrictsA11y: 'أكثر من 40 منطقة',
+    statSatisfactionA11y: 'رضا بنسبة 98 بالمئة',
     heroEyebrow: 'إسطنبول · عقارات',
     buyTitle: 'اشترِ منزلاً',
     buySubtitle: 'تصفّح العقارات للبيع',

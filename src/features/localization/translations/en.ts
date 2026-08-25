@@ -263,6 +263,13 @@ export const en = {
   },
 
   home: {
+    notificationsWithCount: 'Notifications, {count} new',
+    searchA11y: 'Search properties. Opens the properties list.',
+    viewAllPropertiesA11y: 'View all properties',
+    statPropertiesA11y: '500 plus properties',
+    statYearsA11y: '10 plus years',
+    statDistrictsA11y: '40 plus districts',
+    statSatisfactionA11y: '98 percent satisfaction',
     heroEyebrow: 'Istanbul · Real Estate',
     buyTitle: 'Buy a Home',
     buySubtitle: 'Explore properties for sale',

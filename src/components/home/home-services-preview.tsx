@@ -10,7 +10,7 @@ import type { ThemePalette } from '@/features/theme/themes';
 import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function HomeServicesPreview() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -21,7 +21,11 @@ export default function HomeServicesPreview() {
       <Text style={styles.heading}>{t('home.beyondRealEstate')}</Text>
       <Text style={styles.intro}>{t(SERVICES_INTRO_KEY)}</Text>
 
-      <View style={styles.grid}>
+      {/*
+        Reversed as a LAYOUT concern, not a data one: SERVICES keeps its order,
+        but a wrapped grid should begin on the side the reader starts from.
+      */}
+      <View style={[styles.grid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         {SERVICES.map((service) => (
           <Pressable
             key={service.id}
@@ -41,9 +45,18 @@ export default function HomeServicesPreview() {
         onPress={() => router.push('/services')}
         accessibilityRole="button"
         accessibilityLabel={t('home.viewAllServices')}
-        style={({ pressed }) => [styles.viewAll, pressed && styles.viewAllPressed]}>
+        style={({ pressed }) => [
+          styles.viewAll,
+          { flexDirection: isRTL ? 'row-reverse' : 'row' },
+          pressed && styles.viewAllPressed,
+        ]}>
         <Text style={styles.viewAllText}>{t('home.viewAllServices')}</Text>
-        <Ionicons name="arrow-forward" size={16} color={theme.primaryInk} />
+        {/* Directional: this arrow means "onward", which flips with the script. */}
+        <Ionicons
+          name={isRTL ? 'arrow-back' : 'arrow-forward'}
+          size={16}
+          color={theme.primaryInk}
+        />
       </Pressable>
     </View>
   );

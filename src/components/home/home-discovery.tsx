@@ -26,7 +26,7 @@ import type { ThemePalette } from '@/features/theme/themes';
  * focused — a one-line change from here.
  */
 export default function HomeDiscovery() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -44,10 +44,16 @@ export default function HomeDiscovery() {
       <Pressable
         onPress={() => router.push('/properties')}
         accessibilityRole="button"
-        accessibilityLabel="Search properties. Opens the properties list."
-        style={({ pressed }) => [styles.searchBar, pressed && styles.searchBarPressed]}>
+        accessibilityLabel={t('home.searchA11y')}
+        style={({ pressed }) => [
+          styles.searchBar,
+          { flexDirection: isRTL ? 'row-reverse' : 'row' },
+          pressed && styles.searchBarPressed,
+        ]}>
         <Ionicons name="search" size={18} color={theme.textMuted} />
-        <Text style={styles.searchText}>{t('home.searchPlaceholder')}</Text>
+        <Text style={[styles.searchText, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {t('home.searchPlaceholder')}
+        </Text>
       </Pressable>
 
       {/*
@@ -91,6 +97,7 @@ function QuickAction({
 }) {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   return (
     <Pressable
       onPress={onPress}
@@ -98,18 +105,31 @@ function QuickAction({
       // Both title and subtitle in one label, so the destination is announced
       // as a single intent rather than two disconnected fragments.
       accessibilityLabel={`${title}. ${subtitle}.`}
-      style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}>
+      style={({ pressed }) => [
+        styles.action,
+        { flexDirection: isRTL ? 'row-reverse' : 'row' },
+        pressed && styles.actionPressed,
+      ]}>
       <View style={styles.actionIcon}>
         <Ionicons name={icon} size={20} color={theme.primaryInk} />
       </View>
 
       {/* `flex: 1` lets the text block absorb the row and wrap if it must. */}
       <View style={styles.actionText}>
-        <Text style={styles.actionTitle}>{title}</Text>
-        <Text style={styles.actionSubtitle}>{subtitle}</Text>
+        <Text style={[styles.actionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {title}
+        </Text>
+        <Text style={[styles.actionSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          {subtitle}
+        </Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+      {/* Directional: the chevron points the way the language reads. */}
+      <Ionicons
+        name={isRTL ? 'chevron-back' : 'chevron-forward'}
+        size={18}
+        color={theme.textMuted}
+      />
     </Pressable>
   );
 }
