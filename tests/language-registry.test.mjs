@@ -92,6 +92,8 @@ const I18nManager = {
 /* ── Module under test ───────────────────────────────────────────────── */
 
 let stored = null
+let storedSource = null
+let storedTheme = null
 let mod
 let bundles = {}
 
@@ -101,15 +103,42 @@ before(() => {
     bundles[code] = m[code] ?? m.default
   }
 
+  /*
+   * The REAL Phase 10C bootstrap, wired to scripted storage.
+   *
+   * Using the real module rather than a stub keeps these tests honest about
+   * how the provider actually obtains its language. The device locale is
+   * pinned to en-US so that a fresh-install path resolves predictably on any
+   * machine running the suite.
+   */
+  const preferences = {
+    readStoredLanguage: async () => stored,
+    readStoredLanguageSource: async () => storedSource,
+    readStoredTheme: async () => storedTheme,
+    writeStoredLanguage: async () => {},
+    writeStoredLanguageSource: async () => {},
+  }
+
+  const deviceLocaleModule = load('src/features/localization/device-locale.ts', {
+    'react-native': { I18nManager },
+  })
+
+  const bootstrap = load('src/features/localization/language-bootstrap.ts', {
+    '@/features/auth/token-storage': { getToken: async () => null },
+    '@/features/preferences/preferences-storage': preferences,
+    './device-locale': {
+      getRawDeviceLocale: () => 'en-US',
+      resolveSupportedLanguage: deviceLocaleModule.resolveSupportedLanguage,
+    },
+  })
+
   mod = load(
     'src/features/localization/language-context.tsx',
     {
       react: React,
       'react-native': { I18nManager },
-      '@/features/preferences/preferences-storage': {
-        readStoredLanguage: async () => stored,
-        writeStoredLanguage: async () => {},
-      },
+      './language-bootstrap': bootstrap,
+      '@/features/preferences/preferences-storage': preferences,
       './translations/en': load('src/features/localization/translations/en.ts'),
       './translations/tr': load('src/features/localization/translations/tr.ts'),
       './translations/ar': load('src/features/localization/translations/ar.ts'),
@@ -122,6 +151,8 @@ beforeEach(() => {
   slots = []
   captured = null
   stored = null
+  storedSource = null
+  storedTheme = null
   i18nManagerCalls = []
 })
 

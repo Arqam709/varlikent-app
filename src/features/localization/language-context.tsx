@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { I18nManager } from 'react-native';
 
-import { readStoredLanguage, writeStoredLanguage } from '@/features/preferences/preferences-storage';
+import { writeStoredLanguage, writeStoredLanguageSource } from '@/features/preferences/preferences-storage';
+import { resolveInitialLanguage } from './language-bootstrap';
 import { ar } from './translations/ar';
 import { en, type TranslationShape } from './translations/en';
 import { tr } from './translations/tr';
@@ -113,18 +114,26 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>('en');
   const [ready, setReady] = useState(false);
 
-  // Restore the saved language before the first paint the user can see. The
-  // splash covers startup, so this normally resolves behind it.
+  /*
+   * Settle on a language before the first paint the user can see.
+   *
+   * For a returning customer this costs two parallel AsyncStorage reads
+   * (language and its source) instead of the previous one, and nothing else —
+   * `resolveInitialLanguage` answers from the stored value without touching
+   * SecureStore or the locale APIs. The extra evidence checks happen only on
+   * the single launch that has no stored language, and the branded splash is
+   * still covering the screen while they run.
+   *
+   * It cannot reject: storage failures resolve to null by design and locale
+   * detection is fully guarded, so the worst case is English.
+   */
   useEffect(() => {
     let cancelled = false;
 
-    readStoredLanguage().then((stored) => {
+    resolveInitialLanguage({ supported: LANGUAGES, fallback: 'en' }).then(({ language: next }) => {
       if (cancelled) return;
 
-      if (stored === 'en' || stored === 'tr' || stored === 'ar') {
-        setLanguageState(stored);
-      }
-
+      setLanguageState(next);
       setReady(true);
     });
 
@@ -142,7 +151,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
    */
   const setLanguage = useCallback(async (next: LanguageCode) => {
     setLanguageState(next);
+
     await writeStoredLanguage(next);
+
+    /*
+     * Marking the choice as the customer's is what makes it permanent. From
+     * here the phone's own language is never consulted again on this install —
+     * someone who deliberately switched a Turkish phone to English must not
+     * find Turkish waiting for them at the next launch.
+     */
+    await writeStoredLanguageSource('user');
   }, []);
 
   const t = useCallback(

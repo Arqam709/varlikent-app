@@ -18,6 +18,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 
 const LANGUAGE_KEY = 'varlikent_language';
+/**
+ * How the current language was chosen — see `LanguageSource`.
+ *
+ * Its ABSENCE is meaningful: it marks an installation from before language
+ * initialisation existed, which is what lets a pre-existing customer be held at
+ * English instead of being switched to their phone's language by an update.
+ */
+const LANGUAGE_SOURCE_KEY = 'varlikent_language_source';
 const THEME_KEY = 'varlikent_theme';
 
 async function read(key: string): Promise<string | null> {
@@ -38,6 +46,10 @@ async function write(key: string, value: string): Promise<void> {
 
 export const readStoredLanguage = () => read(LANGUAGE_KEY);
 export const writeStoredLanguage = (value: string) => write(LANGUAGE_KEY, value);
+
+export const readStoredLanguageSource = () => read(LANGUAGE_SOURCE_KEY);
+export const writeStoredLanguageSource = (value: string) =>
+  write(LANGUAGE_SOURCE_KEY, value);
 
 export const readStoredTheme = () => read(THEME_KEY);
 export const writeStoredTheme = (value: string) => write(THEME_KEY, value);
