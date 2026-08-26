@@ -49,7 +49,7 @@ const PROPERTY_TYPES: PropertyType[] = [
 const BED_OPTIONS = [1, 2, 3, 4, 5];
 
 export default function EditAlertScreen() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -170,14 +170,18 @@ export default function EditAlertScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <Ionicons
+            name={isRTL ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={theme.text}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>{isEditing ? 'Edit Alert' : 'New Alert'}</Text>
       </View>

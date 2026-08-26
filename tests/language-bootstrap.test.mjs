@@ -34,7 +34,7 @@ const load = (relative, imports = {}) => {
 }
 
 /** The registry, as the provider passes it. */
-const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }, { code: 'ru' }]
+const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }, { code: 'ru' }, { code: 'ur' }]
 
 /* ── Scripted device ─────────────────────────────────────────────────── */
 
@@ -187,8 +187,45 @@ test('4f. a manual Russian choice survives a Russian-phone restart', async () =>
   assert.deepEqual(await boot(), { language: 'en', source: 'user' })
 })
 
+test('4g. fresh + Urdu phone starts in Urdu, every region', async () => {
+  for (const locale of ['ur-PK', 'ur_PK', 'ur-IN', 'ur']) {
+    store = {}
+    deviceLocale = locale
+
+    const result = await boot()
+
+    assert.deepEqual(result, { language: 'ur', source: 'device' }, locale)
+    assert.equal(store.language, 'ur')
+    assert.equal(store.source, 'device')
+  }
+})
+
+test('4h. an existing install is NOT moved to Urdu now that Urdu exists', async () => {
+  // A Pakistani customer who has been using the app in English since before
+  // Urdu shipped must still open it in English.
+  store = { language: 'en', source: 'device' }
+  deviceLocale = 'ur-PK'
+  assert.deepEqual(await boot(), { language: 'en', source: 'device' })
+
+  store = { language: 'en', source: 'user' }
+  deviceLocale = 'ur-PK'
+  assert.deepEqual(await boot(), { language: 'en', source: 'user' })
+})
+
+test('4i. a manual Urdu choice survives restarts', async () => {
+  await storage.writeStoredLanguage('ur')
+  await storage.writeStoredLanguageSource('user')
+  deviceLocale = 'ur-PK'
+
+  assert.deepEqual(await boot(), { language: 'ur', source: 'user' })
+
+  writes = []
+  assert.deepEqual(await boot(), { language: 'ur', source: 'user' })
+  assert.deepEqual(writes, [], 'nothing rewritten on the second launch')
+})
+
 test('4b. fresh + an unsupported language starts in English', async () => {
-  for (const locale of ['ur-PK', 'ja-JP']) {
+  for (const locale of ['ja-JP', 'fr-FR']) {
     store = {}
     deviceLocale = locale
 

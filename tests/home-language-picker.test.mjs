@@ -206,6 +206,7 @@ function loadReal() {
       './translations/tr': load('src/features/localization/translations/tr.ts'),
       './translations/ar': load('src/features/localization/translations/ar.ts'),
       './translations/ru': load('src/features/localization/translations/ru.ts'),
+      './translations/ur': load('src/features/localization/translations/ur.ts'),
       './translations/de': load('src/features/localization/translations/de.ts'),
     },
     true
@@ -256,7 +257,7 @@ test('2. the picker itself never consults auth', () => {
 })
 
 test('3. the trigger shows a globe and the current language code', () => {
-  for (const [code, expected] of [['en', 'EN'], ['tr', 'TR'], ['ar', 'AR'], ['de', 'DE'], ['ru', 'RU']]) {
+  for (const [code, expected] of [['en', 'EN'], ['tr', 'TR'], ['ar', 'AR'], ['de', 'DE'], ['ru', 'RU'], ['ur', 'UR']]) {
     slots = []
     language = code
 
@@ -359,8 +360,8 @@ test('13. the visible names are the languages own, in registry order', () => {
   const texts = textsOf(openSheet())
 
   assert.deepEqual(
-    texts.filter((s) => ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'].includes(s)),
-    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский']
+    texts.filter((s) => ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский', 'اردو'].includes(s)),
+    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский', 'اردو']
   )
 
   // Never the English names of other languages.
@@ -370,14 +371,14 @@ test('13. the visible names are the languages own, in registry order', () => {
 })
 
 test('14. self-names do not change with the UI language', () => {
-  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
     slots = []
     language = code
     isRTL = code === 'ar'
 
     const texts = textsOf(openSheet())
 
-    for (const name of ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский']) {
+    for (const name of ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский', 'اردو']) {
       assert.ok(texts.includes(name), `${name} missing while UI is ${code}`)
     }
   }
@@ -401,6 +402,8 @@ test('15. the option list is driven by LANGUAGES, not a copy', () => {
   assert.equal(source.includes('Deutsch'), false, 'German row must not be hard-coded')
   assert.equal(source.includes("code: 'ru'"), false, 'Russian must come from LANGUAGES')
   assert.equal(source.includes('Русский'), false, 'Russian row must not be hard-coded')
+  assert.equal(source.includes("code: 'ur'"), false, 'Urdu must come from LANGUAGES')
+  assert.equal(source.includes('اردو'), false, 'Urdu row must not be hard-coded')
 })
 
 test('16. the registry is never reversed for RTL', () => {
@@ -408,10 +411,10 @@ test('16. the registry is never reversed for RTL', () => {
   language = 'ar'
 
   const texts = textsOf(openSheet()).filter((s) =>
-    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'].includes(s)
+    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский', 'اردو'].includes(s)
   )
 
-  assert.deepEqual(texts, ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'], 'layout mirrors, data does not')
+  assert.deepEqual(texts, ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский', 'اردو'], 'layout mirrors, data does not')
 
   const source = read('src/components/home/home-language-picker.tsx')
   assert.equal(source.includes('.reverse()'), false)
@@ -420,7 +423,7 @@ test('16. the registry is never reversed for RTL', () => {
 /* ═══════════════ Selection ═══════════════ */
 
 test('17. the selected language is marked, and only that one', () => {
-  for (const [code, expected] of [['en', 'English'], ['tr', 'Türkçe'], ['ar', 'العربية'], ['de', 'Deutsch'], ['ru', 'Русский']]) {
+  for (const [code, expected] of [['en', 'English'], ['tr', 'Türkçe'], ['ar', 'العربية'], ['de', 'Deutsch'], ['ru', 'Русский'], ['ur', 'اردو']]) {
     slots = []
     language = code
 

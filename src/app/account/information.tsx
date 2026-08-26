@@ -116,7 +116,16 @@ function formatJoinDate(iso: string, language: LanguageCode): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
 
-  const locale = language === 'tr' ? 'tr-TR' : language === 'ar' ? 'ar' : 'en-GB';
+  /*
+   * Every LanguageCode is already a valid BCP-47 primary tag, so the code maps
+   * straight through and a new language formats its dates correctly the moment
+   * it enters the registry. Only English needs steering — plain 'en' would give
+   * US month/day order to a product that is not American.
+   *
+   * This replaced a `tr`/`ar`/else chain that silently gave German, Russian and
+   * Urdu customers English-formatted dates.
+   */
+  const locale = language === 'en' ? 'en-GB' : language;
 
   try {
     return new Intl.DateTimeFormat(locale, {

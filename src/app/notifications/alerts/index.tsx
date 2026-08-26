@@ -34,7 +34,7 @@ import { formatPrice } from '@/utils/format-price';
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function PropertyAlertsScreen() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -107,14 +107,18 @@ export default function PropertyAlertsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <Ionicons
+            name={isRTL ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={theme.text}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>{t('alerts.title')}</Text>
       </View>

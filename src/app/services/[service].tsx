@@ -130,20 +130,24 @@ export default function ServiceDetailScreen() {
 /* ─────────────────────────── Pieces ─────────────────────────── */
 
 function Header({ title, onBack }: { title: string; onBack: () => void }) {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   return (
     // Custom, because the root Stack sets headerShown: false globally — there
     // is no navigation header to duplicate.
-    <View style={styles.header}>
+    <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <Pressable
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={theme.text} />
+        <Ionicons
+            name={isRTL ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={theme.text}
+          />
       </Pressable>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>

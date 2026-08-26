@@ -39,7 +39,7 @@ const I18nManager = {
 }
 
 /** The real registry shape, minus everything detection does not need. */
-const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }, { code: 'ru' }]
+const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }, { code: 'ru' }, { code: 'ur' }]
 
 let getRawDeviceLocale
 let normalizeLocaleLanguage
@@ -127,8 +127,14 @@ test('6b. every Russian region resolves to the one Russian bundle', () => {
   }
 })
 
+test('6c. every Urdu region resolves to the one Urdu bundle', () => {
+  for (const locale of ['ur-PK', 'ur_PK', 'ur-IN', 'UR-pk', 'ur']) {
+    assert.equal(resolveSupportedLanguage(locale, SUPPORTED, 'en'), 'ur', locale)
+  }
+})
+
 test('7. unsupported languages still fall back to English', () => {
-  for (const locale of ['ur-PK', 'ja-JP', 'fr-FR', 'zh-Hans-CN']) {
+  for (const locale of ['ja-JP', 'fr-FR', 'zh-Hans-CN']) {
     assert.equal(resolveSupportedLanguage(locale, SUPPORTED, 'en'), 'en', locale)
   }
 })

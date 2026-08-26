@@ -96,6 +96,21 @@ export default function HomeFeaturedProperties() {
           data={properties}
           keyExtractor={(item) => item._id}
           horizontal
+          /*
+           * Starts the carousel at the reading edge.
+           *
+           * Native layout direction is pinned LTR (see language-context), so a
+           * horizontal list would otherwise always begin at the LEFT — the far
+           * end of the row for an Arabic or Urdu reader, who would have to
+           * scroll backwards to reach the first property.
+           *
+           * `inverted` is RN's own mechanism rather than a hand-rolled
+           * transform: it puts scaleX(-1) on the list AND on every cell, so the
+           * two cancel and card CONTENT is not mirrored. The `data` array is
+           * never touched, so the first featured property is still first — only
+           * which edge it starts from changes.
+           */
+          inverted={isRTL}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (

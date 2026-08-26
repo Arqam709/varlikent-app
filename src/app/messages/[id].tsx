@@ -514,18 +514,22 @@ function Header({
   subtitle: string;
   onBack: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <Pressable
         onPress={onBack}
         accessibilityRole="button"
         accessibilityLabel={t('common.back')}
         hitSlop={10}
         style={styles.backButton}>
-        <Ionicons name="chevron-back" size={22} color={theme.text} />
+        <Ionicons
+            name={isRTL ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={theme.text}
+          />
       </Pressable>
       <View style={styles.headerText}>
         <Text style={styles.headerTitle} numberOfLines={1}>

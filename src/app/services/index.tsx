@@ -11,7 +11,7 @@ import type { ThemePalette } from '@/features/theme/themes';
 import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function ServicesScreen() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -28,14 +28,18 @@ export default function ServicesScreen() {
         A custom header, because the root Stack sets headerShown: false
         globally — so there is no navigation header to duplicate.
       */}
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Pressable
           onPress={handleBack}
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
           hitSlop={10}
           style={styles.backButton}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <Ionicons
+            name={isRTL ? 'chevron-forward' : 'chevron-back'}
+            size={22}
+            color={theme.text}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>{t('services.title')}</Text>
       </View>
@@ -81,9 +85,14 @@ export default function ServicesScreen() {
             <Text style={styles.serviceShort}>{t(serviceKey(service, 'short'))}</Text>
 
             {/* One restrained affordance per card — no arrow noise elsewhere. */}
-            <View style={styles.serviceAction}>
+            <View style={[styles.serviceAction, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Text style={styles.serviceActionText}>{t('services.explore')}</Text>
-              <Ionicons name="arrow-forward" size={14} color={theme.primaryInk} />
+              {/* Directional: 'onward' follows the script. */}
+              <Ionicons
+                name={isRTL ? 'arrow-back' : 'arrow-forward'}
+                size={14}
+                color={theme.primaryInk}
+              />
             </View>
           </Pressable>
         ))}

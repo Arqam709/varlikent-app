@@ -99,7 +99,7 @@ let resolveSupportedLanguage
 let bundles = {}
 
 before(() => {
-  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
     const m = load(`src/features/localization/translations/${code}.ts`)
     bundles[code] = m[code] ?? m.default
   }
@@ -145,6 +145,7 @@ before(() => {
       './translations/tr': load('src/features/localization/translations/tr.ts'),
       './translations/ar': load('src/features/localization/translations/ar.ts'),
       './translations/ru': load('src/features/localization/translations/ru.ts'),
+      './translations/ur': load('src/features/localization/translations/ur.ts'),
       './translations/de': load('src/features/localization/translations/de.ts'),
     },
     true
@@ -178,7 +179,7 @@ const settle = async (passes = 3) => {
 /* ═══════════════ The registry ═══════════════ */
 
 test('1. LANGUAGES holds exactly the supported codes, in picker order', () => {
-  assert.deepEqual(mod.LANGUAGES.map((l) => l.code), ['en', 'tr', 'ar', 'de', 'ru'])
+  assert.deepEqual(mod.LANGUAGES.map((l) => l.code), ['en', 'tr', 'ar', 'de', 'ru', 'ur'])
 })
 
 test('2. every entry carries code, native label, englishLabel and rtl', () => {
@@ -198,12 +199,14 @@ test('3. labels are the languages own names, not English names', () => {
   assert.equal(byCode.ar.label, 'العربية', 'not "Arabic"')
   assert.equal(byCode.de.label, 'Deutsch', 'not "German"')
   assert.equal(byCode.ru.label, 'Русский', 'not "Russian"')
+  assert.equal(byCode.ur.label, 'اردو', 'not "Urdu"')
 
   // englishLabel stays English — it is what a screen reader announces.
   assert.equal(byCode.tr.englishLabel, 'Turkish')
   assert.equal(byCode.ar.englishLabel, 'Arabic')
   assert.equal(byCode.de.englishLabel, 'German')
   assert.equal(byCode.ru.englishLabel, 'Russian')
+  assert.equal(byCode.ur.englishLabel, 'Urdu')
 })
 
 test('4. direction is recorded per language', () => {
@@ -214,6 +217,7 @@ test('4. direction is recorded per language', () => {
   assert.equal(byCode.ar.rtl, true)
   assert.equal(byCode.de.rtl, false)
   assert.equal(byCode.ru.rtl, false, 'Russian is left-to-right')
+  assert.equal(byCode.ur.rtl, true, 'Urdu reads right-to-left')
 })
 
 test('5. each code appears exactly once', () => {
@@ -244,9 +248,14 @@ test('7b. device resolution uses the real LANGUAGES registry', () => {
     assert.equal(resolveSupportedLanguage(locale, mod.LANGUAGES, 'en'), 'ru', locale)
   }
 
-  // Urdu is still unimplemented and must keep falling back.
-  assert.equal(resolveSupportedLanguage('ur-PK', mod.LANGUAGES, 'en'), 'en')
+  // Urdu resolves the same way — through the registry, with no locale branch.
+  for (const locale of ['ur-PK', 'ur_PK', 'ur-IN', 'ur']) {
+    assert.equal(resolveSupportedLanguage(locale, mod.LANGUAGES, 'en'), 'ur', locale)
+  }
+
+  // Something genuinely unshipped still falls back.
   assert.equal(resolveSupportedLanguage('ja-JP', mod.LANGUAGES, 'en'), 'en')
+  assert.equal(resolveSupportedLanguage('fr-FR', mod.LANGUAGES, 'en'), 'en')
 })
 
 /* ═══════════════ RTL derives from the registry ═══════════════ */
@@ -298,15 +307,15 @@ test('9. isRTL matches the registry for every language', async () => {
   }
 })
 
-test('10. en, tr, de and ru are LTR; ar is RTL', async () => {
+test('10. en, tr, de and ru are LTR; ar and ur are RTL', async () => {
   const results = {}
-  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
     slots = []
     stored = code
     results[code] = (await settle()).isRTL
   }
 
-  assert.deepEqual(results, { en: false, tr: false, ar: true, de: false, ru: false })
+  assert.deepEqual(results, { en: false, tr: false, ar: true, de: false, ru: false, ur: true })
 })
 
 test('11. switching German → Arabic → German flips direction with no reload', async () => {
@@ -379,6 +388,64 @@ test('11e. manual Russian selection persists ru with source=user', async () => {
   assert.equal(storedSource, 'user', 'an explicit choice outranks the phone forever')
 })
 
+test('11f. English ↔ Urdu flips direction with no reload', async () => {
+  slots = []
+  stored = 'en'
+  let ctx = await settle()
+  assert.equal(ctx.isRTL, false)
+
+  await ctx.setLanguage('ur')
+  ctx = await render()
+  assert.equal(ctx.language, 'ur')
+  assert.equal(ctx.isRTL, true, 'Urdu reads right-to-left')
+
+  await ctx.setLanguage('en')
+  ctx = await render()
+  assert.equal(ctx.isRTL, false)
+})
+
+test('11g. Arabic ↔ Urdu stays RTL across the switch', async () => {
+  // Two RTL languages in a row: direction must not flicker back to LTR just
+  // because the language changed.
+  slots = []
+  stored = 'ar'
+  let ctx = await settle()
+  assert.equal(ctx.isRTL, true)
+
+  await ctx.setLanguage('ur')
+  ctx = await render()
+  assert.equal(ctx.isRTL, true, 'ar → ur remains RTL')
+
+  await ctx.setLanguage('ar')
+  ctx = await render()
+  assert.equal(ctx.isRTL, true, 'ur → ar remains RTL')
+})
+
+test('11h. German and Russian → Urdu both turn RTL on', async () => {
+  for (const from of ['de', 'ru']) {
+    slots = []
+    stored = from
+    let ctx = await settle()
+    assert.equal(ctx.isRTL, false, `${from} is LTR`)
+
+    await ctx.setLanguage('ur')
+    ctx = await render()
+    assert.equal(ctx.isRTL, true, `${from} → ur must turn RTL on`)
+  }
+})
+
+test('11i. manual Urdu selection persists ur with source=user', async () => {
+  slots = []
+  stored = 'en'
+  storedSource = 'device'
+  const ctx = await settle()
+
+  await ctx.setLanguage('ur')
+
+  assert.equal(stored, 'ur')
+  assert.equal(storedSource, 'user')
+})
+
 test('12. switching language never mutates native layout direction', async () => {
   slots = []
   stored = 'en'
@@ -409,7 +476,7 @@ test('14. a stored language is restored', async () => {
 })
 
 test('15. unknown or absent stored values fall back to English', async () => {
-  for (const bad of [null, undefined, '', 'ur', 'nonsense', 'EN', 'RU']) {
+  for (const bad of [null, undefined, '', 'ja', 'nonsense', 'EN', 'RU']) {
     slots = []
     stored = bad
 
@@ -495,7 +562,7 @@ test('18. the new Home accessibility keys exist in all four languages', () => {
     'statSatisfactionA11y',
   ]
 
-  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
     for (const key of added) {
       assert.ok(bundles[code].home?.[key]?.length, `${code} is missing home.${key}`)
     }
@@ -503,7 +570,7 @@ test('18. the new Home accessibility keys exist in all four languages', () => {
 })
 
 test('19. the notification count interpolates in every language', async () => {
-  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
     slots = []
     stored = code
 
@@ -580,7 +647,7 @@ test('23. every t() key used in Home resolves in all four languages', () => {
   assert.ok(keys.size > 10, `expected many Home keys, found ${keys.size}`)
 
   for (const key of keys) {
-    for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
+    for (const code of ['en', 'tr', 'ar', 'de', 'ru', 'ur']) {
       const value = key.split('.').reduce((o, part) => o?.[part], bundles[code])
       assert.equal(typeof value, 'string', `${code} is missing ${key}`)
     }
@@ -687,6 +754,190 @@ test('26b. no ordinary Russian key ever falls through to English', async () => {
   }
 
   assert.deepEqual(latinOnly, [], 'these Russian values contain no Cyrillic at all')
+})
+
+test('26c. every Urdu value is present, and none is left as English', async () => {
+  slots = []
+  stored = 'ur'
+  const ctx = await settle()
+  assert.equal(ctx.language, 'ur')
+
+  /*
+   * Brand and vendor names legitimately stay Latin, as do the theme names and
+   * the example email address. Everything else must have been translated.
+   */
+  const allowed = new Set([
+    'account.eyebrow',
+    'accountInformation.providers.google',
+    'accountInformation.providers.microsoft',
+    'accountInformation.providers.apple',
+    'appearance.themes.default.label',
+    'appearance.themes.classic.label',
+    'appearance.themes.dark.label',
+    'appearance.themes.light.label',
+    'appearance.themes.forest.label',
+    'password.placeholder',
+    'personalInformation.emailPlaceholder',
+    'auth.apple',
+  ])
+
+  const identical = []
+
+  for (const key of leaves(bundles.en)) {
+    const urdu = key.split('.').reduce((o, part) => o?.[part], bundles.ur)
+
+    assert.equal(typeof urdu, 'string', `ur is missing ${key}`)
+    assert.equal(ctx.t(key), urdu, `${key} did not resolve from the Urdu bundle`)
+
+    if (allowed.has(key)) continue
+
+    const english = key.split('.').reduce((o, part) => o?.[part], bundles.en)
+    if (urdu === english) identical.push(key)
+  }
+
+  assert.deepEqual(identical, [], 'these Urdu values are still identical to English')
+})
+
+test('26d. no Urdu value is entirely Latin script', () => {
+  /*
+   * The script check that caught a real mistake for Russian. Values may CONTAIN
+   * Latin (product names like Varlikent or Google are deliberately not
+   * transliterated), so this only fails when a value has letters and not one
+   * Arabic-script character — i.e. untranslated English.
+   */
+  const allowed = new Set([
+    'account.eyebrow',
+    'accountInformation.providers.google',
+    'accountInformation.providers.microsoft',
+    'accountInformation.providers.apple',
+    'appearance.themes.default.label',
+    'appearance.themes.classic.label',
+    'appearance.themes.dark.label',
+    'appearance.themes.light.label',
+    'appearance.themes.forest.label',
+    'password.placeholder',
+    'personalInformation.emailPlaceholder',
+    'auth.apple',
+  ])
+
+  const latinOnly = []
+
+  for (const key of leaves(bundles.en)) {
+    if (allowed.has(key)) continue
+    const value = key.split('.').reduce((o, part) => o?.[part], bundles.ur)
+
+    if (/\p{L}/u.test(value) && !/\p{Script=Arabic}/u.test(value)) {
+      latinOnly.push(`${key} = ${value}`)
+    }
+  }
+
+  assert.deepEqual(latinOnly, [], 'these Urdu values contain no Arabic-script text')
+})
+
+/* ═══════════════ RTL layout regressions (Phase 10G) ═══════════════ */
+
+test('26e. every screen header mirrors and flips its back chevron', () => {
+  /*
+   * Eight standalone screens hard-coded `chevron-back`, so in Arabic and Urdu
+   * the back arrow pointed INTO the page instead of out of it, on the wrong
+   * edge. AccountHeader already did this correctly; these now match it.
+   */
+  const screens = [
+    'src/app/favourites/index.tsx',
+    'src/app/messages/[id].tsx',
+    'src/app/notifications/index.tsx',
+    'src/app/notifications/alerts/index.tsx',
+    'src/app/notifications/alerts/edit.tsx',
+    'src/app/properties/[id].tsx',
+    'src/app/services/index.tsx',
+    'src/app/services/[service].tsx',
+  ]
+
+  for (const screen of screens) {
+    const source = read(screen)
+
+    assert.equal(
+      source.includes('name="chevron-back"'),
+      false,
+      `${screen} still hard-codes a back chevron`
+    )
+    assert.ok(
+      source.includes("isRTL ? 'chevron-forward' : 'chevron-back'"),
+      `${screen} does not mirror its back chevron`
+    )
+    assert.ok(
+      source.includes("flexDirection: isRTL ? 'row-reverse' : 'row'"),
+      `${screen} header does not mirror`
+    )
+  }
+})
+
+test('26f. the featured carousel starts at the reading edge', () => {
+  const source = read('src/components/home/home-featured-properties.tsx')
+
+  // Native direction is pinned LTR, so a horizontal list needs telling.
+  assert.ok(source.includes('inverted={isRTL}'), 'carousel does not mirror for RTL')
+
+  // Data order is presentation-only: the array itself is never reordered.
+  assert.equal(source.includes('.reverse()'), false, 'property order must not change')
+  assert.ok(source.includes('data={properties}'), 'the list still renders properties as given')
+})
+
+test('26h. join dates format natively in every language', () => {
+  /*
+   * formatJoinDate used a tr/ar/else chain, so German, Russian and Urdu
+   * customers were shown English dates. Every LanguageCode is a valid BCP-47
+   * primary tag, so the code now maps straight through.
+   */
+  const source = read('src/app/account/information.tsx')
+  assert.ok(source.includes("language === 'en' ? 'en-GB' : language"))
+  assert.equal(
+    source.includes("language === 'tr' ? 'tr-TR'"),
+    false,
+    'the per-language chain must be gone'
+  )
+
+  const when = new Date('2024-03-15T00:00:00Z')
+  const rendered = new Set()
+
+  for (const { code } of mod.LANGUAGES) {
+    const locale = code === 'en' ? 'en-GB' : code
+    const text = new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(when)
+
+    assert.ok(text.includes('2024'), `${code} produced no year`)
+    rendered.add(text)
+  }
+
+  // Six languages must not all collapse to one English string.
+  assert.ok(rendered.size >= 5, `expected distinct month names, got ${[...rendered]}`)
+})
+
+test('26g. direction never comes from a language comparison', () => {
+  // The whole point of the registry: adding Urdu turned RTL on without a
+  // single new `language === ...` branch anywhere in the app.
+  const files = [
+    'src/app/(tabs)/index.tsx',
+    'src/components/home/home-featured-properties.tsx',
+    'src/components/home/home-discovery.tsx',
+    'src/components/home/home-services-preview.tsx',
+    'src/components/home/home-stats.tsx',
+    'src/components/home/home-language-picker.tsx',
+    'src/components/account/settings-ui.tsx',
+    'src/app/favourites/index.tsx',
+    'src/app/services/index.tsx',
+    'src/app/properties/[id].tsx',
+  ]
+
+  for (const file of files) {
+    const source = read(file)
+    assert.equal(/language\s*===\s*'(ar|ur)'/.test(source), false, `${file} branches on a code`)
+    assert.equal(source.includes('RTL_LANGUAGES'), false, `${file} has a parallel RTL list`)
+    assert.equal(source.includes('forceRTL'), false, `${file} mutates native direction`)
+  }
 })
 
 test('27. Account language options come from LANGUAGES, including German', () => {
