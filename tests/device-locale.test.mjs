@@ -39,7 +39,7 @@ const I18nManager = {
 }
 
 /** The real registry shape, minus everything detection does not need. */
-const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }]
+const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }]
 
 let getRawDeviceLocale
 let normalizeLocaleLanguage
@@ -113,13 +113,14 @@ test('6. supported languages resolve to themselves', () => {
   assert.equal(resolveSupportedLanguage('tr-TR', SUPPORTED, 'en'), 'tr')
   assert.equal(resolveSupportedLanguage('ar-SA', SUPPORTED, 'en'), 'ar')
   assert.equal(resolveSupportedLanguage('en-GB', SUPPORTED, 'en'), 'en')
+  assert.equal(resolveSupportedLanguage('de-DE', SUPPORTED, 'en'), 'de')
+  assert.equal(resolveSupportedLanguage('de_DE', SUPPORTED, 'en'), 'de')
+  assert.equal(resolveSupportedLanguage('de-AT', SUPPORTED, 'en'), 'de')
+  assert.equal(resolveSupportedLanguage('de-CH', SUPPORTED, 'en'), 'de')
 })
 
-test('7. languages not yet shipped fall back to English', () => {
-  // de, ru and ur exist on the website but have no mobile bundle yet. They must
-  // resolve to English until Phase 10E adds them — and then start working with
-  // no change to this file.
-  for (const locale of ['de-DE', 'ru-RU', 'ur-PK', 'ja-JP', 'fr-FR', 'zh-Hans-CN']) {
+test('7. unsupported languages still fall back to English', () => {
+  for (const locale of ['ru-RU', 'ur-PK', 'ja-JP', 'fr-FR', 'zh-Hans-CN']) {
     assert.equal(resolveSupportedLanguage(locale, SUPPORTED, 'en'), 'en', locale)
   }
 })

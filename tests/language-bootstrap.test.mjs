@@ -34,7 +34,7 @@ const load = (relative, imports = {}) => {
 }
 
 /** The registry, as the provider passes it. */
-const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }]
+const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }]
 
 /* ── Scripted device ─────────────────────────────────────────────────── */
 
@@ -122,8 +122,21 @@ test('3. fresh + English phone starts in English', async () => {
   assert.deepEqual(await boot(), { language: 'en', source: 'device' })
 })
 
-test('4. fresh + a language we do not ship yet starts in English', async () => {
-  for (const locale of ['de-DE', 'ru-RU', 'ur-PK', 'ja-JP']) {
+test('4. fresh + German phone starts in German as an LTR device choice', async () => {
+  for (const locale of ['de-DE', 'de_DE', 'de-AT', 'de-CH']) {
+    store = {}
+    deviceLocale = locale
+
+    const result = await boot()
+
+    assert.deepEqual(result, { language: 'de', source: 'device' }, locale)
+    assert.equal(store.language, 'de')
+    assert.equal(store.source, 'device')
+  }
+})
+
+test('4b. fresh + an unsupported language starts in English', async () => {
+  for (const locale of ['ru-RU', 'ur-PK', 'ja-JP']) {
     store = {}
     deviceLocale = locale
 
@@ -149,6 +162,20 @@ test('6. stored English on a Turkish phone stays English', async () => {
 
   assert.equal(result.language, 'en', 'the phone must not override a real choice')
   assert.equal(result.source, 'user')
+})
+
+test('6b. existing en/device on a German phone stays English/device', async () => {
+  store = { language: 'en', source: 'device' }
+  deviceLocale = 'de-DE'
+
+  assert.deepEqual(await boot(), { language: 'en', source: 'device' })
+})
+
+test('6c. existing en/user on a German phone stays English/user', async () => {
+  store = { language: 'en', source: 'user' }
+  deviceLocale = 'de-DE'
+
+  assert.deepEqual(await boot(), { language: 'en', source: 'user' })
 })
 
 test('7. stored Turkish on an English phone stays Turkish', async () => {
