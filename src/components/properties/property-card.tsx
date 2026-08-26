@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import FavouriteButton from '@/components/properties/favourite-button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
-import { bathsKey, bedsKey, listingBadgeKey } from '@/utils/property-labels';
+import { bathsKey, bedsKey, listingBadgeKey, propertyTypeKey } from '@/utils/property-labels';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -76,7 +76,7 @@ export default function PropertyCard({ property, onPress }: Props) {
           {property.district}, Istanbul
         </Text>
 
-        <Text style={styles.propertyType}>{property.propertyType}</Text>
+        <Text style={styles.propertyType}>{t(propertyTypeKey(property.propertyType))}</Text>
 
         <View style={styles.stats}>
           <Text style={styles.stat}>{property.beds} {t(bedsKey(property.beds))}</Text>

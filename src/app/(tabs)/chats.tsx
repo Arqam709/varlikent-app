@@ -236,7 +236,7 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
       <Text style={styles.gateEyebrow}>{t('chats.gateEyebrow')}</Text>
       <Text style={styles.stateHeading}>{t('chats.gateTitle')}</Text>
       <Text style={styles.stateBody}>
-        Sign in to ask about a property and keep every conversation in one place.
+        {t('chats.gateDescription')}
       </Text>
 
     
@@ -272,7 +272,7 @@ function ChatRow({
   // The server already resolved "the other person" — for a customer that is
   // the agent. The participant serializer is privacy-minimal: name and avatar
   // only, no email or phone, and there is no professional title in V1.
-  const agentName = conversation.counterparty?.name?.trim() || 'Agent';
+  const agentName = conversation.counterparty?.name?.trim() || t('messageThread.agent');
 
   // A conversation can outlive its listing, which is hard-deleted.
   const propertyTitle = conversation.property?.title?.trim() || 'Listing no longer available';
@@ -286,7 +286,7 @@ function ChatRow({
     lastMessage?.sender && currentUserId && lastMessage.sender === currentUserId
   );
   const preview = lastMessage?.text?.trim()
-    ? `${sentByMe ? 'You: ' : ''}${lastMessage.text.trim()}`
+    ? `${sentByMe ? `${t('chats.youPrefix')} ` : ''}${lastMessage.text.trim()}`
     : '';
 
   return (
@@ -294,9 +294,15 @@ function ChatRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={
-        `Chat with ${agentName} about ${propertyTitle}.` +
-        (preview ? ` Latest message: ${preview}.` : '') +
-        (unread ? ` ${conversation.unreadCount} unread.` : '')
+        [
+          t('chats.conversationAccessibility', { agent: agentName, property: propertyTitle }),
+          preview ? t('chats.latestMessageAccessibility', { preview }) : '',
+          unread
+            ? t('chats.unreadAccessibility', { count: String(conversation.unreadCount) })
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
       }
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
       <View style={styles.avatar}>
@@ -330,7 +336,7 @@ function ChatRow({
             // Unreachable in practice — the backend hides conversations with
             // no messages from every inbox — but a row must never render blank.
             <Text style={styles.preview} numberOfLines={1}>
-              Tap to open this conversation
+              {t('chats.openHint')}
             </Text>
           )}
 

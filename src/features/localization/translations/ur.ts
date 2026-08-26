@@ -43,6 +43,12 @@ export const ur: TranslationShape = {
     emptyBody:
       'جب آپ کسی جائیداد کے بارے میں ایجنٹ کو پیغام بھیجیں گے، آپ کی گفتگو یہاں دکھائی دے گی۔',
     browseProperties: 'جائیدادیں دیکھیں',
+    gateDescription: 'جائیداد کے بارے میں سوال کرنے اور تمام گفتگو ایک جگہ رکھنے کے لیے سائن ان کریں۔',
+    youPrefix: 'آپ:',
+    conversationAccessibility: '{property} کے بارے میں {agent} سے گفتگو۔',
+    latestMessageAccessibility: 'تازہ ترین پیغام: {preview}۔',
+    unreadAccessibility: '{count} ان پڑھے۔',
+    openHint: 'یہ گفتگو کھولنے کے لیے ٹیپ کریں',
   },
 
   register: {
@@ -77,6 +83,8 @@ export const ur: TranslationShape = {
     baths: 'غسل خانے',
     rooms: 'کمرے',
     floor: 'منزل',
+    totalFloors: 'کل منزلیں',
+    messageNamed: '{name} کو پیغام بھیجیں',
     buildingAge: 'عمارت کی عمر',
     heating: 'حرارتی نظام',
     propertyType: 'جائیداد کی قسم',
@@ -102,6 +110,9 @@ export const ur: TranslationShape = {
     signInBody: 'پیغامات صرف آپ اور آپ کے ایجنٹ کے لیے نجی ہیں۔',
     listingGone: 'اشتہار اب دستیاب نہیں',
     sendFailed: 'پیغام نہیں بھیجا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔',
+    startConversation: 'اس جائیداد کے بارے میں {name} سے گفتگو شروع کریں۔',
+    closedDescription: 'یہ گفتگو اس وقت بند ہے۔',
+    viewPropertyAccessibility: 'جائیداد دیکھیں: {title}',
   },
 
   notifications: {
@@ -123,6 +134,11 @@ export const ur: TranslationShape = {
     matchesAlert: 'آپ کے الرٹ سے مطابقت رکھتی ہے',
     newlyListed: 'نئی جائیداد شامل ہوئی',
     justNow: 'ابھی ابھی',
+    noAlertsDescription: 'الرٹ بنائیں، ہم آپ کی تلاش سے مماثل نئی فہرستیں نمایاں کریں گے۔',
+    matchesDescription: 'ہم آپ کے محفوظ الرٹس سے مطابقت رکھنے والی نئی جائیدادیں نمایاں کریں گے۔',
+    upToDateTitle: 'آپ تازہ ترین معلومات سے باخبر ہیں',
+    signInDescription: 'Varlikent میں نئی جائیداد شامل ہونے پر اطلاع کے لیے سائن ان کریں یا اکاؤنٹ بنائیں۔',
+    rowAccessibility: 'نئی جائیداد۔ {title}، {price}، {district}',
   },
 
   alerts: {
@@ -151,6 +167,20 @@ export const ur: TranslationShape = {
     any: 'کوئی بھی',
     listingType: 'اشتہار کی قسم',
     district: 'ضلع',
+    signInDescription: 'جائیداد کے الرٹس آپ کے اکاؤنٹ میں محفوظ ہوتے ہیں۔',
+    introHeading: 'ان جائیدادوں کی اطلاع پائیں جن کی آپ واقعی تلاش کر رہے ہیں۔',
+    emptyDescription: 'الرٹ بنائیں، ہم آپ کی تلاش سے مماثل نئی فہرستیں نمایاں کریں گے۔',
+    formIntro: 'اپنی مطلوبہ خصوصیات منتخب کریں۔ ہم مماثل نئی فہرستیں نمایاں کریں گے۔',
+    saving: 'محفوظ ہو رہا ہے…',
+    deleteConfirmBody: '{alert} کو اب نئی جائیدادوں سے نہیں ملایا جائے گا۔',
+    minimumBeds: 'کم از کم {count} بیڈروم',
+    fromPrice: '{price} سے',
+    upToPrice: '{price} تک',
+    editAccessibility: 'الرٹ میں ترمیم کریں: {alert}',
+    deleteAccessibility: 'الرٹ حذف کریں: {alert}',
+    summaryRent: 'کرائے کے لیے {type}',
+    summarySale: 'فروخت کے لیے {type}',
+    summaryDistrict: '{district} میں {summary}',
   },
 
   services: {
@@ -345,6 +375,7 @@ export const ur: TranslationShape = {
     maxPrice: 'ترک لیرا میں زیادہ سے زیادہ قیمت',
     min: 'کم از کم',
     max: 'زیادہ سے زیادہ',
+    priceRangeInvalid: 'کم از کم قیمت زیادہ سے زیادہ قیمت سے زیادہ نہیں ہو سکتی۔',
   },
 
   tabs: {
@@ -411,6 +442,16 @@ export const ur: TranslationShape = {
     forSale: 'فروخت کے لیے',
     forRent: 'کرائے کے لیے',
     featured: 'نمایاں',
+    count: '{count} جائیدادیں',
+    segmentAccessibility: 'جائیدادیں: {label}',
+    filtersActiveAccessibility: 'فلٹرز، {count} فعال',
+    filtersWithCount: 'فلٹرز ({count})',
+    types: {
+      apartment: 'اپارٹمنٹ', villa: 'ولا', penthouse: 'پینٹ ہاؤس', duplex: 'ڈوپلیکس',
+      studio: 'اسٹوڈیو', office: 'دفتر', commercial: 'کمرشل', land: 'زمین',
+      shop: 'دکان', warehouse: 'گودام', hotel: 'ہوٹل', farm: 'فارم',
+    },
+    statuses: { available: 'دستیاب', sold: 'فروخت شدہ', rented: 'کرائے پر دی گئی', pending: 'زیر التوا' },
   },
 
   auth: {
@@ -452,6 +493,8 @@ export const ur: TranslationShape = {
     googleFailed: 'Google سے سائن ان ناکام رہا۔ براہ کرم دوبارہ کوشش کریں۔',
     googleNotConfigured: 'Google سائن ان اس وقت دستیاب نہیں۔',
     googlePlayServices: 'Google Play Services دستیاب نہیں یا اسے اپ ڈیٹ کرنے کی ضرورت ہے۔',
+    backToHome: 'ہوم پر واپس جائیں',
+    noAccountPrompt: 'اکاؤنٹ نہیں ہے؟',
   },
 
   favourites: {

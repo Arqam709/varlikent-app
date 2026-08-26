@@ -186,7 +186,7 @@ export default function NotificationsScreen() {
                     </View>
                     <Text style={styles.stateHeading}>{t('notifications.noAlertsTitle')}</Text>
                     <Text style={styles.stateBody}>
-                      Create an alert and we&apos;ll highlight new listings that match your search.
+                      {t('notifications.noAlertsDescription')}
                     </Text>
                     <Button
                       label={t('notifications.createAlert')}
@@ -202,7 +202,7 @@ export default function NotificationsScreen() {
                     </View>
                     <Text style={styles.stateHeading}>{t('notifications.emptyMatches')}</Text>
                     <Text style={styles.stateBody}>
-                      We&apos;ll highlight new properties that fit your saved alerts.
+                      {t('notifications.matchesDescription')}
                     </Text>
                     <Button
                       label={t('notifications.manageAlerts')}
@@ -217,7 +217,7 @@ export default function NotificationsScreen() {
                   <View style={styles.emptyIcon}>
                     <Ionicons name="notifications-outline" size={28} color={theme.primaryInk} />
                   </View>
-                  <Text style={styles.stateHeading}>You&apos;re up to date</Text>
+                  <Text style={styles.stateHeading}>{t('notifications.upToDateTitle')}</Text>
                   <Text style={styles.stateBody}>{t('notifications.emptyAll')}</Text>
                   <Button
                     label={t('chats.browseProperties')}
@@ -277,7 +277,7 @@ function SignInGate({ onLogin, onRegister }: { onLogin: () => void; onRegister: 
       <Text style={styles.gateEyebrow}>{t('notifications.eyebrow')}</Text>
       <Text style={styles.stateHeading}>{t('notifications.neverMiss')}</Text>
       <Text style={styles.stateBody}>
-        Sign in or create an account to get updates when new properties are added to Varlikent.
+        {t('notifications.signInDescription')}
       </Text>
 
       {/* Reuses the existing auth routes — no duplicate auth UI. */}
@@ -335,11 +335,11 @@ function NotificationRow({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`New property listed. ${notification.title}, ${formatPrice(
-        notification.price,
-        notification.listingType,
-        notification.priceLabel
-      )}, ${notification.district}`}
+      accessibilityLabel={t('notifications.rowAccessibility', {
+        title: notification.title,
+        price: formatPrice(notification.price, notification.listingType, notification.priceLabel),
+        district: notification.district,
+      })}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
       <View style={styles.thumb}>
         {imageUrl ? (
@@ -359,7 +359,7 @@ function NotificationRow({
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
           <Text style={styles.kicker}>
-            {matched ? 'Matches your alert' : 'New property listed'}
+            {matched ? t('notifications.matchesAlert') : t('notifications.newlyListed')}
           </Text>
           <Text style={styles.time}>{relativeTime(notification.createdAt, t)}</Text>
         </View>

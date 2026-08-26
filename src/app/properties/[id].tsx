@@ -18,7 +18,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FavouriteButton from '@/components/properties/favourite-button';
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
-import { listingBadgeKey } from '@/utils/property-labels';
+import {
+  bathsKey,
+  bedsKey,
+  listingBadgeKey,
+  listingTypeKey,
+  propertyStatusKey,
+  propertyTypeKey,
+} from '@/utils/property-labels';
 import { buildPropertyShareMessage, buildPropertyUrl } from '@/utils/property-share';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
@@ -176,7 +183,7 @@ export default function PropertyDetailScreen() {
               {property.district}, Istanbul
             </Text>
             {property.address ? <Text style={styles.address}>{property.address}</Text> : null}
-            <Text style={styles.propertyType}>{property.propertyType}</Text>
+            <Text style={styles.propertyType}>{t(propertyTypeKey(property.propertyType))}</Text>
 
             <Specs property={property} />
             <Description property={property} />
@@ -279,8 +286,8 @@ function Specs({ property }: { property: PropertyDetail }) {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const specs = [
-    property.beds > 0 ? { value: String(property.beds), label: property.beds === 1 ? 'Bed' : t('propertyDetails.beds') } : null,
-    property.baths > 0 ? { value: String(property.baths), label: property.baths === 1 ? 'Bath' : t('propertyDetails.baths') } : null,
+    property.beds > 0 ? { value: String(property.beds), label: t(bedsKey(property.beds)) } : null,
+    property.baths > 0 ? { value: String(property.baths), label: t(bathsKey(property.baths)) } : null,
     property.sqm > 0 ? { value: String(property.sqm), label: 'm²' } : null,
   ].filter((s): s is { value: string; label: string } => s !== null);
 
@@ -327,16 +334,19 @@ function DetailRows({ property }: { property: PropertyDetail }) {
     }
   };
 
-  push('Property Type', property.propertyType);
-  push('Listing', property.listingType === 'Rent' ? 'For Rent' : 'For Sale');
-  push('District', property.district);
-  push('Status', property.status);
-  push('Rooms', property.rooms);
-  push('Floor', property.floor);
-  push('Total Floors', property.totalFloors);
-  push('Building Age', property.buildingAge);
-  push('Heating', property.heating);
-  push('Parking', property.parking);
+  push(t('propertyDetails.propertyType'), t(propertyTypeKey(property.propertyType)));
+  push(t('propertyDetails.listing'), t(listingTypeKey(property.listingType)));
+  push(t('propertyDetails.district'), property.district);
+  push(
+    t('propertyDetails.status'),
+    property.status ? t(propertyStatusKey(property.status)) : undefined
+  );
+  push(t('propertyDetails.rooms'), property.rooms);
+  push(t('propertyDetails.floor'), property.floor);
+  push(t('propertyDetails.totalFloors'), property.totalFloors);
+  push(t('propertyDetails.buildingAge'), property.buildingAge);
+  push(t('propertyDetails.heating'), property.heating);
+  push(t('propertyDetails.parking'), property.parking);
 
   if (rows.length === 0) return null;
 
@@ -486,7 +496,9 @@ function Agent({ property }: { property: PropertyDetail }) {
               onPress={handleMessage}
               disabled={starting}
               accessibilityRole="button"
-              accessibilityLabel={name ? `Message ${name}` : 'Message the agent'}
+              accessibilityLabel={name
+                ? t('propertyDetails.messageNamed', { name })
+                : t('propertyDetails.messageAgent')}
               accessibilityState={{ disabled: starting, busy: starting }}
               style={({ pressed }) => [
                 styles.messageButton,

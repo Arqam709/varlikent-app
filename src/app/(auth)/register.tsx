@@ -91,7 +91,7 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Pressable onPress={handleBack} accessibilityRole="button" hitSlop={8}>
-            <Text style={styles.back}>← Back to Home</Text>
+            <Text style={styles.back}>← {t('auth.backToHome')}</Text>
           </Pressable>
 
           <View style={styles.brand}>
@@ -117,7 +117,7 @@ export default function RegisterScreen() {
               label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
-              placeholder="you@example.com"
+              placeholder={t('personalInformation.emailPlaceholder')}
               keyboardType="email-address"
               autoComplete="email"
               textContentType="emailAddress"
@@ -152,7 +152,7 @@ export default function RegisterScreen() {
               variant="primary"
               onPress={handleSubmit}
               loading={submitting}
-              loadingLabel="Creating Account..."
+              loadingLabel={t('common.loading')}
             />
           </View>
 

@@ -1,4 +1,5 @@
 import { apiRequest } from '@/services/api-client';
+import { propertyTypeKey } from '@/utils/property-labels';
 import type {
   PropertyAlert,
   PropertyAlertInput,
@@ -64,11 +65,20 @@ export async function deletePropertyAlert(token: string, id: string): Promise<vo
  * Derived rather than stored: a saved name would duplicate the criteria and
  * go stale the moment someone edits the alert without renaming it.
  */
-export function describeAlert(alert: PropertyAlert): string {
-  const noun = alert.propertyType ? `${alert.propertyType}s` : 'Properties';
-  const intent = alert.listingType === 'Rent' ? 'to Rent' : alert.listingType === 'Sale' ? 'for Sale' : '';
-  const where = alert.district ? `in ${alert.district}` : '';
+type Translate = (key: string, vars?: Record<string, string>) => string;
 
-  const label = [noun, intent, where].filter(Boolean).join(' ');
-  return label || 'All Properties';
+export function describeAlert(alert: PropertyAlert, t: Translate): string {
+  const type = alert.propertyType
+    ? t(propertyTypeKey(alert.propertyType))
+    : t('properties.title');
+  const intent =
+    alert.listingType === 'Rent'
+      ? t('alerts.summaryRent', { type })
+      : alert.listingType === 'Sale'
+        ? t('alerts.summarySale', { type })
+        : type;
+
+  return alert.district
+    ? t('alerts.summaryDistrict', { summary: intent, district: alert.district })
+    : intent;
 }

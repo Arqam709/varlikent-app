@@ -116,7 +116,7 @@ export function ProfileHeader({
   onPress?: () => void;
 }) {
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
 
   const body = (
     <View
@@ -135,7 +135,7 @@ export function ProfileHeader({
             style={staticStyles.avatarImage}
             contentFit="cover"
             transition={150}
-            accessibilityLabel={`${name} profile photo`}
+            accessibilityLabel={t('profilePhoto.title')}
           />
         ) : (
           <Text style={[staticStyles.avatarInitials, { color: theme.primaryText }]}>

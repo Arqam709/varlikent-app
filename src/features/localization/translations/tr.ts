@@ -34,6 +34,12 @@ export const tr: TranslationShape = {
     emptyTitle: 'Henüz sohbet yok',
     emptyBody: 'Bir ilan hakkında danışmana mesaj gönderdiğinizde görüşmeniz burada görünür.',
     browseProperties: 'İlanlara Göz At',
+    gateDescription: 'Bir ilan hakkında soru sormak ve tüm görüşmelerinizi tek yerde tutmak için giriş yapın.',
+    youPrefix: 'Siz:',
+    conversationAccessibility: '{agent} ile {property} hakkında sohbet.',
+    latestMessageAccessibility: 'Son mesaj: {preview}.',
+    unreadAccessibility: '{count} okunmamış mesaj.',
+    openHint: 'Görüşmeyi açmak için dokunun',
   },
 
   register: {
@@ -68,6 +74,8 @@ export const tr: TranslationShape = {
     baths: 'Banyo',
     rooms: 'Oda',
     floor: 'Kat',
+    totalFloors: 'Toplam Kat',
+    messageNamed: '{name} adlı danışmana mesaj gönder',
     buildingAge: 'Bina Yaşı',
     heating: 'Isıtma',
     propertyType: 'Emlak Tipi',
@@ -93,6 +101,9 @@ export const tr: TranslationShape = {
     signInBody: 'Mesajlar yalnızca siz ve danışmanınız arasındadır.',
     listingGone: 'İlan artık mevcut değil',
     sendFailed: 'Mesaj gönderilemedi. Lütfen tekrar deneyin.',
+    startConversation: '{name} ile bu ilan hakkında bir görüşme başlatın.',
+    closedDescription: 'Bu görüşme şu anda kapalı.',
+    viewPropertyAccessibility: 'İlanı görüntüle: {title}',
   },
 
   notifications: {
@@ -114,6 +125,11 @@ export const tr: TranslationShape = {
     matchesAlert: 'Uyarınızla eşleşiyor',
     newlyListed: 'Yeni ilan eklendi',
     justNow: 'Az önce',
+    noAlertsDescription: 'Bir uyarı oluşturun; aramanızla eşleşen yeni ilanları öne çıkaralım.',
+    matchesDescription: 'Kayıtlı uyarılarınıza uyan yeni ilanları öne çıkaracağız.',
+    upToDateTitle: 'Güncelsiniz',
+    signInDescription: 'Varlikent’e yeni ilanlar eklendiğinde bilgi almak için giriş yapın veya hesap oluşturun.',
+    rowAccessibility: 'Yeni ilan. {title}, {price}, {district}',
   },
 
   alerts: {
@@ -142,6 +158,20 @@ export const tr: TranslationShape = {
     any: 'Farketmez',
     listingType: 'İlan Tipi',
     district: 'İlçe',
+    signInDescription: 'Emlak uyarıları hesabınıza kaydedilir.',
+    introHeading: 'Gerçekten aradığınız ilanlardan haberdar olun.',
+    emptyDescription: 'Bir uyarı oluşturun; aramanızla eşleşen yeni ilanları öne çıkaralım.',
+    formIntro: 'Aradığınız özellikleri seçin. Eşleşen yeni ilanları öne çıkaralım.',
+    saving: 'Kaydediliyor…',
+    deleteConfirmBody: '{alert} artık yeni ilanlarla eşleştirilmeyecek.',
+    minimumBeds: 'En az {count} yatak odası',
+    fromPrice: 'En az {price}',
+    upToPrice: 'En fazla {price}',
+    editAccessibility: '{alert} uyarısını düzenle',
+    deleteAccessibility: '{alert} uyarısını sil',
+    summaryRent: 'Kiralık {type}',
+    summarySale: 'Satılık {type}',
+    summaryDistrict: '{summary}, {district}',
   },
 
   services: {
@@ -246,6 +276,7 @@ export const tr: TranslationShape = {
     maxPrice: 'Türk Lirası cinsinden en yüksek fiyat',
     min: 'En az',
     max: 'En çok',
+    priceRangeInvalid: 'En düşük fiyat, en yüksek fiyattan fazla olamaz.',
   },
 
   tabs: {
@@ -312,6 +343,16 @@ export const tr: TranslationShape = {
     forSale: 'Satılık',
     forRent: 'Kiralık',
     featured: 'Öne Çıkan',
+    count: '{count} ilan',
+    segmentAccessibility: 'İlanlar: {label}',
+    filtersActiveAccessibility: 'Filtreler, {count} etkin',
+    filtersWithCount: 'Filtreler ({count})',
+    types: {
+      apartment: 'Daire', villa: 'Villa', penthouse: 'Çatı Katı', duplex: 'Dubleks',
+      studio: 'Stüdyo', office: 'Ofis', commercial: 'Ticari', land: 'Arsa',
+      shop: 'Dükkan', warehouse: 'Depo', hotel: 'Otel', farm: 'Çiftlik',
+    },
+    statuses: { available: 'Mevcut', sold: 'Satıldı', rented: 'Kiralandı', pending: 'Beklemede' },
   },
 
   auth: {
@@ -352,6 +393,8 @@ export const tr: TranslationShape = {
     googleFailed: 'Google ile giriş başarısız oldu. Lütfen tekrar deneyin.',
     googleNotConfigured: 'Google ile giriş şu anda kullanılamıyor.',
     googlePlayServices: 'Google Play Hizmetleri kullanılamıyor veya güncellenmesi gerekiyor.',
+    backToHome: 'Ana Sayfaya Dön',
+    noAccountPrompt: 'Hesabınız yok mu?',
   },
   favourites: {
     title: 'Favorilerim',

@@ -123,7 +123,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Pressable onPress={handleBack} accessibilityRole="button" hitSlop={8}>
-            <Text style={styles.back}>← Back to Home</Text>
+            <Text style={styles.back}>← {t('auth.backToHome')}</Text>
           </Pressable>
 
           <View style={styles.brand}>
@@ -139,7 +139,7 @@ export default function LoginScreen() {
               label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
-              placeholder="you@example.com"
+              placeholder={t('personalInformation.emailPlaceholder')}
               keyboardType="email-address"
               autoComplete="email"
               textContentType="emailAddress"
@@ -149,7 +149,7 @@ export default function LoginScreen() {
               label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
+              placeholder={t('password.placeholder')}
               secure
               autoComplete="password"
               textContentType="password"
@@ -177,7 +177,7 @@ export default function LoginScreen() {
               variant="primary"
               onPress={handleSubmit}
               loading={submitting}
-              loadingLabel="Signing In..."
+              loadingLabel={t('auth.signingIn')}
             />
 
             {/*
@@ -192,7 +192,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+            <Text style={styles.footerText}>{t('auth.noAccountPrompt')} </Text>
             {/*
               `replace`, not `push`. Bouncing Login → Register → Login with push
               would stack a screen every time and make the back button walk

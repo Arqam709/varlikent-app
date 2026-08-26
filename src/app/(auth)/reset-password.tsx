@@ -195,7 +195,7 @@ export default function ResetPasswordScreen() {
                   label={t('auth.newPassword')}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="••••••••"
+                  placeholder={t('password.placeholder')}
                   secure
                   autoComplete="new-password"
                   textContentType="newPassword"
@@ -205,7 +205,7 @@ export default function ResetPasswordScreen() {
                   label={t('register.confirmPassword')}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="••••••••"
+                  placeholder={t('password.placeholder')}
                   secure
                   autoComplete="new-password"
                   textContentType="newPassword"

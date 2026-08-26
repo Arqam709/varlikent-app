@@ -30,6 +30,7 @@ import {
 import { ApiError } from '@/services/api-client';
 import type { ListingType, PropertyArea, PropertyType } from '@/types/property';
 import type { PropertyAlertInput } from '@/types/property-alert';
+import { propertyTypeKey } from '@/utils/property-labels';
 
 /**
  * CREATE / EDIT ALERT  →  route "/notifications/alerts/edit"
@@ -183,7 +184,7 @@ export default function EditAlertScreen() {
             color={theme.text}
           />
         </Pressable>
-        <Text style={styles.headerTitle}>{isEditing ? 'Edit Alert' : 'New Alert'}</Text>
+        <Text style={styles.headerTitle}>{isEditing ? t('alerts.editTitle') : t('alerts.newTitle')}</Text>
       </View>
 
       {status !== 'authenticated' ? (
@@ -209,7 +210,7 @@ export default function EditAlertScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             <Text style={styles.intro}>
-              Choose what you&apos;re looking for. We&apos;ll highlight new listings that match.
+              {t('alerts.formIntro')}
             </Text>
 
             <Section title={t('alerts.listingType')}>
@@ -260,7 +261,7 @@ export default function EditAlertScreen() {
                 {PROPERTY_TYPES.map((type) => (
                   <Chip
                     key={type}
-                    label={type}
+                    label={t(propertyTypeKey(type))}
                     selected={propertyType === type}
                     onPress={() => setPropertyType(type)}
                   />
@@ -298,7 +299,7 @@ export default function EditAlertScreen() {
               </View>
               {priceInvalid ? (
                 <Text style={styles.validation}>
-                  Minimum price cannot be higher than maximum.
+                  {t('filters.priceRangeInvalid')}
                 </Text>
               ) : null}
             </Section>
@@ -328,11 +329,11 @@ export default function EditAlertScreen() {
             ) : null}
 
             <Button
-              label={isEditing ? 'Save Changes' : 'Save Alert'}
+              label={isEditing ? t('alerts.saveChanges') : t('alerts.saveAlert')}
               variant="primary"
               onPress={handleSave}
               loading={saving}
-              loadingLabel="Saving..."
+              loadingLabel={t('alerts.saving')}
               disabled={priceInvalid || !hasCriteria}
               style={styles.save}
             />

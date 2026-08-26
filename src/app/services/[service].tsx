@@ -37,7 +37,7 @@ export default function ServiceDetailScreen() {
         <View style={styles.notFound}>
           <Text style={styles.notFoundTitle}>{t('services.notFound')}</Text>
           <Text style={styles.notFoundBody}>
-            This service isn&apos;t available. Browse everything we offer instead.
+            {t('services.notFound')}
           </Text>
           <Pressable
             onPress={() => router.replace('/services')}

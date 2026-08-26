@@ -37,10 +37,10 @@ type LoadState = 'loading' | 'success' | 'error';
  */
 type Segment = 'All' | ListingType;
 
-const SEGMENTS: { value: Segment; label: string }[] = [
-  { value: 'All', label: 'All' },
-  { value: 'Sale', label: 'Buy' },
-  { value: 'Rent', label: 'Rent' },
+const SEGMENTS: { value: Segment; labelKey: string }[] = [
+  { value: 'All', labelKey: 'properties.all' },
+  { value: 'Sale', labelKey: 'properties.buy' },
+  { value: 'Rent', labelKey: 'properties.rent' },
 ];
 
 function toSegment(value: unknown): Segment {
@@ -170,15 +170,16 @@ export default function PropertiesScreen() {
 
         
         <View style={styles.segmented}>
-          {SEGMENTS.map(({ value, label }) => {
+          {SEGMENTS.map(({ value, labelKey }) => {
             const active = segment === value;
+            const label = t(labelKey);
             return (
               <Pressable
                 key={value}
                 onPress={() => setSegment(value)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
-                accessibilityLabel={`${label} properties`}
+                accessibilityLabel={t('properties.segmentAccessibility', { label })}
                 style={[styles.segment, active && styles.segmentActive]}>
                 <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
                   {label}
@@ -194,8 +195,10 @@ export default function PropertiesScreen() {
             accessibilityRole="button"
             accessibilityLabel={
               activeFilterCount > 0
-                ? `Filters, ${activeFilterCount} active`
-                : 'Filters'
+                ? t('properties.filtersActiveAccessibility', {
+                    count: String(activeFilterCount),
+                  })
+                : t('properties.filters')
             }
             style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}>
             <Ionicons
@@ -205,13 +208,15 @@ export default function PropertiesScreen() {
             />
             <Text
               style={[styles.filterText, activeFilterCount > 0 && styles.filterTextActive]}>
-              {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
+              {activeFilterCount > 0
+                ? t('properties.filtersWithCount', { count: String(activeFilterCount) })
+                : t('properties.filters')}
             </Text>
           </Pressable>
 
           {loadState === 'success' ? (
             <Text style={styles.count}>
-              {count} {count === 1 ? 'property' : 'properties'}
+              {t('properties.count', { count: String(count) })}
             </Text>
           ) : null}
         </View>

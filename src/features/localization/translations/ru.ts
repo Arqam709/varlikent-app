@@ -38,6 +38,12 @@ export const ru: TranslationShape = {
     emptyTitle: 'Чатов пока нет',
     emptyBody: 'Когда вы напишете агенту об объекте, ваша переписка появится здесь.',
     browseProperties: 'Просмотреть объекты',
+    gateDescription: 'Войдите, чтобы задать вопрос об объекте и хранить все переписки в одном месте.',
+    youPrefix: 'Вы:',
+    conversationAccessibility: 'Чат с {agent} об объекте {property}.',
+    latestMessageAccessibility: 'Последнее сообщение: {preview}.',
+    unreadAccessibility: 'Непрочитанных: {count}.',
+    openHint: 'Нажмите, чтобы открыть переписку',
   },
 
   register: {
@@ -72,6 +78,8 @@ export const ru: TranslationShape = {
     baths: 'Санузлы',
     rooms: 'Комнаты',
     floor: 'Этаж',
+    totalFloors: 'Всего этажей',
+    messageNamed: 'Написать {name}',
     buildingAge: 'Возраст здания',
     heating: 'Отопление',
     propertyType: 'Тип недвижимости',
@@ -97,6 +105,9 @@ export const ru: TranslationShape = {
     signInBody: 'Сообщения видны только вам и вашему агенту.',
     listingGone: 'Объявление больше недоступно',
     sendFailed: 'Не удалось отправить сообщение. Пожалуйста, попробуйте ещё раз.',
+    startConversation: 'Начните переписку с {name} об этом объекте.',
+    closedDescription: 'Эта переписка сейчас закрыта.',
+    viewPropertyAccessibility: 'Открыть объект: {title}',
   },
 
   notifications: {
@@ -118,6 +129,11 @@ export const ru: TranslationShape = {
     matchesAlert: 'Подходит под ваше оповещение',
     newlyListed: 'Размещён новый объект',
     justNow: 'Только что',
+    noAlertsDescription: 'Создайте уведомление, и мы выделим новые объявления, соответствующие вашему поиску.',
+    matchesDescription: 'Мы выделим новые объекты, подходящие под ваши сохранённые уведомления.',
+    upToDateTitle: 'У вас всё актуально',
+    signInDescription: 'Войдите или создайте аккаунт, чтобы получать обновления о новых объектах Varlikent.',
+    rowAccessibility: 'Новый объект. {title}, {price}, {district}',
   },
 
   alerts: {
@@ -146,6 +162,20 @@ export const ru: TranslationShape = {
     any: 'Любой',
     listingType: 'Тип объявления',
     district: 'Район',
+    signInDescription: 'Уведомления об объектах сохраняются в вашем аккаунте.',
+    introHeading: 'Получайте уведомления именно о тех объектах, которые вы ищете.',
+    emptyDescription: 'Создайте уведомление, и мы выделим новые объявления, соответствующие вашему поиску.',
+    formIntro: 'Выберите параметры поиска. Мы выделим подходящие новые объявления.',
+    saving: 'Сохранение…',
+    deleteConfirmBody: '{alert} больше не будет сопоставляться с новыми объектами.',
+    minimumBeds: 'Не менее {count} спален',
+    fromPrice: 'От {price}',
+    upToPrice: 'До {price}',
+    editAccessibility: 'Изменить уведомление: {alert}',
+    deleteAccessibility: 'Удалить уведомление: {alert}',
+    summaryRent: '{type} в аренду',
+    summarySale: '{type} на продажу',
+    summaryDistrict: '{summary} в районе {district}',
   },
 
   services: {
@@ -349,6 +379,7 @@ export const ru: TranslationShape = {
     maxPrice: 'Максимальная цена в турецких лирах',
     min: 'Мин',
     max: 'Макс',
+    priceRangeInvalid: 'Минимальная цена не может превышать максимальную.',
   },
 
   tabs: {
@@ -415,6 +446,16 @@ export const ru: TranslationShape = {
     forSale: 'На продажу',
     forRent: 'В аренду',
     featured: 'Рекомендуем',
+    count: '{count} объектов',
+    segmentAccessibility: 'Объекты: {label}',
+    filtersActiveAccessibility: 'Фильтры, активно: {count}',
+    filtersWithCount: 'Фильтры ({count})',
+    types: {
+      apartment: 'Квартира', villa: 'Вилла', penthouse: 'Пентхаус', duplex: 'Дуплекс',
+      studio: 'Студия', office: 'Офис', commercial: 'Коммерческая недвижимость', land: 'Земельный участок',
+      shop: 'Магазин', warehouse: 'Склад', hotel: 'Отель', farm: 'Ферма',
+    },
+    statuses: { available: 'Доступно', sold: 'Продано', rented: 'Сдано в аренду', pending: 'В ожидании' },
   },
 
   auth: {
@@ -457,6 +498,8 @@ export const ru: TranslationShape = {
     googleFailed: 'Не удалось войти через Google. Пожалуйста, попробуйте ещё раз.',
     googleNotConfigured: 'Вход через Google сейчас недоступен.',
     googlePlayServices: 'Сервисы Google Play недоступны или требуют обновления.',
+    backToHome: 'Вернуться на главную',
+    noAccountPrompt: 'Нет аккаунта?',
   },
 
   favourites: {

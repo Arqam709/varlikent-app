@@ -1,3 +1,5 @@
+import type { PropertyStatus, PropertyType } from '@/types/property';
+
 /**
  * Translation KEYS for the recurring property labels.
  *
@@ -48,4 +50,14 @@ export function bedsKey(count: number): string {
 
 export function bathsKey(count: number): string {
   return count === 1 ? 'properties.bath' : 'properties.baths';
+}
+
+/** Localized display key for the backend's controlled property-type enum. */
+export function propertyTypeKey(type: PropertyType): string {
+  return `properties.types.${type.toLowerCase()}`;
+}
+
+/** Localized display key for the backend's controlled availability enum. */
+export function propertyStatusKey(status: PropertyStatus): string {
+  return `properties.statuses.${status.toLowerCase()}`;
 }

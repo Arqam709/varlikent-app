@@ -41,6 +41,12 @@ export const en = {
     emptyTitle: 'No chats yet',
     emptyBody: 'When you message an agent about a property, your conversation will appear here.',
     browseProperties: 'Browse Properties',
+    gateDescription: 'Sign in to ask about a property and keep every conversation in one place.',
+    youPrefix: 'You:',
+    conversationAccessibility: 'Chat with {agent} about {property}.',
+    latestMessageAccessibility: 'Latest message: {preview}.',
+    unreadAccessibility: '{count} unread.',
+    openHint: 'Tap to open this conversation',
   },
 
   register: {
@@ -75,6 +81,8 @@ export const en = {
     baths: 'Baths',
     rooms: 'Rooms',
     floor: 'Floor',
+    totalFloors: 'Total Floors',
+    messageNamed: 'Message {name}',
     buildingAge: 'Building Age',
     heating: 'Heating',
     propertyType: 'Property Type',
@@ -100,6 +108,9 @@ export const en = {
     signInBody: 'Messages are private to you and your agent.',
     listingGone: 'Listing no longer available',
     sendFailed: 'Message could not be sent. Please try again.',
+    startConversation: 'Start a conversation with {name} about this property.',
+    closedDescription: 'This conversation is currently closed.',
+    viewPropertyAccessibility: 'View property: {title}',
   },
 
   notifications: {
@@ -121,6 +132,11 @@ export const en = {
     matchesAlert: 'Matches your alert',
     newlyListed: 'New property listed',
     justNow: 'Just now',
+    noAlertsDescription: "Create an alert and we'll highlight new listings that match your search.",
+    matchesDescription: "We'll highlight new properties that fit your saved alerts.",
+    upToDateTitle: "You're up to date",
+    signInDescription: 'Sign in or create an account to get updates when new properties are added to Varlikent.',
+    rowAccessibility: 'New property listed. {title}, {price}, {district}',
   },
 
   alerts: {
@@ -149,6 +165,20 @@ export const en = {
     any: 'Any',
     listingType: 'Listing Type',
     district: 'District',
+    signInDescription: 'Property alerts are saved to your account.',
+    introHeading: "Get notified about the properties you're actually looking for.",
+    emptyDescription: "Create an alert and we'll highlight new listings that match your search.",
+    formIntro: "Choose what you're looking for. We'll highlight new listings that match.",
+    saving: 'Saving…',
+    deleteConfirmBody: '{alert} will no longer be matched against new properties.',
+    minimumBeds: '{count}+ beds',
+    fromPrice: 'From {price}',
+    upToPrice: 'Up to {price}',
+    editAccessibility: 'Edit alert: {alert}',
+    deleteAccessibility: 'Delete alert: {alert}',
+    summaryRent: '{type} to Rent',
+    summarySale: '{type} for Sale',
+    summaryDistrict: '{summary} in {district}',
   },
 
   services: {
@@ -253,6 +283,7 @@ export const en = {
     maxPrice: 'Maximum price in Turkish Lira',
     min: 'Min',
     max: 'Max',
+    priceRangeInvalid: 'Minimum price cannot be higher than maximum.',
   },
 
   tabs: {
@@ -319,6 +350,16 @@ export const en = {
     forSale: 'For Sale',
     forRent: 'For Rent',
     featured: 'Featured',
+    count: '{count} properties',
+    segmentAccessibility: '{label} properties',
+    filtersActiveAccessibility: 'Filters, {count} active',
+    filtersWithCount: 'Filters ({count})',
+    types: {
+      apartment: 'Apartment', villa: 'Villa', penthouse: 'Penthouse', duplex: 'Duplex',
+      studio: 'Studio', office: 'Office', commercial: 'Commercial', land: 'Land',
+      shop: 'Shop', warehouse: 'Warehouse', hotel: 'Hotel', farm: 'Farm',
+    },
+    statuses: { available: 'Available', sold: 'Sold', rented: 'Rented', pending: 'Pending' },
   },
 
   auth: {
@@ -359,6 +400,8 @@ export const en = {
     googleFailed: 'Google sign-in failed. Please try again.',
     googleNotConfigured: 'Google Sign-In is not available right now.',
     googlePlayServices: 'Google Play Services is unavailable or needs updating.',
+    backToHome: 'Back to Home',
+    noAccountPrompt: "Don't have an account?",
   },
   favourites: {
     title: 'My Favourites',

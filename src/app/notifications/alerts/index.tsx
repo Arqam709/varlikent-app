@@ -19,6 +19,7 @@ import {
 import { ApiError } from '@/services/api-client';
 import type { PropertyAlert } from '@/types/property-alert';
 import { formatPrice } from '@/utils/format-price';
+import { propertyTypeKey } from '@/utils/property-labels';
 
 /**
  * PROPERTY ALERTS  →  route "/notifications/alerts"
@@ -81,11 +82,11 @@ export default function PropertyAlertsScreen() {
   const confirmDelete = (alert: PropertyAlert) => {
     Alert.alert(
       t('alerts.deleteConfirmTitle'),
-      `${describeAlert(alert)} will no longer be matched against new properties.`,
+      t('alerts.deleteConfirmBody', { alert: describeAlert(alert, t) }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('alerts.delete'),
           style: 'destructive',
           onPress: async () => {
             if (!token) return;
@@ -136,7 +137,7 @@ export default function PropertyAlertsScreen() {
         <View style={styles.centered}>
           <Text style={styles.stateHeading}>{t('alerts.signInTitle')}</Text>
           <Text style={styles.stateBody}>
-            Property alerts are saved to your account.
+            {t('alerts.signInDescription')}
           </Text>
           <Button
             label={t('common.signIn')}
@@ -165,7 +166,7 @@ export default function PropertyAlertsScreen() {
             <View style={styles.intro}>
               <Text style={styles.eyebrow}>{t('alerts.eyebrow')}</Text>
               <Text style={styles.introHeading}>
-                Get notified about the properties you&apos;re actually looking for.
+                {t('alerts.introHeading')}
               </Text>
             </View>
           }
@@ -185,13 +186,13 @@ export default function PropertyAlertsScreen() {
               </View>
               <Text style={styles.stateHeading}>{t('alerts.emptyTitle')}</Text>
               <Text style={styles.stateBody}>
-                Create an alert and we&apos;ll highlight new listings that match your search.
+                {t('alerts.emptyDescription')}
               </Text>
             </View>
           }
           ListFooterComponent={
             <Button
-              label={alerts.length === 0 ? 'Create Alert' : 'Create New Alert'}
+              label={alerts.length === 0 ? t('alerts.createFirst') : t('alerts.createAnother')}
               variant="primary"
               onPress={() => router.push('/notifications/alerts/edit')}
               style={styles.create}
@@ -218,10 +219,10 @@ function AlertCard({
   const { theme } = useTheme();
   const criteria: string[] = [];
 
-  if (alert.listingType) criteria.push(alert.listingType === 'Rent' ? 'For Rent' : 'For Sale');
-  if (alert.propertyType) criteria.push(alert.propertyType);
+  if (alert.listingType) criteria.push(t(alert.listingType === 'Rent' ? 'properties.forRent' : 'properties.forSale'));
+  if (alert.propertyType) criteria.push(t(propertyTypeKey(alert.propertyType)));
   if (alert.district) criteria.push(alert.district);
-  if (alert.minBeds !== undefined) criteria.push(`${alert.minBeds}+ beds`);
+  if (alert.minBeds !== undefined) criteria.push(t('alerts.minimumBeds', { count: String(alert.minBeds) }));
 
   // Reuses the shared formatter so an alert's bounds read exactly like a
   // property price elsewhere in the app.
@@ -230,14 +231,14 @@ function AlertCard({
       `${formatPrice(alert.minPrice, 'Sale')} – ${formatPrice(alert.maxPrice, 'Sale')}`
     );
   } else if (alert.minPrice !== undefined) {
-    criteria.push(`From ${formatPrice(alert.minPrice, 'Sale')}`);
+    criteria.push(t('alerts.fromPrice', { price: formatPrice(alert.minPrice, 'Sale') }));
   } else if (alert.maxPrice !== undefined) {
-    criteria.push(`Up to ${formatPrice(alert.maxPrice, 'Sale')}`);
+    criteria.push(t('alerts.upToPrice', { price: formatPrice(alert.maxPrice, 'Sale') }));
   }
 
   return (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{describeAlert(alert)}</Text>
+      <Text style={styles.cardTitle}>{describeAlert(alert, t)}</Text>
 
       <View style={styles.chips}>
         {criteria.map((text) => (
@@ -251,7 +252,7 @@ function AlertCard({
         <Pressable
           onPress={onEdit}
           accessibilityRole="button"
-          accessibilityLabel={`Edit alert: ${describeAlert(alert)}`}
+          accessibilityLabel={t('alerts.editAccessibility', { alert: describeAlert(alert, t) })}
           hitSlop={8}
           style={styles.cardAction}>
           <Ionicons name="create-outline" size={16} color={theme.primaryInk} />
@@ -261,7 +262,7 @@ function AlertCard({
         <Pressable
           onPress={onDelete}
           accessibilityRole="button"
-          accessibilityLabel={`Delete alert: ${describeAlert(alert)}`}
+          accessibilityLabel={t('alerts.deleteAccessibility', { alert: describeAlert(alert, t) })}
           hitSlop={8}
           style={styles.cardAction}>
           <Ionicons name="trash-outline" size={16} color={theme.danger} />

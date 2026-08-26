@@ -41,6 +41,7 @@ import {
 } from '@/types/property-messaging';
 import { appendUniqueMessage } from '@/utils/append-unique-message';
 import { formatPrice } from '@/utils/format-price';
+import { listingTypeKey } from '@/utils/property-labels';
 import { applyRecovery, collectRecoveryPages } from '@/utils/recover-thread-messages';
 
 
@@ -371,7 +372,7 @@ export default function ConversationScreen() {
 
   const isClosed = conversation?.status === 'closed';
   const canSend = draft.trim().length > 0 && !sending && !isClosed;
-  const counterpartyName = conversation?.counterparty?.name || 'Agent';
+  const counterpartyName = conversation?.counterparty?.name || t('messageThread.agent');
 
   /* ── Auth gate ─────────────────────────────────────────────────────── */
 
@@ -396,8 +397,8 @@ export default function ConversationScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header
-        title={loadState === 'success' ? counterpartyName : 'Message'}
-        subtitle={loadState === 'success' ? 'Agent' : ''}
+        title={loadState === 'success' ? counterpartyName : t('messageThread.title')}
+        subtitle={loadState === 'success' ? t('messageThread.agent') : ''}
         onBack={handleBack}
       />
 
@@ -441,7 +442,7 @@ export default function ConversationScreen() {
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>
-                  Start a conversation with {counterpartyName} about this property.
+                  {t('messageThread.startConversation', { name: counterpartyName })}
                 </Text>
               </View>
             }
@@ -458,7 +459,7 @@ export default function ConversationScreen() {
           {isClosed ? (
             <View style={[styles.closedNotice, { paddingBottom: Spacing.md + bottomInset }]}>
               <Text style={styles.closedText}>
-                This conversation is currently closed.
+                {t('messageThread.closedDescription')}
               </Text>
             </View>
           ) : (
@@ -562,13 +563,13 @@ function PropertyCard({
     <Pressable
       onPress={() => router.push({ pathname: '/properties/[id]', params: { id: property._id } })}
       accessibilityRole="button"
-      accessibilityLabel={`View property: ${property.title}`}
+      accessibilityLabel={t('messageThread.viewPropertyAccessibility', { title: property.title })}
       style={({ pressed }) => [styles.propertyCard, pressed && styles.propertyCardPressed]}>
       <Text style={styles.propertyTitle} numberOfLines={2}>
         {property.title}
       </Text>
       <Text style={styles.propertyMeta}>
-        {property.district} · {property.listingType === 'Rent' ? 'For Rent' : 'For Sale'}
+        {property.district} · {t(listingTypeKey(property.listingType))}
       </Text>
       <Text style={styles.propertyPrice}>
         {formatPrice(property.price, property.listingType, property.priceLabel)}

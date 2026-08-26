@@ -86,8 +86,7 @@ export default function HomeHero() {
           it is why the green line can flow inside the same paragraph.
         */}
         <Text style={styles.heading}>
-          We Design, Build{'\n'}
-          &amp; Deliver Exceptional{'\n'}
+          {t('home.heroHeadline')}{'\n'}
           <Text style={styles.headingAccent}>{t('home.heroLine3')}</Text>
         </Text>
 

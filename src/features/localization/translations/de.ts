@@ -33,6 +33,12 @@ export const de: TranslationShape = {
     emptyTitle: 'Noch keine Chats',
     emptyBody: 'Wenn Sie einem Makler zu einer Immobilie schreiben, erscheint Ihre Unterhaltung hier.',
     browseProperties: 'Immobilien durchsuchen',
+    gateDescription: 'Melden Sie sich an, um Fragen zu einer Immobilie zu stellen und alle Unterhaltungen an einem Ort zu behalten.',
+    youPrefix: 'Sie:',
+    conversationAccessibility: 'Chat mit {agent} über {property}.',
+    latestMessageAccessibility: 'Letzte Nachricht: {preview}.',
+    unreadAccessibility: '{count} ungelesen.',
+    openHint: 'Tippen, um diese Unterhaltung zu öffnen',
   },
 
   register: {
@@ -67,6 +73,8 @@ export const de: TranslationShape = {
     baths: 'Bäder',
     rooms: 'Zimmer',
     floor: 'Etage',
+    totalFloors: 'Etagen insgesamt',
+    messageNamed: 'Nachricht an {name}',
     buildingAge: 'Gebäudealter',
     heating: 'Heizung',
     propertyType: 'Immobilientyp',
@@ -92,6 +100,9 @@ export const de: TranslationShape = {
     signInBody: 'Nachrichten sind nur für Sie und Ihren Makler sichtbar.',
     listingGone: 'Angebot nicht mehr verfügbar',
     sendFailed: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
+    startConversation: 'Beginnen Sie eine Unterhaltung mit {name} über diese Immobilie.',
+    closedDescription: 'Diese Unterhaltung ist derzeit geschlossen.',
+    viewPropertyAccessibility: 'Immobilie anzeigen: {title}',
   },
 
   notifications: {
@@ -113,6 +124,11 @@ export const de: TranslationShape = {
     matchesAlert: 'Entspricht Ihrem Suchauftrag',
     newlyListed: 'Neue Immobilie eingestellt',
     justNow: 'Gerade eben',
+    noAlertsDescription: 'Erstellen Sie einen Suchauftrag, und wir heben passende neue Angebote hervor.',
+    matchesDescription: 'Wir heben neue Immobilien hervor, die zu Ihren gespeicherten Suchaufträgen passen.',
+    upToDateTitle: 'Sie sind auf dem neuesten Stand',
+    signInDescription: 'Melden Sie sich an oder erstellen Sie ein Konto, um über neue Immobilien bei Varlikent informiert zu werden.',
+    rowAccessibility: 'Neue Immobilie. {title}, {price}, {district}',
   },
 
   alerts: {
@@ -141,6 +157,20 @@ export const de: TranslationShape = {
     any: 'Beliebig',
     listingType: 'Angebotsart',
     district: 'Bezirk',
+    signInDescription: 'Immobilien-Suchaufträge werden in Ihrem Konto gespeichert.',
+    introHeading: 'Lassen Sie sich über genau die Immobilien informieren, die Sie suchen.',
+    emptyDescription: 'Erstellen Sie einen Suchauftrag, und wir heben passende neue Angebote hervor.',
+    formIntro: 'Wählen Sie Ihre Suchkriterien. Wir heben passende neue Angebote hervor.',
+    saving: 'Wird gespeichert…',
+    deleteConfirmBody: '{alert} wird nicht mehr mit neuen Immobilien abgeglichen.',
+    minimumBeds: 'Mindestens {count} Schlafzimmer',
+    fromPrice: 'Ab {price}',
+    upToPrice: 'Bis {price}',
+    editAccessibility: 'Suchauftrag bearbeiten: {alert}',
+    deleteAccessibility: 'Suchauftrag löschen: {alert}',
+    summaryRent: '{type} zur Miete',
+    summarySale: '{type} zum Verkauf',
+    summaryDistrict: '{summary} in {district}',
   },
   services: {
     howWeWork: 'So arbeiten wir',
@@ -243,6 +273,7 @@ export const de: TranslationShape = {
     maxPrice: 'Höchstpreis in Türkischer Lira',
     min: 'Min.',
     max: 'Max.',
+    priceRangeInvalid: 'Der Mindestpreis darf nicht über dem Höchstpreis liegen.',
   },
 
   tabs: {
@@ -309,6 +340,16 @@ export const de: TranslationShape = {
     forSale: 'Zum Verkauf',
     forRent: 'Zur Miete',
     featured: 'Empfohlen',
+    count: '{count} Immobilien',
+    segmentAccessibility: '{label} Immobilien',
+    filtersActiveAccessibility: 'Filter, {count} aktiv',
+    filtersWithCount: 'Filter ({count})',
+    types: {
+      apartment: 'Wohnung', villa: 'Villa', penthouse: 'Penthouse', duplex: 'Maisonette',
+      studio: 'Studio', office: 'Büro', commercial: 'Gewerbe', land: 'Grundstück',
+      shop: 'Laden', warehouse: 'Lagerhalle', hotel: 'Hotel', farm: 'Bauernhof',
+    },
+    statuses: { available: 'Verfügbar', sold: 'Verkauft', rented: 'Vermietet', pending: 'Ausstehend' },
   },
 
   auth: {
@@ -349,6 +390,8 @@ export const de: TranslationShape = {
     googleFailed: 'Google-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.',
     googleNotConfigured: 'Die Google-Anmeldung ist derzeit nicht verfügbar.',
     googlePlayServices: 'Google Play-Dienste sind nicht verfügbar oder müssen aktualisiert werden.',
+    backToHome: 'Zurück zur Startseite',
+    noAccountPrompt: 'Noch kein Konto?',
   },
   favourites: {
     title: 'Meine Favoriten',

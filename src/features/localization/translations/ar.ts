@@ -40,6 +40,12 @@ export const ar: TranslationShape = {
     emptyTitle: 'لا توجد محادثات بعد',
     emptyBody: 'عند مراسلة مستشار بخصوص عقار، ستظهر محادثتك هنا.',
     browseProperties: 'تصفّح العقارات',
+    gateDescription: 'سجّل الدخول للسؤال عن عقار والاحتفاظ بجميع محادثاتك في مكان واحد.',
+    youPrefix: 'أنت:',
+    conversationAccessibility: 'محادثة مع {agent} حول {property}.',
+    latestMessageAccessibility: 'أحدث رسالة: {preview}.',
+    unreadAccessibility: '{count} غير مقروءة.',
+    openHint: 'اضغط لفتح هذه المحادثة',
   },
 
   register: {
@@ -74,6 +80,8 @@ export const ar: TranslationShape = {
     baths: 'حمّامات',
     rooms: 'الغرف',
     floor: 'الطابق',
+    totalFloors: 'إجمالي الطوابق',
+    messageNamed: 'مراسلة {name}',
     buildingAge: 'عمر المبنى',
     heating: 'التدفئة',
     propertyType: 'نوع العقار',
@@ -99,6 +107,9 @@ export const ar: TranslationShape = {
     signInBody: 'الرسائل خاصة بك وبمستشارك فقط.',
     listingGone: 'الإعلان لم يعد متاحًا',
     sendFailed: 'تعذّر إرسال الرسالة. يُرجى المحاولة مرة أخرى.',
+    startConversation: 'ابدأ محادثة مع {name} حول هذا العقار.',
+    closedDescription: 'هذه المحادثة مغلقة حاليًا.',
+    viewPropertyAccessibility: 'عرض العقار: {title}',
   },
 
   notifications: {
@@ -120,6 +131,11 @@ export const ar: TranslationShape = {
     matchesAlert: 'مطابق لتنبيهك',
     newlyListed: 'عقار جديد مُدرج',
     justNow: 'الآن',
+    noAlertsDescription: 'أنشئ تنبيهًا وسنبرز الإعلانات الجديدة المطابقة لبحثك.',
+    matchesDescription: 'سنبرز العقارات الجديدة التي تناسب تنبيهاتك المحفوظة.',
+    upToDateTitle: 'أنت على اطلاع',
+    signInDescription: 'سجّل الدخول أو أنشئ حسابًا لتلقي تحديثات عند إضافة عقارات جديدة إلى Varlikent.',
+    rowAccessibility: 'عقار جديد. {title}، {price}، {district}',
   },
 
   alerts: {
@@ -148,6 +164,20 @@ export const ar: TranslationShape = {
     any: 'الكل',
     listingType: 'نوع الإعلان',
     district: 'المنطقة',
+    signInDescription: 'تُحفظ تنبيهات العقارات في حسابك.',
+    introHeading: 'تلقَّ إشعارات بالعقارات التي تبحث عنها فعلًا.',
+    emptyDescription: 'أنشئ تنبيهًا وسنبرز الإعلانات الجديدة المطابقة لبحثك.',
+    formIntro: 'اختر ما تبحث عنه وسنبرز الإعلانات الجديدة المطابقة.',
+    saving: 'جارٍ الحفظ…',
+    deleteConfirmBody: 'لن تتم مطابقة {alert} مع العقارات الجديدة بعد الآن.',
+    minimumBeds: '{count}+ غرف نوم',
+    fromPrice: 'من {price}',
+    upToPrice: 'حتى {price}',
+    editAccessibility: 'تعديل التنبيه: {alert}',
+    deleteAccessibility: 'حذف التنبيه: {alert}',
+    summaryRent: '{type} للإيجار',
+    summarySale: '{type} للبيع',
+    summaryDistrict: '{summary} في {district}',
   },
 
   services: {
@@ -252,6 +282,7 @@ export const ar: TranslationShape = {
     maxPrice: 'أعلى سعر بالليرة التركية',
     min: 'الأدنى',
     max: 'الأعلى',
+    priceRangeInvalid: 'لا يمكن أن يكون الحد الأدنى للسعر أعلى من الحد الأقصى.',
   },
 
   tabs: {
@@ -318,6 +349,16 @@ export const ar: TranslationShape = {
     forSale: 'للبيع',
     forRent: 'للإيجار',
     featured: 'مميّز',
+    count: '{count} عقار',
+    segmentAccessibility: 'عقارات: {label}',
+    filtersActiveAccessibility: 'عوامل التصفية، {count} نشطة',
+    filtersWithCount: 'عوامل التصفية ({count})',
+    types: {
+      apartment: 'شقة', villa: 'فيلا', penthouse: 'بنتهاوس', duplex: 'دوبلكس',
+      studio: 'استوديو', office: 'مكتب', commercial: 'تجاري', land: 'أرض',
+      shop: 'متجر', warehouse: 'مستودع', hotel: 'فندق', farm: 'مزرعة',
+    },
+    statuses: { available: 'متاح', sold: 'مباع', rented: 'مؤجر', pending: 'قيد الانتظار' },
   },
 
   auth: {
@@ -358,6 +399,8 @@ export const ar: TranslationShape = {
     googleFailed: 'فشل تسجيل الدخول عبر Google. يُرجى المحاولة مرة أخرى.',
     googleNotConfigured: 'تسجيل الدخول عبر Google غير متاح حاليًا.',
     googlePlayServices: 'خدمات Google Play غير متاحة أو تحتاج إلى تحديث.',
+    backToHome: 'العودة إلى الرئيسية',
+    noAccountPrompt: 'ليس لديك حساب؟',
   },
   favourites: {
     title: 'مفضلتي',

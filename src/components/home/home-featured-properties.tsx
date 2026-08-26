@@ -13,7 +13,7 @@ import {
 
 import FavouriteButton from '@/components/properties/favourite-button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
-import { listingTypeKey } from '@/utils/property-labels';
+import { bathsKey, bedsKey, listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
@@ -192,7 +192,8 @@ function FeaturedCard({
           {property.district}, Istanbul
         </Text>
         <Text style={styles.specs}>
-          {property.beds} bed · {property.baths} bath · {property.sqm} m²
+          {property.beds} {t(bedsKey(property.beds))} · {property.baths}{' '}
+          {t(bathsKey(property.baths))} · {property.sqm} m²
         </Text>
       </View>
     </Pressable>

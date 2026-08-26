@@ -19,6 +19,7 @@ import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
 import type { PropertySecondaryFilters } from '@/features/properties/properties-api';
 import type { PropertyArea, PropertyType } from '@/types/property';
+import { propertyTypeKey } from '@/utils/property-labels';
 
 /**
  * PROPERTY FILTER PANEL
@@ -224,7 +225,7 @@ export default function PropertyFilterPanel({
                 {PROPERTY_TYPES.map((type) => (
                   <Chip
                     key={type}
-                    label={type}
+                    label={t(propertyTypeKey(type))}
                     selected={draft.propertyType === type}
                     onPress={() => setDraft((d) => ({ ...d, propertyType: type }))}
                   />
@@ -268,7 +269,7 @@ export default function PropertyFilterPanel({
               </View>
               {priceInvalid ? (
                 <Text style={styles.validation}>
-                  Minimum price cannot be higher than maximum.
+                  {t('filters.priceRangeInvalid')}
                 </Text>
               ) : null}
             </Section>

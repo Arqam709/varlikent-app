@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -54,6 +55,7 @@ export default function TextField({
 }: Props) {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { t } = useLanguage();
   /**
    * React Native has no CSS `:focus`, so the focus ring the website gets for
    * free has to be tracked as state and applied manually.
@@ -100,10 +102,10 @@ export default function TextField({
           <Pressable
             onPress={() => setRevealed((r) => !r)}
             accessibilityRole="button"
-            accessibilityLabel={revealed ? 'Hide password' : 'Show password'}
+            accessibilityLabel={revealed ? t('common.hidePassword') : t('common.showPassword')}
             // Expands the touch target beyond the small text without changing layout.
             hitSlop={8}>
-            <Text style={styles.toggle}>{revealed ? 'Hide' : 'Show'}</Text>
+            <Text style={styles.toggle}>{revealed ? t('common.hide') : t('common.show')}</Text>
           </Pressable>
         )}
       </View>
