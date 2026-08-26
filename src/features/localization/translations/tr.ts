@@ -9,6 +9,7 @@ import type { TranslationShape } from './en';
  */
 export const tr: TranslationShape = {
   common: {
+    close: 'Kapat',
     save: 'Değişiklikleri Kaydet',
     cancel: 'İptal',
     retry: 'Tekrar Dene',
@@ -480,6 +481,7 @@ export const tr: TranslationShape = {
   },
 
   language: {
+    changeA11y: 'Dili değiştir. Geçerli dil: {language}',
     title: 'Dil',
     subtitle: 'Dilinizi seçin.',
     restartTitle: 'Bir kez yeniden başlatın',

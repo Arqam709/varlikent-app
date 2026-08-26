@@ -15,6 +15,7 @@ import type { TranslationShape } from './en';
  */
 export const ar: TranslationShape = {
   common: {
+    close: 'إغلاق',
     save: 'حفظ التغييرات',
     cancel: 'إلغاء',
     retry: 'إعادة المحاولة',
@@ -485,6 +486,7 @@ export const ar: TranslationShape = {
   },
 
   language: {
+    changeA11y: 'تغيير اللغة. اللغة الحالية: {language}',
     title: 'اللغة',
     subtitle: 'اختر لغتك.',
     restartTitle: 'مطلوب إعادة تشغيل واحدة',

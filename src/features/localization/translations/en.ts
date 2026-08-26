@@ -16,6 +16,7 @@
  */
 export const en = {
   common: {
+    close: 'Close',
     save: 'Save Changes',
     cancel: 'Cancel',
     retry: 'Try Again',
@@ -489,6 +490,7 @@ export const en = {
   },
 
   language: {
+    changeA11y: 'Change language. Current language: {language}',
     title: 'Language',
     subtitle: 'Choose your language.',
     restartTitle: 'One restart needed',

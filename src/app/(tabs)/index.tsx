@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HomeDiscovery from '@/components/home/home-discovery';
 import HomeFeaturedProperties from '@/components/home/home-featured-properties';
 import HomeHero from '@/components/home/home-hero';
+import HomeLanguagePicker from '@/components/home/home-language-picker';
 import HomeServicesPreview from '@/components/home/home-services-preview';
 import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
@@ -71,27 +72,40 @@ export default function HomeScreen() {
             <VarlikentIcon width={26} height={24} />
             <Text style={styles.wordmark}>VARLIKENT</Text>
           </View>
-          <Pressable
-            onPress={() => router.push('/notifications')}
-            accessibilityRole="button"
-            accessibilityLabel={
-              unreadCount > 0
-                ? t('home.notificationsWithCount', { count: String(unreadCount) })
-                : t('home.notifications')
-            }
-            hitSlop={10}
-            style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}>
-            <Ionicons name="notifications-outline" size={22} color={theme.text} />
+          {/*
+            Trailing controls. Deliberately OUTSIDE any auth check — the globe
+            has to be reachable by a signed-out customer, who is exactly the
+            person most likely to be stuck in a language they cannot read.
+          */}
+          <View
+            style={[
+              styles.headerActions,
+              { flexDirection: isRTL ? 'row-reverse' : 'row' },
+            ]}>
+            <HomeLanguagePicker />
 
-            {/* Never rendered for anonymous users — unreadCount stays 0. */}
-            {unreadCount > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            ) : null}
-          </Pressable>
+            <Pressable
+              onPress={() => router.push('/notifications')}
+              accessibilityRole="button"
+              accessibilityLabel={
+                unreadCount > 0
+                  ? t('home.notificationsWithCount', { count: String(unreadCount) })
+                  : t('home.notifications')
+              }
+              hitSlop={10}
+              style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}>
+              <Ionicons name="notifications-outline" size={22} color={theme.text} />
+
+              {/* Never rendered for anonymous users — unreadCount stays 0. */}
+              {unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+          </View>
         </View>
 
         <HomeHero />
@@ -128,6 +142,12 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  /** Language and notifications, kept together at the trailing edge. */
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
