@@ -6,6 +6,7 @@ import { resolveInitialLanguage } from './language-bootstrap';
 import { ar } from './translations/ar';
 import { de } from './translations/de';
 import { en, type TranslationShape } from './translations/en';
+import { ru } from './translations/ru';
 import { tr } from './translations/tr';
 
 
@@ -17,7 +18,7 @@ if (NATIVE_RTL_AT_LAUNCH) {
   I18nManager.forceRTL(false);
 }
 
-export type LanguageCode = 'en' | 'tr' | 'ar' | 'de';
+export type LanguageCode = 'en' | 'tr' | 'ar' | 'de' | 'ru';
 
 /**
  * Everything the app knows about one language.
@@ -48,9 +49,10 @@ export const LANGUAGES: LanguageMeta[] = [
   { code: 'tr', label: 'Türkçe', englishLabel: 'Turkish', rtl: false },
   { code: 'ar', label: 'العربية', englishLabel: 'Arabic', rtl: true },
   { code: 'de', label: 'Deutsch', englishLabel: 'German', rtl: false },
+  { code: 'ru', label: 'Русский', englishLabel: 'Russian', rtl: false },
 ];
 
-const BUNDLES: Record<LanguageCode, TranslationShape> = { en, tr, ar, de };
+const BUNDLES: Record<LanguageCode, TranslationShape> = { en, tr, ar, de, ru };
 
 /**
  * The registry entry for a language code.

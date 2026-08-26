@@ -34,7 +34,7 @@ const load = (relative, imports = {}) => {
 }
 
 /** The registry, as the provider passes it. */
-const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }]
+const SUPPORTED = [{ code: 'en' }, { code: 'tr' }, { code: 'ar' }, { code: 'de' }, { code: 'ru' }]
 
 /* ── Scripted device ─────────────────────────────────────────────────── */
 
@@ -135,8 +135,60 @@ test('4. fresh + German phone starts in German as an LTR device choice', async (
   }
 })
 
+test('4c. fresh + Russian phone starts in Russian, every region', async () => {
+  for (const locale of ['ru-RU', 'ru_RU', 'ru-BY', 'ru-KZ']) {
+    store = {}
+    deviceLocale = locale
+
+    const result = await boot()
+
+    assert.deepEqual(result, { language: 'ru', source: 'device' }, locale)
+    assert.equal(store.language, 'ru')
+    assert.equal(store.source, 'device')
+  }
+})
+
+test('4d. a Russian install decided once is not decided again', async () => {
+  deviceLocale = 'ru-RU'
+  assert.deepEqual(await boot(), { language: 'ru', source: 'device' })
+
+  writes = []
+  assert.deepEqual(await boot(), { language: 'ru', source: 'device' })
+  assert.deepEqual(writes, [], 'the second launch writes nothing')
+})
+
+test('4e. an existing install is NOT moved to Russian now that Russian exists', async () => {
+  /*
+   * The migration guarantee, re-checked for each new language. Someone whose
+   * Russian phone gave them English before this release must still open the app
+   * in English — adding a language is not permission to change theirs.
+   */
+  store = { language: 'en', source: 'device' }
+  deviceLocale = 'ru-RU'
+  assert.deepEqual(await boot(), { language: 'en', source: 'device' })
+
+  store = { language: 'en', source: 'user' }
+  deviceLocale = 'ru-RU'
+  assert.deepEqual(await boot(), { language: 'en', source: 'user' })
+})
+
+test('4f. a manual Russian choice survives a Russian-phone restart', async () => {
+  // What Home's picker does, via setLanguage.
+  await storage.writeStoredLanguage('ru')
+  await storage.writeStoredLanguageSource('user')
+  deviceLocale = 'ru-RU'
+
+  assert.deepEqual(await boot(), { language: 'ru', source: 'user' })
+
+  // And a later switch away from Russian equally sticks.
+  await storage.writeStoredLanguage('en')
+  await storage.writeStoredLanguageSource('user')
+
+  assert.deepEqual(await boot(), { language: 'en', source: 'user' })
+})
+
 test('4b. fresh + an unsupported language starts in English', async () => {
-  for (const locale of ['ru-RU', 'ur-PK', 'ja-JP']) {
+  for (const locale of ['ur-PK', 'ja-JP']) {
     store = {}
     deviceLocale = locale
 

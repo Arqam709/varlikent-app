@@ -205,6 +205,7 @@ function loadReal() {
       './translations/en': load('src/features/localization/translations/en.ts'),
       './translations/tr': load('src/features/localization/translations/tr.ts'),
       './translations/ar': load('src/features/localization/translations/ar.ts'),
+      './translations/ru': load('src/features/localization/translations/ru.ts'),
       './translations/de': load('src/features/localization/translations/de.ts'),
     },
     true
@@ -255,7 +256,7 @@ test('2. the picker itself never consults auth', () => {
 })
 
 test('3. the trigger shows a globe and the current language code', () => {
-  for (const [code, expected] of [['en', 'EN'], ['tr', 'TR'], ['ar', 'AR'], ['de', 'DE']]) {
+  for (const [code, expected] of [['en', 'EN'], ['tr', 'TR'], ['ar', 'AR'], ['de', 'DE'], ['ru', 'RU']]) {
     slots = []
     language = code
 
@@ -358,8 +359,8 @@ test('13. the visible names are the languages own, in registry order', () => {
   const texts = textsOf(openSheet())
 
   assert.deepEqual(
-    texts.filter((s) => ['English', 'Türkçe', 'العربية', 'Deutsch'].includes(s)),
-    ['English', 'Türkçe', 'العربية', 'Deutsch']
+    texts.filter((s) => ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'].includes(s)),
+    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский']
   )
 
   // Never the English names of other languages.
@@ -369,14 +370,14 @@ test('13. the visible names are the languages own, in registry order', () => {
 })
 
 test('14. self-names do not change with the UI language', () => {
-  for (const code of ['en', 'tr', 'ar', 'de']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
     slots = []
     language = code
     isRTL = code === 'ar'
 
     const texts = textsOf(openSheet())
 
-    for (const name of ['English', 'Türkçe', 'العربية', 'Deutsch']) {
+    for (const name of ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский']) {
       assert.ok(texts.includes(name), `${name} missing while UI is ${code}`)
     }
   }
@@ -398,6 +399,8 @@ test('15. the option list is driven by LANGUAGES, not a copy', () => {
   assert.equal(/'en'\s*,\s*'tr'\s*,\s*'ar'/.test(source), false, 'inline language list')
   assert.equal(source.includes("code: 'de'"), false, 'German must come from LANGUAGES')
   assert.equal(source.includes('Deutsch'), false, 'German row must not be hard-coded')
+  assert.equal(source.includes("code: 'ru'"), false, 'Russian must come from LANGUAGES')
+  assert.equal(source.includes('Русский'), false, 'Russian row must not be hard-coded')
 })
 
 test('16. the registry is never reversed for RTL', () => {
@@ -405,10 +408,10 @@ test('16. the registry is never reversed for RTL', () => {
   language = 'ar'
 
   const texts = textsOf(openSheet()).filter((s) =>
-    ['English', 'Türkçe', 'العربية', 'Deutsch'].includes(s)
+    ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'].includes(s)
   )
 
-  assert.deepEqual(texts, ['English', 'Türkçe', 'العربية', 'Deutsch'], 'layout mirrors, data does not')
+  assert.deepEqual(texts, ['English', 'Türkçe', 'العربية', 'Deutsch', 'Русский'], 'layout mirrors, data does not')
 
   const source = read('src/components/home/home-language-picker.tsx')
   assert.equal(source.includes('.reverse()'), false)
@@ -417,7 +420,7 @@ test('16. the registry is never reversed for RTL', () => {
 /* ═══════════════ Selection ═══════════════ */
 
 test('17. the selected language is marked, and only that one', () => {
-  for (const [code, expected] of [['en', 'English'], ['tr', 'Türkçe'], ['ar', 'العربية'], ['de', 'Deutsch']]) {
+  for (const [code, expected] of [['en', 'English'], ['tr', 'Türkçe'], ['ar', 'العربية'], ['de', 'Deutsch'], ['ru', 'Русский']]) {
     slots = []
     language = code
 
@@ -452,6 +455,25 @@ test('19. choosing a language calls the shared setLanguage', () => {
   rows[1].props.onPress()
 
   assert.deepEqual(setLanguageCalls, ['tr'])
+})
+
+test('19c. the Russian row can be pressed through the shared setter', () => {
+  const rows = walk(openSheet()).filter((n) => n.props?.accessibilityRole === 'radio')
+  const russian = rows.find((row) => row.props.accessibilityLabel === 'Russian')
+
+  assert.ok(russian, 'Русский must be offered')
+  // Visible in its own script; announced in English so a screen reader can say it.
+  assert.ok(textsOf(russian).includes('Русский'))
+
+  russian.props.onPress()
+  assert.deepEqual(setLanguageCalls, ['ru'])
+})
+
+test('19d. the sheet closes after choosing Russian', () => {
+  const rows = walk(openSheet()).filter((n) => n.props?.accessibilityRole === 'radio')
+  rows.find((row) => row.props.accessibilityLabel === 'Russian').props.onPress()
+
+  assert.equal(modalOf(render()).props.visible, false)
 })
 
 test('19b. the German row can be pressed through the shared setter', () => {

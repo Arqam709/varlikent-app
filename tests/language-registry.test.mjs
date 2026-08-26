@@ -99,7 +99,7 @@ let resolveSupportedLanguage
 let bundles = {}
 
 before(() => {
-  for (const code of ['en', 'tr', 'ar', 'de']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
     const m = load(`src/features/localization/translations/${code}.ts`)
     bundles[code] = m[code] ?? m.default
   }
@@ -144,6 +144,7 @@ before(() => {
       './translations/en': load('src/features/localization/translations/en.ts'),
       './translations/tr': load('src/features/localization/translations/tr.ts'),
       './translations/ar': load('src/features/localization/translations/ar.ts'),
+      './translations/ru': load('src/features/localization/translations/ru.ts'),
       './translations/de': load('src/features/localization/translations/de.ts'),
     },
     true
@@ -177,7 +178,7 @@ const settle = async (passes = 3) => {
 /* ═══════════════ The registry ═══════════════ */
 
 test('1. LANGUAGES holds exactly the supported codes, in picker order', () => {
-  assert.deepEqual(mod.LANGUAGES.map((l) => l.code), ['en', 'tr', 'ar', 'de'])
+  assert.deepEqual(mod.LANGUAGES.map((l) => l.code), ['en', 'tr', 'ar', 'de', 'ru'])
 })
 
 test('2. every entry carries code, native label, englishLabel and rtl', () => {
@@ -196,11 +197,13 @@ test('3. labels are the languages own names, not English names', () => {
   assert.equal(byCode.tr.label, 'Türkçe', 'not "Turkish"')
   assert.equal(byCode.ar.label, 'العربية', 'not "Arabic"')
   assert.equal(byCode.de.label, 'Deutsch', 'not "German"')
+  assert.equal(byCode.ru.label, 'Русский', 'not "Russian"')
 
   // englishLabel stays English — it is what a screen reader announces.
   assert.equal(byCode.tr.englishLabel, 'Turkish')
   assert.equal(byCode.ar.englishLabel, 'Arabic')
   assert.equal(byCode.de.englishLabel, 'German')
+  assert.equal(byCode.ru.englishLabel, 'Russian')
 })
 
 test('4. direction is recorded per language', () => {
@@ -210,6 +213,7 @@ test('4. direction is recorded per language', () => {
   assert.equal(byCode.tr.rtl, false)
   assert.equal(byCode.ar.rtl, true)
   assert.equal(byCode.de.rtl, false)
+  assert.equal(byCode.ru.rtl, false, 'Russian is left-to-right')
 })
 
 test('5. each code appears exactly once', () => {
@@ -234,8 +238,15 @@ test('7b. device resolution uses the real LANGUAGES registry', () => {
   for (const locale of ['de-DE', 'de_DE', 'de-AT', 'de-CH']) {
     assert.equal(resolveSupportedLanguage(locale, mod.LANGUAGES, 'en'), 'de', locale)
   }
-  assert.equal(resolveSupportedLanguage('ru-RU', mod.LANGUAGES, 'en'), 'en')
+  // Russian resolves because it is IN the registry — no locale special case was
+  // added anywhere. Every regional variant maps to the one Russian bundle.
+  for (const locale of ['ru-RU', 'ru_RU', 'ru-BY', 'ru-KZ']) {
+    assert.equal(resolveSupportedLanguage(locale, mod.LANGUAGES, 'en'), 'ru', locale)
+  }
+
+  // Urdu is still unimplemented and must keep falling back.
   assert.equal(resolveSupportedLanguage('ur-PK', mod.LANGUAGES, 'en'), 'en')
+  assert.equal(resolveSupportedLanguage('ja-JP', mod.LANGUAGES, 'en'), 'en')
 })
 
 /* ═══════════════ RTL derives from the registry ═══════════════ */
@@ -287,15 +298,15 @@ test('9. isRTL matches the registry for every language', async () => {
   }
 })
 
-test('10. en, tr and de are LTR; ar is RTL', async () => {
+test('10. en, tr, de and ru are LTR; ar is RTL', async () => {
   const results = {}
-  for (const code of ['en', 'tr', 'ar', 'de']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
     slots = []
     stored = code
     results[code] = (await settle()).isRTL
   }
 
-  assert.deepEqual(results, { en: false, tr: false, ar: true, de: false })
+  assert.deepEqual(results, { en: false, tr: false, ar: true, de: false, ru: false })
 })
 
 test('11. switching German → Arabic → German flips direction with no reload', async () => {
@@ -325,6 +336,47 @@ test('11b. manual German selection persists de with source=user', async () => {
 
   assert.equal(stored, 'de')
   assert.equal(storedSource, 'user')
+})
+
+test('11c. Russian ↔ Arabic flips direction both ways with no reload', async () => {
+  slots = []
+  stored = 'ru'
+  let ctx = await settle()
+  assert.equal(ctx.language, 'ru')
+  assert.equal(ctx.isRTL, false, 'Russian is left-to-right')
+
+  await ctx.setLanguage('ar')
+  ctx = await render()
+  assert.equal(ctx.isRTL, true)
+
+  await ctx.setLanguage('ru')
+  ctx = await render()
+  assert.equal(ctx.isRTL, false, 'and straight back, with no restart')
+})
+
+test('11d. German → Russian stays left-to-right', async () => {
+  slots = []
+  stored = 'de'
+  let ctx = await settle()
+  assert.equal(ctx.isRTL, false)
+
+  await ctx.setLanguage('ru')
+  ctx = await render()
+
+  assert.equal(ctx.language, 'ru')
+  assert.equal(ctx.isRTL, false)
+})
+
+test('11e. manual Russian selection persists ru with source=user', async () => {
+  slots = []
+  stored = 'en'
+  storedSource = 'device'
+  const ctx = await settle()
+
+  await ctx.setLanguage('ru')
+
+  assert.equal(stored, 'ru')
+  assert.equal(storedSource, 'user', 'an explicit choice outranks the phone forever')
 })
 
 test('12. switching language never mutates native layout direction', async () => {
@@ -357,7 +409,7 @@ test('14. a stored language is restored', async () => {
 })
 
 test('15. unknown or absent stored values fall back to English', async () => {
-  for (const bad of [null, undefined, '', 'ru', 'ur', 'nonsense', 'EN']) {
+  for (const bad of [null, undefined, '', 'ur', 'nonsense', 'EN', 'RU']) {
     slots = []
     stored = bad
 
@@ -375,25 +427,50 @@ const leaves = (o, p = '') =>
     v && typeof v === 'object' ? leaves(v, `${p}${k}.`) : [`${p}${k}`]
   )
 
-test('16. en, tr, ar and de expose an identical key structure', () => {
+test('16. every bundle exposes an identical key structure', () => {
+  // Driven by whatever bundles exist rather than a hard-coded list, so the next
+  // language is covered the moment it is loaded — no test edit required.
   const en = leaves(bundles.en).sort()
-  assert.deepEqual(leaves(bundles.tr).sort(), en, 'tr differs from en')
-  assert.deepEqual(leaves(bundles.ar).sort(), en, 'ar differs from en')
-  assert.deepEqual(leaves(bundles.de).sort(), en, 'de differs from en')
+
+  for (const [code, bundle] of Object.entries(bundles)) {
+    if (code === 'en') continue
+    assert.deepEqual(leaves(bundle).sort(), en, `${code} differs from en`)
+  }
+})
+
+test('16a. no bundle is missing or has extra keys', () => {
+  const en = new Set(leaves(bundles.en))
+
+  for (const [code, bundle] of Object.entries(bundles)) {
+    if (code === 'en') continue
+    const own = new Set(leaves(bundle))
+
+    assert.deepEqual([...en].filter((k) => !own.has(k)), [], `${code} is missing keys`)
+    assert.deepEqual([...own].filter((k) => !en.has(k)), [], `${code} has extra keys`)
+  }
 })
 const placeholders = (value) =>
   [...value.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]).sort()
 
-test('16b. every German placeholder exactly matches English', () => {
+test('16b. every placeholder in every language exactly matches English', () => {
+  /*
+   * The silent killer. A translator who writes {количество} instead of {count}
+   * produces a string that looks perfect in review and renders the literal
+   * braces to the customer, because interpolation is keyed by the English name.
+   */
   for (const key of leaves(bundles.en)) {
     const english = key.split('.').reduce((o, part) => o?.[part], bundles.en)
-    const german = key.split('.').reduce((o, part) => o?.[part], bundles.de)
 
-    assert.deepEqual(
-      placeholders(german),
-      placeholders(english),
-      `placeholder mismatch at ${key}`
-    )
+    for (const [code, bundle] of Object.entries(bundles)) {
+      if (code === 'en') continue
+      const translated = key.split('.').reduce((o, part) => o?.[part], bundle)
+
+      assert.deepEqual(
+        placeholders(translated),
+        placeholders(english),
+        `${code}: placeholder mismatch at ${key}`
+      )
+    }
   }
 })
 
@@ -418,7 +495,7 @@ test('18. the new Home accessibility keys exist in all four languages', () => {
     'statSatisfactionA11y',
   ]
 
-  for (const code of ['en', 'tr', 'ar', 'de']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
     for (const key of added) {
       assert.ok(bundles[code].home?.[key]?.length, `${code} is missing home.${key}`)
     }
@@ -426,7 +503,7 @@ test('18. the new Home accessibility keys exist in all four languages', () => {
 })
 
 test('19. the notification count interpolates in every language', async () => {
-  for (const code of ['en', 'tr', 'ar', 'de']) {
+  for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
     slots = []
     stored = code
 
@@ -503,7 +580,7 @@ test('23. every t() key used in Home resolves in all four languages', () => {
   assert.ok(keys.size > 10, `expected many Home keys, found ${keys.size}`)
 
   for (const key of keys) {
-    for (const code of ['en', 'tr', 'ar', 'de']) {
+    for (const code of ['en', 'tr', 'ar', 'de', 'ru']) {
       const value = key.split('.').reduce((o, part) => o?.[part], bundles[code])
       assert.equal(typeof value, 'string', `${code} is missing ${key}`)
     }
@@ -539,6 +616,77 @@ test('26. admin-authored property data is never routed through t()', () => {
   for (const forbidden of ['t(property.title', 't(property.district', 't(property.description']) {
     assert.equal(source.includes(forbidden), false, `${forbidden} — property data is not UI copy`)
   }
+})
+
+test('26b. no ordinary Russian key ever falls through to English', async () => {
+  /*
+   * t() falls back to English so a missing key degrades readably rather than
+   * printing "account.title". That safety net also HIDES an untranslated key,
+   * so completeness has to be asserted directly: every value the app can look
+   * up while Russian is active must come from the Russian bundle.
+   */
+  slots = []
+  stored = 'ru'
+  const ctx = await settle()
+  assert.equal(ctx.language, 'ru')
+
+  const identical = []
+
+  for (const key of leaves(bundles.en)) {
+    const expected = key.split('.').reduce((o, part) => o?.[part], bundles.ru)
+
+    assert.equal(typeof expected, 'string', `ru is missing ${key}`)
+    assert.equal(ctx.t(key), expected, `${key} did not resolve from the Russian bundle`)
+
+    // Brand and vendor names legitimately match; anything else matching English
+    // is a sign the key was copied rather than translated.
+    const english = key.split('.').reduce((o, part) => o?.[part], bundles.en)
+    if (expected === english) identical.push(key)
+  }
+
+  const allowed = new Set([
+    'account.eyebrow',
+    'accountInformation.providers.google',
+    'accountInformation.providers.microsoft',
+    'accountInformation.providers.apple',
+    'appearance.themes.default.label',
+    'appearance.themes.classic.label',
+    'appearance.themes.dark.label',
+    'appearance.themes.light.label',
+    'appearance.themes.forest.label',
+    'password.placeholder',
+    'properties.eyebrow',
+    'filters.min',
+    'auth.apple',
+    // The website's Russian keeps a Latin example address too — an email
+    // placeholder in Cyrillic would not look like an email address.
+    'personalInformation.emailPlaceholder',
+  ])
+
+  assert.deepEqual(
+    identical.filter((k) => !allowed.has(k)),
+    [],
+    'these Russian values are still identical to English'
+  )
+
+  /*
+   * An exact-match check alone misses a value that was reworded but never
+   * actually translated. In a Cyrillic bundle the stronger signal is script:
+   * a value with letters but no Cyrillic at all is Latin text sitting in the
+   * Russian file.
+   */
+  const latinOnly = []
+
+  for (const key of leaves(bundles.en)) {
+    if (allowed.has(key)) continue
+    const value = key.split('.').reduce((o, part) => o?.[part], bundles.ru)
+
+    const hasLetters = /\p{L}/u.test(value)
+    const hasCyrillic = /\p{Script=Cyrillic}/u.test(value)
+    if (hasLetters && !hasCyrillic) latinOnly.push(`${key} = ${value}`)
+  }
+
+  assert.deepEqual(latinOnly, [], 'these Russian values contain no Cyrillic at all')
 })
 
 test('27. Account language options come from LANGUAGES, including German', () => {
