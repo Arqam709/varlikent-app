@@ -35,6 +35,17 @@ type Props = {
   secure?: boolean;
   /** Rendered at the right end of the label row, e.g. a "Forgot password?" link. */
   labelAccessory?: ReactNode;
+  /**
+   * Grows the field into a multi-line box, for a message rather than a value.
+   *
+   * Added for the Contact enquiry, which is the app's first free-text field.
+   * It changes THREE things that a plain `multiline` flag alone would get
+   * wrong on this component: the row stops being vertically centred (so the
+   * caret starts at the top rather than floating mid-box), the input gets a
+   * minimum height, and `textAlignVertical` is set for Android, which
+   * otherwise centres the first line regardless of the flex alignment.
+   */
+  multiline?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: TextInputProps['autoCapitalize'];
   autoComplete?: TextInputProps['autoComplete'];
@@ -48,6 +59,7 @@ export default function TextField({
   placeholder,
   secure = false,
   labelAccessory,
+  multiline = false,
   keyboardType,
   autoCapitalize = 'none',
   autoComplete,
@@ -72,7 +84,12 @@ export default function TextField({
         {labelAccessory}
       </View>
 
-      <View style={[styles.inputRow, focused && styles.inputRowFocused]}>
+      <View
+        style={[
+          styles.inputRow,
+          multiline && styles.inputRowMultiline,
+          focused && styles.inputRowFocused,
+        ]}>
         <TextInput
           value={value}
           /**
@@ -93,9 +110,13 @@ export default function TextField({
           autoComplete={autoComplete}
           textContentType={textContentType}
           autoCorrect={false}
+          multiline={multiline}
+          // Android centres the first line of a multiline input without this,
+          // so a one-line message sits oddly in the middle of the box.
+          textAlignVertical={multiline ? 'top' : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={styles.input}
+          style={[styles.input, multiline && styles.inputMultiline]}
         />
 
         {secure && (
@@ -137,6 +158,14 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     backgroundColor: theme.cardBg,
     paddingHorizontal: Spacing.md,
   },
+  /**
+   * A multi-line box aligns its content to the top: `alignItems: 'center'`
+   * would keep a growing input vertically centred, which reads as a bug once
+   * the text wraps.
+   */
+  inputRowMultiline: {
+    alignItems: 'flex-start',
+  },
   /** Stands in for the website's `focus:ring-[#4b6741]`. */
   inputRowFocused: {
     borderColor: theme.brandGreen,
@@ -147,6 +176,10 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.md,
     color: theme.text,
     paddingVertical: Spacing.md,
+  },
+  /** ~4 lines at the body size — enough to see an enquiry take shape. */
+  inputMultiline: {
+    minHeight: 112,
   },
   toggle: {
     fontFamily: FontFamily.bodySemiBold,

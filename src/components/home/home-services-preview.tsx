@@ -2,30 +2,32 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
+import { useDirection } from '@/features/localization/use-direction';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
 import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function HomeServicesPreview() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { row, onwardIcon } = useDirection();
   const router = useRouter();
 
   return (
     <View style={styles.section}>
-      <Text style={styles.eyebrow}>{t('home.expertiseEyebrow')}</Text>
-      <Text style={styles.heading}>{t('home.beyondRealEstate')}</Text>
+      <SectionHeader eyebrow={t('home.expertiseEyebrow')} title={t('home.beyondRealEstate')} />
       <Text style={styles.intro}>{t(SERVICES_INTRO_KEY)}</Text>
 
       {/*
         Reversed as a LAYOUT concern, not a data one: SERVICES keeps its order,
         but a wrapped grid should begin on the side the reader starts from.
       */}
-      <View style={[styles.grid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.grid, { flexDirection: row }]}>
         {SERVICES.map((service) => (
           <Pressable
             key={service.id}
@@ -47,16 +49,12 @@ export default function HomeServicesPreview() {
         accessibilityLabel={t('home.viewAllServices')}
         style={({ pressed }) => [
           styles.viewAll,
-          { flexDirection: isRTL ? 'row-reverse' : 'row' },
+          { flexDirection: row },
           pressed && styles.viewAllPressed,
         ]}>
         <Text style={styles.viewAllText}>{t('home.viewAllServices')}</Text>
         {/* Directional: this arrow means "onward", which flips with the script. */}
-        <Ionicons
-          name={isRTL ? 'arrow-back' : 'arrow-forward'}
-          size={16}
-          color={theme.primaryInk}
-        />
+        <Ionicons name={onwardIcon} size={16} color={theme.primaryInk} />
       </Pressable>
     </View>
   );
@@ -67,19 +65,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xxl,
     paddingBottom: Spacing.xl,
-  },
-  eyebrow: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.overline,
-    color: theme.primaryInk,
-    letterSpacing: LetterSpacing.widest,
-    textTransform: 'uppercase',
-  },
-  heading: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: theme.text,
-    marginTop: Spacing.xs,
   },
   intro: {
     fontFamily: FontFamily.body,

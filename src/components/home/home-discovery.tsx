@@ -2,8 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import SectionHeader from '@/components/ui/section-header';
+import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
+import { useDirection } from '@/features/localization/use-direction';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -26,15 +28,15 @@ import type { ThemePalette } from '@/features/theme/themes';
  * focused — a one-line change from here.
  */
 export default function HomeDiscovery() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { row, textAlign } = useDirection();
   const router = useRouter();
 
   return (
     <View style={styles.section}>
-      <Text style={styles.eyebrow}>{t('home.discoverEyebrow')}</Text>
-      <Text style={styles.heading}>{t('home.discoverTitle')}</Text>
+      <SectionHeader eyebrow={t('home.discoverEyebrow')} title={t('home.discoverTitle')} />
 
       {/*
         Looks like a search field, behaves like a link. `accessibilityRole` is
@@ -47,11 +49,11 @@ export default function HomeDiscovery() {
         accessibilityLabel={t('home.searchA11y')}
         style={({ pressed }) => [
           styles.searchBar,
-          { flexDirection: isRTL ? 'row-reverse' : 'row' },
+          { flexDirection: row },
           pressed && styles.searchBarPressed,
         ]}>
         <Ionicons name="search" size={18} color={theme.textMuted} />
-        <Text style={[styles.searchText, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.searchText, { textAlign }]}>
           {t('home.searchPlaceholder')}
         </Text>
       </Pressable>
@@ -97,7 +99,7 @@ function QuickAction({
 }) {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
-  const { isRTL } = useLanguage();
+  const { row, textAlign, forwardIcon } = useDirection();
   return (
     <Pressable
       onPress={onPress}
@@ -107,7 +109,7 @@ function QuickAction({
       accessibilityLabel={`${title}. ${subtitle}.`}
       style={({ pressed }) => [
         styles.action,
-        { flexDirection: isRTL ? 'row-reverse' : 'row' },
+        { flexDirection: row },
         pressed && styles.actionPressed,
       ]}>
       <View style={styles.actionIcon}>
@@ -116,20 +118,12 @@ function QuickAction({
 
       {/* `flex: 1` lets the text block absorb the row and wrap if it must. */}
       <View style={styles.actionText}>
-        <Text style={[styles.actionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {title}
-        </Text>
-        <Text style={[styles.actionSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {subtitle}
-        </Text>
+        <Text style={[styles.actionTitle, { textAlign }]}>{title}</Text>
+        <Text style={[styles.actionSubtitle, { textAlign }]}>{subtitle}</Text>
       </View>
 
       {/* Directional: the chevron points the way the language reads. */}
-      <Ionicons
-        name={isRTL ? 'chevron-back' : 'chevron-forward'}
-        size={18}
-        color={theme.textMuted}
-      />
+      <Ionicons name={forwardIcon} size={18} color={theme.textMuted} />
     </Pressable>
   );
 }
@@ -141,25 +135,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     // Breathing room before the full-bleed marble stats band that follows.
     paddingBottom: Spacing.xl,
   },
-  /**
-   * Green rather than gold. The hero already carries a gold eyebrow and rule,
-   * and the stats strip a gold hairline — a third gold accent in one screen
-   * would stop reading as restraint.
-   */
-  eyebrow: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.overline,
-    color: theme.primaryInk,
-    letterSpacing: LetterSpacing.widest,
-    textTransform: 'uppercase',
-  },
-  heading: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: theme.text,
-    marginTop: Spacing.xs,
-  },
-
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

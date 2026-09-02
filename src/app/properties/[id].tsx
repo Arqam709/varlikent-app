@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FavouriteButton from '@/components/properties/favourite-button';
 import Button from '@/components/ui/button';
+import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import {
   bathsKey,
@@ -42,7 +43,7 @@ import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 
 
 export default function PropertyDetailScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   /** Typed as a string — the param comes from the URL, so it is always text. */
@@ -119,41 +120,31 @@ export default function PropertyDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={10}
-          style={styles.backButton}>
-          <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('propertyDetails.title')}</Text>
-
-        {/*
+      <ScreenHeader
+        title={t('propertyDetails.title')}
+        onBack={handleBack}
+        /*
           Rendered only once the property exists — the header is also on screen
           during loading and error, when there is no property to favourite or
-          share. flex on the title pushes these to the trailing edge, which RTL
-          mirrors for free.
-        */}
-        {property ? (
-          <>
-            <FavouriteButton propertyId={property._id} variant="header" />
-            <Pressable
-              onPress={handleShare}
-              accessibilityRole="button"
-              accessibilityLabel={t('propertyDetails.shareProperty')}
-              hitSlop={10}
-              style={styles.headerAction}>
-              <Ionicons name="share-social-outline" size={22} color={theme.text} />
-            </Pressable>
-          </>
-        ) : null}
-      </View>
+          share. ScreenHeader gives its title block flex, so these sit at the
+          trailing edge, which RTL mirrors for free.
+        */
+        right={
+          property ? (
+            <>
+              <FavouriteButton propertyId={property._id} variant="header" />
+              <Pressable
+                onPress={handleShare}
+                accessibilityRole="button"
+                accessibilityLabel={t('propertyDetails.shareProperty')}
+                hitSlop={10}
+                style={styles.headerAction}>
+                <Ionicons name="share-social-outline" size={22} color={theme.text} />
+              </Pressable>
+            </>
+          ) : null
+        }
+      />
 
       {loadState === 'loading' ? (
         <View style={styles.centered}>
@@ -533,27 +524,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  /** Same padding as backButton, so the header's icons are optically even. */
+  /** Matches ScreenHeader's own back button, so the icons are optically even. */
   headerAction: { padding: Spacing.xs },
-  /** Takes the slack so the header actions sit at the trailing edge. */
-  headerTitle: {
-    // Takes the slack in the header row, so the header actions sit at the
-    // trailing edge. flex handles RTL without a direction-specific margin.
-    flex: 1,
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
-  },
   scroll: { paddingBottom: Spacing.xxl },
 
   gallery: { width: '100%', backgroundColor: theme.marble },

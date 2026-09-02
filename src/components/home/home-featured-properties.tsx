@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import FavouriteButton from '@/components/properties/favourite-button';
+import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { bathsKey, bedsKey, listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
@@ -62,11 +63,12 @@ export default function HomeFeaturedProperties() {
   return (
     <View style={styles.section}>
       <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <View style={styles.headerText}>
-          {/* "Handpicked" is the website's own label for this section. */}
-          <Text style={styles.eyebrow}>{t('home.featuredEyebrow')}</Text>
-          <Text style={styles.heading}>{t('home.featuredTitle')}</Text>
-        </View>
+        {/* "Handpicked" is the website's own label for this section. */}
+        <SectionHeader
+          eyebrow={t('home.featuredEyebrow')}
+          title={t('home.featuredTitle')}
+          style={styles.headerText}
+        />
 
         
         <Pressable
@@ -214,19 +216,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     marginBottom: Spacing.md,
   },
   headerText: { flex: 1 },
-  eyebrow: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.overline,
-    color: theme.primaryInk,
-    letterSpacing: LetterSpacing.widest,
-    textTransform: 'uppercase',
-  },
-  heading: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: theme.text,
-    marginTop: Spacing.xs,
-  },
   viewAll: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,

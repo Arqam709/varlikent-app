@@ -665,7 +665,19 @@ test('24. Home is direction-aware', () => {
   ]
 
   for (const file of mustBeDirectional) {
-    assert.ok(read(file).includes('isRTL'), `${file} ignores direction`)
+    const source = read(file)
+
+    /*
+     * Either spelling counts. `useDirection()` (Phase 1) is the extracted form
+     * of the same decision — it returns `row`, `textAlign` and the directional
+     * icon names derived from the SAME `isRTL` this used to look for, so a file
+     * that uses it is more direction-aware than one that spells the ternary
+     * out, not less. What must never happen is a file that mentions neither.
+     */
+    assert.ok(
+      source.includes('isRTL') || source.includes('useDirection'),
+      `${file} ignores direction`
+    )
   }
 })
 
@@ -728,6 +740,16 @@ test('26b. no ordinary Russian key ever falls through to English', async () => {
     // The website's Russian keeps a Latin example address too — an email
     // placeholder in Cyrillic would not look like an email address.
     'personalInformation.emailPlaceholder',
+    /*
+     * Phase 2 contact keys that are not translatable text:
+     *   whatsappLabel    a vendor brand name, like the Google/Apple providers
+     *   emailPlaceholder an example address — the same reason
+     *                    personalInformation.emailPlaceholder is listed above
+     *   phonePlaceholder a Turkish dialling format, not prose
+     */
+    'contact.whatsappLabel',
+    'contact.emailPlaceholder',
+    'contact.phonePlaceholder',
   ])
 
   assert.deepEqual(
@@ -779,6 +801,15 @@ test('26c. every Urdu value is present, and none is left as English', async () =
     'password.placeholder',
     'personalInformation.emailPlaceholder',
     'auth.apple',
+    /*
+     * Phase 2 contact keys that are not translatable text:
+     *   whatsappLabel    a vendor brand name, like the Google/Apple providers
+     *   emailPlaceholder an example address — the same reason
+     *                    personalInformation.emailPlaceholder is listed above
+     *   phonePlaceholder a Turkish dialling format, not prose
+     */
+    'contact.emailPlaceholder',
+    'contact.phonePlaceholder',
   ])
 
   const identical = []
@@ -818,6 +849,15 @@ test('26d. no Urdu value is entirely Latin script', () => {
     'password.placeholder',
     'personalInformation.emailPlaceholder',
     'auth.apple',
+    /*
+     * Phase 2 contact keys that are not translatable text:
+     *   whatsappLabel    a vendor brand name, like the Google/Apple providers
+     *   emailPlaceholder an example address — the same reason
+     *                    personalInformation.emailPlaceholder is listed above
+     *   phonePlaceholder a Turkish dialling format, not prose
+     */
+    'contact.emailPlaceholder',
+    'contact.phonePlaceholder',
   ])
 
   const latinOnly = []
@@ -841,6 +881,12 @@ test('26e. every screen header mirrors and flips its back chevron', () => {
    * Eight standalone screens hard-coded `chevron-back`, so in Arabic and Urdu
    * the back arrow pointed INTO the page instead of out of it, on the wrong
    * edge. AccountHeader already did this correctly; these now match it.
+   *
+   * Phase 1 turned that agreement into shared code: all eight now render
+   * `ScreenHeader`, which owns the mirroring once. The assertion below is
+   * therefore satisfied EITHER by delegating to ScreenHeader or by doing the
+   * mirroring inline — what it still forbids, in every case, is a hard-coded
+   * `chevron-back`, which is the actual bug this test was written to catch.
    */
   const screens = [
     'src/app/favourites/index.tsx',
@@ -853,6 +899,15 @@ test('26e. every screen header mirrors and flips its back chevron', () => {
     'src/app/services/[service].tsx',
   ]
 
+  // The one place the mirroring is now implemented. Asserted first, so that if
+  // it ever regresses this test names the real culprit instead of all eight.
+  const shared = read('src/components/ui/screen-header.tsx')
+  assert.ok(shared.includes('backIcon'), 'ScreenHeader no longer flips its back chevron')
+  assert.ok(
+    shared.includes('flexDirection: row'),
+    'ScreenHeader no longer mirrors its row'
+  )
+
   for (const screen of screens) {
     const source = read(screen)
 
@@ -861,15 +916,55 @@ test('26e. every screen header mirrors and flips its back chevron', () => {
       false,
       `${screen} still hard-codes a back chevron`
     )
+
+    const delegates = source.includes('<ScreenHeader')
     assert.ok(
-      source.includes("isRTL ? 'chevron-forward' : 'chevron-back'"),
+      delegates || source.includes("isRTL ? 'chevron-forward' : 'chevron-back'"),
       `${screen} does not mirror its back chevron`
     )
     assert.ok(
-      source.includes("flexDirection: isRTL ? 'row-reverse' : 'row'"),
+      delegates || source.includes("flexDirection: isRTL ? 'row-reverse' : 'row'"),
       `${screen} header does not mirror`
     )
   }
+})
+
+test('26e-2. useDirection is the one definition of every directional value', () => {
+  /*
+   * Phase 1 extracted five ternaries that were written out 78 times between
+   * them. This guards the extraction itself: if the hook ever returned the
+   * wrong side, every screen would flip at once and no per-screen test above
+   * would notice, because they all now delegate.
+   */
+  const source = read('src/features/localization/use-direction.ts')
+
+  for (const pair of [
+    "row: isRTL ? 'row-reverse' : 'row'",
+    "textAlign: isRTL ? 'right' : 'left'",
+    "backIcon: isRTL ? 'chevron-forward' : 'chevron-back'",
+    "forwardIcon: isRTL ? 'chevron-back' : 'chevron-forward'",
+    "onwardIcon: isRTL ? 'arrow-back' : 'arrow-forward'",
+  ]) {
+    assert.ok(source.includes(pair), `useDirection lost: ${pair}`)
+  }
+
+  // Direction comes from the language registry, never from the native flag —
+  // that flag is deliberately pinned LTR (see language-context).
+  //
+  // Matched against IMPORTS rather than the whole file: the module's own
+  // comments explain why the native flag is not consulted, and a substring
+  // search would read that explanation as a violation of it.
+  const imports = source
+    .split('\n')
+    .filter((line) => line.startsWith('import '))
+    .join('\n')
+
+  assert.ok(source.includes('useLanguage()'), 'useDirection must read the language context')
+  assert.equal(
+    /I18nManager|from 'react-native'/.test(imports),
+    false,
+    'direction must not read the native flag'
+  )
 })
 
 test('26f. the featured carousel starts at the reading edge', () => {

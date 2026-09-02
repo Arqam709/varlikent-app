@@ -3,6 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ScreenHeader from '@/components/ui/screen-header';
+import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
@@ -33,7 +35,7 @@ export default function ServiceDetailScreen() {
   if (!service) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Header title={t('services.title')} onBack={handleBack} />
+        <ScreenHeader title={t('services.title')} onBack={handleBack} />
         <View style={styles.notFound}>
           <Text style={styles.notFoundTitle}>{t('services.notFound')}</Text>
           <Text style={styles.notFoundBody}>
@@ -54,7 +56,7 @@ export default function ServiceDetailScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Names the destination of Back, not the current page. */}
-      <Header title={t('services.title')} onBack={handleBack} />
+      <ScreenHeader title={t('services.title')} onBack={handleBack} />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ServiceHero service={service} />
@@ -129,38 +131,18 @@ export default function ServiceDetailScreen() {
 
 /* ─────────────────────────── Pieces ─────────────────────────── */
 
-function Header({ title, onBack }: { title: string; onBack: () => void }) {
-  const { t, isRTL } = useLanguage();
-  const styles = useThemedStyles(makeStyles);
-  const { theme } = useTheme();
-  return (
-    // Custom, because the root Stack sets headerShown: false globally — there
-    // is no navigation header to duplicate.
-    <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <Pressable
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel={t('common.back')}
-        hitSlop={10}
-        style={styles.backButton}>
-        <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-      </Pressable>
-      <Text style={styles.headerTitle}>{title}</Text>
-    </View>
-  );
-}
-
 function ServiceHero({ service }: { service: ServiceStructure }) {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   return (
     <View style={styles.hero}>
-      {/* The website's own breadcrumb, uppercased as an overline. */}
+      {/*
+        The hero keeps its own type rather than using SectionHeader: its title
+        is 30/38, larger than either SectionHeader size, and its gold rule sits
+        below the subtitle rather than under the heading. Sharing the component
+        here would need two props to describe one screen.
+      */}
       <Text style={styles.heroLabel}>{t(serviceKey(service, 'websiteLabel'))}</Text>
       <Text style={styles.heroTitle}>{t(serviceKey(service, 'title'))}</Text>
       <Text style={styles.heroSubtitle}>{t(serviceKey(service, 'description'))}</Text>
@@ -243,8 +225,12 @@ function Section({
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionEyebrow}>{eyebrow}</Text>
-      <Text style={styles.sectionHeading}>{heading}</Text>
+      {/*
+        The muted tone is used because these sections sit UNDER a hero that
+        already carries a brand-coloured eyebrow — quietening them is the
+        page's own hierarchy, not an oversight.
+      */}
+      <SectionHeader eyebrow={eyebrow} title={heading} tone="muted" style={styles.sectionHeader} />
       {children}
     </View>
   );
@@ -252,21 +238,6 @@ function Section({
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
-  },
   scroll: { paddingBottom: Spacing.xxl },
 
   // ── Hero ─────────────────────────────────────────────────────────
@@ -316,20 +287,11 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xxl,
   },
-  sectionEyebrow: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.overline,
-    color: theme.textMuted,
-    letterSpacing: LetterSpacing.widest,
-    textTransform: 'uppercase',
-  },
-  sectionHeading: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: theme.text,
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.lg,
-  },
+  /**
+   * The gap the old sectionHeading style carried as its own marginBottom.
+   * Moved onto the wrapper because SectionHeader owns no outer spacing.
+   */
+  sectionHeader: { marginBottom: Spacing.lg },
 
   // ── Capabilities ─────────────────────────────────────────────────
   capabilities: { gap: Spacing.lg },

@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { initialsOf } from '@/features/account/account-api';
 import { useLanguage } from '@/features/localization/language-context';
@@ -180,38 +181,20 @@ export function ProfileHeader({
 
 /* ── Screen chrome shared by every account detail screen ──────────────── */
 
+/**
+ * The account section's screen header.
+ *
+ * Kept as its own export rather than asking seven screens to import
+ * ScreenHeader directly: the name says which section it belongs to, and
+ * `titleFont="heading"` — Cinzel, matching the masthead on the Account tab —
+ * is a decision about that section, not about each screen. Every account
+ * screen therefore gets the house style without restating it.
+ *
+ * The layout, back behaviour, RTL handling and accessibility all now come from
+ * ScreenHeader, so this section can never drift from the rest of the app again.
+ */
 export function AccountHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  const { theme } = useTheme();
-  const { isRTL, t } = useLanguage();
-
-  return (
-    <View
-      style={[
-        staticStyles.header,
-        { borderBottomColor: theme.border, flexDirection: isRTL ? 'row-reverse' : 'row' },
-      ]}>
-      <Pressable
-        onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel={t('common.back')}
-        hitSlop={10}
-        style={staticStyles.backButton}>
-        <Ionicons
-          name={isRTL ? 'chevron-forward' : 'chevron-back'}
-          size={22}
-          color={theme.text}
-        />
-      </Pressable>
-      <Text
-        style={[
-          staticStyles.headerTitle,
-          { color: theme.text, textAlign: isRTL ? 'right' : 'left' },
-        ]}
-        numberOfLines={1}>
-        {title}
-      </Text>
-    </View>
-  );
+  return <ScreenHeader title={title} onBack={onBack} titleFont="heading" />;
 }
 
 
@@ -347,20 +330,6 @@ const staticStyles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
-  },
-
-  header: {
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    flex: 1,
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.md,
   },
 
   intro: {

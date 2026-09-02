@@ -3,17 +3,21 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ScreenHeader from '@/components/ui/screen-header';
+import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
+import { useDirection } from '@/features/localization/use-direction';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
 import { SERVICES, SERVICES_INTRO_KEY, serviceKey } from '@/features/services/services-data';
 
 export default function ServicesScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { row, onwardIcon } = useDirection();
   const router = useRouter();
 
   /** Matches the detail screen: fall back to Home if opened without history. */
@@ -28,21 +32,7 @@ export default function ServicesScreen() {
         A custom header, because the root Stack sets headerShown: false
         globally — so there is no navigation header to duplicate.
       */}
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={10}
-          style={styles.backButton}>
-          <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('services.title')}</Text>
-      </View>
+      <ScreenHeader title={t('services.title')} onBack={handleBack} />
 
       {/*
         ScrollView, not FlatList: four fixed sections of one structured
@@ -51,9 +41,12 @@ export default function ServicesScreen() {
       */}
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <Text style={styles.eyebrow}>{t('services.eyebrow')}</Text>
-          <Text style={styles.title}>{t('services.title')}</Text>
-          <View style={styles.goldRule} />
+          <SectionHeader
+            eyebrow={t('services.eyebrow')}
+            title={t('services.title')}
+            size="lg"
+            rule
+          />
           <Text style={styles.introText}>{t(SERVICES_INTRO_KEY)}</Text>
         </View>
 
@@ -85,14 +78,10 @@ export default function ServicesScreen() {
             <Text style={styles.serviceShort}>{t(serviceKey(service, 'short'))}</Text>
 
             {/* One restrained affordance per card — no arrow noise elsewhere. */}
-            <View style={[styles.serviceAction, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.serviceAction, { flexDirection: row }]}>
               <Text style={styles.serviceActionText}>{t('services.explore')}</Text>
               {/* Directional: 'onward' follows the script. */}
-              <Ionicons
-                name={isRTL ? 'arrow-back' : 'arrow-forward'}
-                size={14}
-                color={theme.primaryInk}
-              />
+              <Ionicons name={onwardIcon} size={14} color={theme.primaryInk} />
             </View>
           </Pressable>
         ))}
@@ -103,47 +92,12 @@ export default function ServicesScreen() {
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
-  },
-
   scroll: { paddingBottom: Spacing.xxl },
 
   intro: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.lg,
-  },
-  eyebrow: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.overline,
-    color: theme.primaryInk,
-    letterSpacing: LetterSpacing.widest,
-    textTransform: 'uppercase',
-  },
-  title: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.xl,
-    color: theme.text,
-    marginTop: Spacing.xs,
-  },
-  goldRule: {
-    width: 56,
-    height: 1,
-    backgroundColor: theme.gold,
-    marginVertical: Spacing.md,
   },
   introText: {
     fontFamily: FontFamily.body,

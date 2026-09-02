@@ -53,6 +53,10 @@ test('Turkish contains no English-identical translatable values', () => {
     'accountInformation.providers.google',
     'accountInformation.providers.microsoft',
     'accountInformation.providers.apple',
+    // A vendor brand name, and a dialling format rather than prose. Turkish
+    // DOES translate contact.emailPlaceholder, so it is deliberately absent.
+    'contact.whatsappLabel',
+    'contact.phonePlaceholder',
   ])
 
   assert.deepEqual(identical.filter((key) => !allowed.has(key)), [])

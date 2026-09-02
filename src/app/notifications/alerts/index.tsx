@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View }
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
+import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
@@ -35,7 +36,7 @@ import { propertyTypeKey } from '@/utils/property-labels';
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function PropertyAlertsScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -108,21 +109,7 @@ export default function PropertyAlertsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={10}
-          style={styles.backButton}>
-          <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('alerts.title')}</Text>
-      </View>
+      <ScreenHeader title={t('alerts.title')} onBack={handleBack} />
 
       {/*
         Direct navigation while signed out is possible via a deep link even
@@ -275,22 +262,6 @@ function AlertCard({
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
-  },
-
   list: { padding: Spacing.lg, gap: Spacing.sm, flexGrow: 1 },
   intro: { marginBottom: Spacing.md },
   eyebrow: {

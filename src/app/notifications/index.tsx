@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/button';
+import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { listingTypeKey } from '@/utils/property-labels';
 import { useLanguage } from '@/features/localization/language-context';
@@ -40,7 +41,7 @@ type LoadState = 'loading' | 'success' | 'error';
 type Tab = 'all' | 'matches';
 
 export default function NotificationsScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const router = useRouter();
@@ -89,33 +90,23 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={10}
-          style={styles.backButton}>
-          <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
-
-        {/* Manage alerts, only useful once signed in. */}
-        {status === 'authenticated' ? (
-          <Pressable
-            onPress={() => router.push('/notifications/alerts')}
-            accessibilityRole="button"
-            accessibilityLabel={t('notifications.manageAccessibility')}
-            hitSlop={10}
-            style={styles.manageButton}>
-            <Ionicons name="options-outline" size={20} color={theme.text} />
-          </Pressable>
-        ) : null}
-      </View>
+      <ScreenHeader
+        title={t('notifications.title')}
+        onBack={handleBack}
+        /* Manage alerts, only useful once signed in. */
+        right={
+          status === 'authenticated' ? (
+            <Pressable
+              onPress={() => router.push('/notifications/alerts')}
+              accessibilityRole="button"
+              accessibilityLabel={t('notifications.manageAccessibility')}
+              hitSlop={10}
+              style={styles.manageButton}>
+              <Ionicons name="options-outline" size={20} color={theme.text} />
+            </Pressable>
+          ) : null
+        }
+      />
 
       {status === 'loading' ? (
         // Session restore still running — showing the sign-in gate here would
@@ -380,23 +371,7 @@ function NotificationRow({
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
-    // Pushes the manage-alerts icon to the right edge.
-    flex: 1,
-  },
+  /** Matches ScreenHeader's own back button, so the icons are optically even. */
   manageButton: { padding: Spacing.xs },
 
   segmented: {

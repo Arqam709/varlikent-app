@@ -386,7 +386,78 @@ export const ur: TranslationShape = {
     chatsAccessibility: 'چیٹس، جائیداد سے متعلق آپ کی گفتگو',
   },
 
+  contact: {
+    reasons: {
+      buying: 'خریداری',
+      renting: 'کرایہ',
+      selling: 'فروخت',
+      renovation: 'تزئینِ نو',
+      interiorDesign: 'داخلی ڈیزائن',
+      architecture: 'فنِ تعمیر',
+      construction: 'تعمیرات',
+      general: 'عام استفسار',
+    },
+
+    title: 'رابطہ',
+    eyebrow: 'بات کرتے ہیں',
+    heading: 'ہم آپ کی کیا مدد کر سکتے ہیں؟',
+    intro:
+      'آپ خرید رہے ہوں، کرایے پر لے رہے ہوں، فروخت کر رہے ہوں، یا کوئی ڈیزائن یا تعمیراتی منصوبہ بنا رہے ہوں — ورلی کینٹ کی ٹیم آپ کے ساتھ ہے۔',
+
+    reachUsEyebrow: 'ہم سے رابطہ کریں',
+    reachUsHeading: 'براہِ راست رابطہ',
+    callLabel: 'کال کریں',
+    callA11y: 'ورلی کینٹ کو {value} پر کال کریں',
+    whatsappLabel: 'واٹس ایپ',
+    whatsappA11y: 'ورلی کینٹ کو {value} پر واٹس ایپ پیغام بھیجیں',
+    emailLabel: 'ای میل',
+    emailA11y: 'ورلی کینٹ کو {value} پر ای میل بھیجیں',
+    detailsUnavailable: 'رابطے کی تفصیلات لوڈ نہیں ہو سکیں۔',
+    linkFailed: 'یہ اس ڈیوائس پر نہیں کھل سکا۔ آپ ہم سے {value} پر رابطہ کر سکتے ہیں۔',
+
+    officeEyebrow: 'ہمارے پاس آئیں',
+    officeHeading: 'ہمارا دفتر',
+    openInMaps: 'نقشے میں کھولیں',
+    openInMapsA11y: 'ورلی کینٹ کے دفتر کا مقام نقشے میں کھولیں',
+
+    formEyebrow: 'پیغام بھیجیں',
+    formHeading: 'بتائیے آپ کو کیا درکار ہے',
+    formIntro: 'ہم عموماً ایک کاروباری دن میں جواب دیتے ہیں۔ اکاؤنٹ کی ضرورت نہیں۔',
+    nameLabel: 'پورا نام',
+    namePlaceholder: 'آپ کا پورا نام',
+    emailFieldLabel: 'ای میل',
+    emailPlaceholder: 'you@example.com',
+    phoneFieldLabel: 'فون',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'مجھے دلچسپی ہے',
+    reasonA11y: '{label}۔ رابطے کی وجہ۔',
+    messageLabel: 'پیغام',
+    messagePlaceholder: 'بتائیے ہم کیسے مدد کر سکتے ہیں…',
+    send: 'استفسار بھیجیں',
+    sending: 'بھیجا جا رہا ہے…',
+
+    missingFields: 'بھیجنے سے پہلے براہِ کرم تمام خانے پُر کریں۔',
+    invalidEmail: 'براہِ کرم درست ای میل پتہ درج کریں۔',
+    sendFailed: 'آپ کا پیغام نہیں بھیجا جا سکا۔ براہِ کرم دوبارہ کوشش کریں۔',
+    successHeading: 'پیغام موصول ہو گیا',
+    successBody:
+      'رابطہ کرنے کا شکریہ۔ ورلی کینٹ ٹیم کا کوئی رکن جلد آپ سے رابطہ کرے گا۔',
+    sendAnother: 'ایک اور پیغام بھیجیں',
+
+    propertyEyebrow: 'کسی جائیداد کے بارے میں؟',
+    propertyHeading: 'متعلقہ ایجنٹ کو پیغام بھیجیں',
+    propertyBody:
+      'ورلی کینٹ کی ہر جائیداد کا اپنا مقرر کردہ ایجنٹ ہوتا ہے۔ جائیداد کھولیں اور «ایجنٹ کو پیغام» پر ٹیپ کریں تاکہ سوال پوچھ سکیں یا ملاقات طے کر سکیں — آپ کی گفتگو ایپ ہی میں رہتی ہے۔',
+    propertySignInNote: 'ایجنٹ کو پیغام بھیجنے کے لیے سائن اِن ضروری ہے۔',
+    browseProperties: 'جائیدادیں دیکھیں',
+  },
+
   home: {
+    contactEyebrow: 'مدد درکار ہے؟',
+    contactHeading: 'ورلی کینٹ سے بات کریں',
+    contactBody:
+      'خریداری، کرایہ، فروخت یا ہماری ڈیزائن اور تعمیراتی خدمات کے بارے میں کوئی سوال ہے؟',
+    contactCta: 'ہم سے رابطہ کریں',
     notificationsWithCount: 'اطلاعات، {count} نئی',
     searchA11y: 'جائیدادیں تلاش کریں۔ جائیدادوں کی فہرست کھولتا ہے۔',
     viewAllPropertiesA11y: 'تمام جائیدادیں دیکھیں',

@@ -293,7 +293,78 @@ export const ar: TranslationShape = {
     chatsAccessibility: 'المحادثات، محادثاتك العقارية',
   },
 
+  contact: {
+    reasons: {
+      buying: 'الشراء',
+      renting: 'الإيجار',
+      selling: 'البيع',
+      renovation: 'التجديد',
+      interiorDesign: 'التصميم الداخلي',
+      architecture: 'العمارة',
+      construction: 'الإنشاءات',
+      general: 'استفسار عام',
+    },
+
+    title: 'اتصل بنا',
+    eyebrow: 'لنتحدث',
+    heading: 'كيف يمكننا مساعدتك؟',
+    intro:
+      'سواء كنت تشتري أو تستأجر أو تبيع، أو تخطط لمشروع تصميم أو إنشاء، فريق فارلي كنت في خدمتك.',
+
+    reachUsEyebrow: 'تواصل معنا',
+    reachUsHeading: 'تواصل مباشر',
+    callLabel: 'اتصال',
+    callA11y: 'الاتصال بفارلي كنت على الرقم {value}',
+    whatsappLabel: 'واتساب',
+    whatsappA11y: 'مراسلة فارلي كنت على واتساب على الرقم {value}',
+    emailLabel: 'البريد الإلكتروني',
+    emailA11y: 'مراسلة فارلي كنت على البريد {value}',
+    detailsUnavailable: 'تعذّر تحميل بيانات الاتصال.',
+    linkFailed: 'تعذّر فتح ذلك على هذا الجهاز. يمكنك التواصل معنا على {value}.',
+
+    officeEyebrow: 'زُرنا',
+    officeHeading: 'مكتبنا',
+    openInMaps: 'فتح في الخرائط',
+    openInMapsA11y: 'فتح موقع مكتب فارلي كنت في الخرائط',
+
+    formEyebrow: 'أرسل رسالة',
+    formHeading: 'أخبرنا بما تحتاجه',
+    formIntro: 'نردّ عادةً خلال يوم عمل واحد. لا حاجة إلى حساب.',
+    nameLabel: 'الاسم الكامل',
+    namePlaceholder: 'اسمك الكامل',
+    emailFieldLabel: 'البريد الإلكتروني',
+    emailPlaceholder: 'you@example.com',
+    phoneFieldLabel: 'الهاتف',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'أنا مهتم بـ',
+    reasonA11y: '{label}. سبب تواصلك معنا.',
+    messageLabel: 'الرسالة',
+    messagePlaceholder: 'أخبرنا كيف يمكننا مساعدتك…',
+    send: 'إرسال الطلب',
+    sending: 'جارٍ الإرسال…',
+
+    missingFields: 'يرجى تعبئة جميع الحقول قبل الإرسال.',
+    invalidEmail: 'يرجى إدخال بريد إلكتروني صحيح.',
+    sendFailed: 'تعذّر إرسال رسالتك. يرجى المحاولة مرة أخرى.',
+    successHeading: 'تم استلام رسالتك',
+    successBody:
+      'شكرًا لتواصلك معنا. سيرد عليك أحد أعضاء فريق فارلي كنت قريبًا.',
+    sendAnother: 'إرسال رسالة أخرى',
+
+    propertyEyebrow: 'تسأل عن عقار؟',
+    propertyHeading: 'راسل وكيل العقار',
+    propertyBody:
+      'لكل عقار في فارلي كنت وكيل مخصّص. افتح العقار واضغط «مراسلة الوكيل» لطرح أسئلتك أو ترتيب معاينة — وتبقى محادثتك داخل التطبيق.',
+    propertySignInNote: 'يلزم تسجيل الدخول لمراسلة الوكيل.',
+    browseProperties: 'تصفّح العقارات',
+  },
+
   home: {
+    contactEyebrow: 'تحتاج مساعدة؟',
+    contactHeading: 'تحدّث إلى فارلي كنت',
+    contactBody:
+      'لديك سؤال عن الشراء أو الإيجار أو البيع أو إحدى خدمات التصميم والإنشاء لدينا؟',
+    contactCta: 'اتصل بنا',
     notificationsWithCount: 'الإشعارات، {count} جديدة',
     searchA11y: 'ابحث عن العقارات. يفتح قائمة العقارات.',
     viewAllPropertiesA11y: 'عرض جميع العقارات',

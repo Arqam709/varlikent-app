@@ -390,7 +390,78 @@ export const ru: TranslationShape = {
     chatsAccessibility: 'Чаты, ваши переписки по объектам',
   },
 
+  contact: {
+    reasons: {
+      buying: 'Покупка',
+      renting: 'Аренда',
+      selling: 'Продажа',
+      renovation: 'Ремонт',
+      interiorDesign: 'Дизайн интерьера',
+      architecture: 'Архитектура',
+      construction: 'Строительство',
+      general: 'Общий вопрос',
+    },
+
+    title: 'Контакты',
+    eyebrow: 'Давайте поговорим',
+    heading: 'Чем мы можем помочь?',
+    intro:
+      'Покупаете, арендуете, продаёте или планируете проект по дизайну либо строительству — команда Varlikent готова помочь.',
+
+    reachUsEyebrow: 'Связаться с нами',
+    reachUsHeading: 'Прямая связь',
+    callLabel: 'Позвонить',
+    callA11y: 'Позвонить в Varlikent по номеру {value}',
+    whatsappLabel: 'WhatsApp',
+    whatsappA11y: 'Написать в Varlikent в WhatsApp на номер {value}',
+    emailLabel: 'Эл. почта',
+    emailA11y: 'Написать в Varlikent на адрес {value}',
+    detailsUnavailable: 'Не удалось загрузить контактные данные.',
+    linkFailed: 'Это не удалось открыть на данном устройстве. Вы можете связаться с нами: {value}.',
+
+    officeEyebrow: 'Приходите к нам',
+    officeHeading: 'Наш офис',
+    openInMaps: 'Открыть на карте',
+    openInMapsA11y: 'Открыть расположение офиса Varlikent на карте',
+
+    formEyebrow: 'Отправить сообщение',
+    formHeading: 'Расскажите, что вам нужно',
+    formIntro: 'Обычно отвечаем в течение одного рабочего дня. Аккаунт не нужен.',
+    nameLabel: 'Имя и фамилия',
+    namePlaceholder: 'Ваше имя и фамилия',
+    emailFieldLabel: 'Эл. почта',
+    emailPlaceholder: 'you@example.com',
+    phoneFieldLabel: 'Телефон',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'Меня интересует',
+    reasonA11y: '{label}. Причина обращения.',
+    messageLabel: 'Сообщение',
+    messagePlaceholder: 'Расскажите, чем мы можем помочь…',
+    send: 'Отправить запрос',
+    sending: 'Отправка…',
+
+    missingFields: 'Пожалуйста, заполните все поля перед отправкой.',
+    invalidEmail: 'Пожалуйста, введите корректный адрес эл. почты.',
+    sendFailed: 'Не удалось отправить сообщение. Пожалуйста, попробуйте ещё раз.',
+    successHeading: 'Сообщение получено',
+    successBody:
+      'Спасибо за обращение. Сотрудник команды Varlikent свяжется с вами в ближайшее время.',
+    sendAnother: 'Отправить ещё одно сообщение',
+
+    propertyEyebrow: 'Вопрос об объекте?',
+    propertyHeading: 'Напишите агенту объекта',
+    propertyBody:
+      'У каждого объекта Varlikent есть закреплённый агент. Откройте объявление и нажмите «Написать агенту», чтобы задать вопрос или договориться о просмотре — переписка останется в приложении.',
+    propertySignInNote: 'Чтобы написать агенту, нужно войти в аккаунт.',
+    browseProperties: 'Смотреть объекты',
+  },
+
   home: {
+    contactEyebrow: 'Нужна помощь?',
+    contactHeading: 'Поговорите с Varlikent',
+    contactBody:
+      'Есть вопрос о покупке, аренде, продаже или об одной из наших услуг по дизайну и строительству?',
+    contactCta: 'Связаться с нами',
     notificationsWithCount: 'Уведомления, новых: {count}',
     searchA11y: 'Поиск объектов. Открывает список объектов.',
     viewAllPropertiesA11y: 'Смотреть все объекты',

@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PropertyCard from '@/components/properties/property-card';
 import Button from '@/components/ui/button';
+import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/features/auth/auth-context';
 import { getFavourites } from '@/features/favourites/favourites-api';
@@ -37,7 +38,7 @@ import type { PropertySummary } from '@/types/property';
 type LoadState = 'loading' | 'success' | 'error';
 
 export default function FavouritesScreen() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const { theme } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const router = useRouter();
@@ -266,21 +267,7 @@ export default function FavouritesScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={10}
-          style={styles.backButton}>
-          <Ionicons
-            name={isRTL ? 'chevron-forward' : 'chevron-back'}
-            size={22}
-            color={theme.text}
-          />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t('favourites.title')}</Text>
-      </View>
+      <ScreenHeader title={t('favourites.title')} onBack={handleBack} />
 
       {renderBody()}
     </SafeAreaView>
@@ -291,21 +278,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: theme.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  backButton: { padding: Spacing.xs },
-  headerTitle: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSizes.md,
-    color: theme.text,
   },
   /** flexGrow lets the empty state fill the screen instead of hugging the top. */
   list: { padding: Spacing.lg, gap: Spacing.md, flexGrow: 1 },

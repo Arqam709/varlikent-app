@@ -284,7 +284,78 @@ export const de: TranslationShape = {
     chatsAccessibility: 'Chats, Ihre Immobilienunterhaltungen',
   },
 
+  contact: {
+    reasons: {
+      buying: 'Kauf',
+      renting: 'Miete',
+      selling: 'Verkauf',
+      renovation: 'Renovierung',
+      interiorDesign: 'Innenarchitektur',
+      architecture: 'Architektur',
+      construction: 'Bau',
+      general: 'Allgemeine Anfrage',
+    },
+
+    title: 'Kontakt',
+    eyebrow: 'Sprechen wir',
+    heading: 'Wie können wir helfen?',
+    intro:
+      'Ob Sie kaufen, mieten, verkaufen oder ein Design- oder Bauprojekt planen — das Varlikent-Team ist für Sie da.',
+
+    reachUsEyebrow: 'Kontakt aufnehmen',
+    reachUsHeading: 'Direkt erreichen',
+    callLabel: 'Anrufen',
+    callA11y: 'Varlikent unter {value} anrufen',
+    whatsappLabel: 'WhatsApp',
+    whatsappA11y: 'Varlikent unter {value} über WhatsApp schreiben',
+    emailLabel: 'E-Mail',
+    emailA11y: 'Varlikent unter {value} eine E-Mail schreiben',
+    detailsUnavailable: 'Kontaktdaten konnten nicht geladen werden.',
+    linkFailed: 'Das konnte auf diesem Gerät nicht geöffnet werden. Sie erreichen uns unter {value}.',
+
+    officeEyebrow: 'Besuchen Sie uns',
+    officeHeading: 'Unser Büro',
+    openInMaps: 'In Karten öffnen',
+    openInMapsA11y: 'Den Standort des Varlikent-Büros in Karten öffnen',
+
+    formEyebrow: 'Nachricht senden',
+    formHeading: 'Sagen Sie uns, was Sie brauchen',
+    formIntro: 'Wir antworten in der Regel innerhalb eines Werktages. Kein Konto nötig.',
+    nameLabel: 'Vollständiger Name',
+    namePlaceholder: 'Ihr vollständiger Name',
+    emailFieldLabel: 'E-Mail',
+    emailPlaceholder: 'sie@beispiel.com',
+    phoneFieldLabel: 'Telefon',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'Ich interessiere mich für',
+    reasonA11y: '{label}. Grund Ihrer Anfrage.',
+    messageLabel: 'Nachricht',
+    messagePlaceholder: 'Sagen Sie uns, wie wir helfen können…',
+    send: 'Anfrage senden',
+    sending: 'Wird gesendet…',
+
+    missingFields: 'Bitte füllen Sie vor dem Senden alle Felder aus.',
+    invalidEmail: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+    sendFailed: 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
+    successHeading: 'Nachricht erhalten',
+    successBody:
+      'Vielen Dank für Ihre Nachricht. Ein Mitglied des Varlikent-Teams meldet sich in Kürze bei Ihnen.',
+    sendAnother: 'Weitere Nachricht senden',
+
+    propertyEyebrow: 'Fragen zu einer Immobilie?',
+    propertyHeading: 'Schreiben Sie dem zuständigen Makler',
+    propertyBody:
+      'Jede Varlikent-Immobilie hat einen eigenen zuständigen Makler. Öffnen Sie das Inserat und tippen Sie auf „Makler kontaktieren“, um Fragen zu stellen oder eine Besichtigung zu vereinbaren — Ihr Gespräch bleibt in der App.',
+    propertySignInNote: 'Für Nachrichten an einen Makler ist eine Anmeldung erforderlich.',
+    browseProperties: 'Immobilien ansehen',
+  },
+
   home: {
+    contactEyebrow: 'Brauchen Sie Hilfe?',
+    contactHeading: 'Sprechen Sie mit Varlikent',
+    contactBody:
+      'Haben Sie eine Frage zu Kauf, Miete, Verkauf oder einer unserer Design- und Bauleistungen?',
+    contactCta: 'Kontakt aufnehmen',
     notificationsWithCount: 'Benachrichtigungen, {count} neu',
     searchA11y: 'Immobilien suchen. Öffnet die Immobilienliste.',
     viewAllPropertiesA11y: 'Alle Immobilien ansehen',

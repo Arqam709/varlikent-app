@@ -287,7 +287,78 @@ export const tr: TranslationShape = {
     chatsAccessibility: 'Sohbetler, emlak görüşmeleriniz',
   },
 
+  contact: {
+    reasons: {
+      buying: 'Satın Alma',
+      renting: 'Kiralama',
+      selling: 'Satış',
+      renovation: 'Tadilat',
+      interiorDesign: 'İç Mimarlık',
+      architecture: 'Mimarlık',
+      construction: 'İnşaat',
+      general: 'Genel Talep',
+    },
+
+    title: 'İletişim',
+    eyebrow: 'Konuşalım',
+    heading: 'Size nasıl yardımcı olabiliriz?',
+    intro:
+      'İster satın alın, ister kiralayın, ister satın; ister bir tasarım ya da inşaat projesi planlayın — Varlikent ekibi yanınızda.',
+
+    reachUsEyebrow: 'Bize Ulaşın',
+    reachUsHeading: 'Doğrudan iletişim',
+    callLabel: 'Ara',
+    callA11y: 'Varlikent’i {value} numarasından ara',
+    whatsappLabel: 'WhatsApp',
+    whatsappA11y: 'Varlikent’e {value} numarasından WhatsApp’tan yaz',
+    emailLabel: 'E-posta',
+    emailA11y: 'Varlikent’e {value} adresinden e-posta gönder',
+    detailsUnavailable: 'İletişim bilgileri yüklenemedi.',
+    linkFailed: 'Bu bağlantı cihazınızda açılamadı. Bize {value} üzerinden ulaşabilirsiniz.',
+
+    officeEyebrow: 'Bizi Ziyaret Edin',
+    officeHeading: 'Ofisimiz',
+    openInMaps: 'Haritada Aç',
+    openInMapsA11y: 'Varlikent ofis konumunu haritada aç',
+
+    formEyebrow: 'Mesaj Gönderin',
+    formHeading: 'Neye ihtiyacınız olduğunu anlatın',
+    formIntro: 'Genellikle bir iş günü içinde yanıt veriyoruz. Hesap gerekmez.',
+    nameLabel: 'Ad soyad',
+    namePlaceholder: 'Adınız ve soyadınız',
+    emailFieldLabel: 'E-posta',
+    emailPlaceholder: 'siz@ornek.com',
+    phoneFieldLabel: 'Telefon',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'İlgilendiğim konu',
+    reasonA11y: '{label}. Bize ulaşma nedeniniz.',
+    messageLabel: 'Mesaj',
+    messagePlaceholder: 'Size nasıl yardımcı olabileceğimizi yazın…',
+    send: 'Talebi Gönder',
+    sending: 'Gönderiliyor…',
+
+    missingFields: 'Göndermeden önce lütfen tüm alanları doldurun.',
+    invalidEmail: 'Lütfen geçerli bir e-posta adresi girin.',
+    sendFailed: 'Mesajınız gönderilemedi. Lütfen tekrar deneyin.',
+    successHeading: 'Mesajınız alındı',
+    successBody:
+      'Bize ulaştığınız için teşekkür ederiz. Varlikent ekibinden bir yetkili kısa süre içinde size dönecek.',
+    sendAnother: 'Yeni Mesaj Gönder',
+
+    propertyEyebrow: 'Bir Mülk Hakkında mı?',
+    propertyHeading: 'İlan danışmanına yazın',
+    propertyBody:
+      'Her Varlikent ilanının kendi danışmanı vardır. İlanı açıp “Danışmana Mesaj Gönder”’e dokunarak soru sorabilir veya randevu alabilirsiniz — görüşmeniz uygulama içinde kalır.',
+    propertySignInNote: 'Danışmana mesaj göndermek için giriş yapmanız gerekir.',
+    browseProperties: 'Mülkleri İncele',
+  },
+
   home: {
+    contactEyebrow: 'Yardım mı Lazım?',
+    contactHeading: 'Varlikent ile görüşün',
+    contactBody:
+      'Satın alma, kiralama, satış ya da tasarım ve inşaat hizmetlerimiz hakkında bir sorunuz mu var?',
+    contactCta: 'Bize Ulaşın',
     notificationsWithCount: 'Bildirimler, {count} yeni',
     searchA11y: 'Mülk ara. Mülk listesini açar.',
     viewAllPropertiesA11y: 'Tüm mülkleri görüntüle',

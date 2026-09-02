@@ -294,7 +294,83 @@ export const en = {
     chatsAccessibility: 'Chats, your property conversations',
   },
 
+  contact: {
+    /*
+     * `reasons.*` are DISPLAY LABELS only. The value submitted to
+     * POST /api/contact is the canonical English string from CONTACT_REASONS
+     * in features/contact/contact-api.ts — never one of these.
+     */
+    reasons: {
+      buying: 'Buying',
+      renting: 'Renting',
+      selling: 'Selling',
+      renovation: 'Renovation',
+      interiorDesign: 'Interior Design',
+      architecture: 'Architecture',
+      construction: 'Construction',
+      general: 'General Enquiry',
+    },
+
+    title: 'Contact',
+    eyebrow: "Let's Talk",
+    heading: 'How can we help?',
+    intro:
+      'Whether you are buying, renting, selling, or planning a design or construction project, the Varlikent team is here to help.',
+
+    reachUsEyebrow: 'Get In Touch',
+    reachUsHeading: 'Reach us directly',
+    callLabel: 'Call',
+    callA11y: 'Call Varlikent on {value}',
+    whatsappLabel: 'WhatsApp',
+    whatsappA11y: 'Message Varlikent on WhatsApp at {value}',
+    emailLabel: 'Email',
+    emailA11y: 'Email Varlikent at {value}',
+    detailsUnavailable: 'Contact details could not be loaded.',
+    linkFailed: 'That could not be opened on this device. You can still reach us at {value}.',
+
+    officeEyebrow: 'Visit Us',
+    officeHeading: 'Our office',
+    openInMaps: 'Open in Maps',
+    openInMapsA11y: 'Open the Varlikent office location in Maps',
+
+    formEyebrow: 'Send a Message',
+    formHeading: 'Tell us what you need',
+    formIntro: 'We usually reply within one business day. No account needed.',
+    nameLabel: 'Full name',
+    namePlaceholder: 'Your full name',
+    emailFieldLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    phoneFieldLabel: 'Phone',
+    phonePlaceholder: '+90 5xx xxx xx xx',
+    reasonLabel: 'I am interested in',
+    reasonA11y: '{label}. Reason for contacting us.',
+    messageLabel: 'Message',
+    messagePlaceholder: 'Tell us how we can help…',
+    send: 'Send Enquiry',
+    sending: 'Sending…',
+
+    missingFields: 'Please fill in every field before sending.',
+    invalidEmail: 'Please enter a valid email address.',
+    sendFailed: 'Your message could not be sent. Please try again.',
+    successHeading: 'Message received',
+    successBody:
+      'Thank you for getting in touch. A member of the Varlikent team will reply to you shortly.',
+    sendAnother: 'Send Another Message',
+
+    propertyEyebrow: 'Asking About A Property?',
+    propertyHeading: 'Message the listing agent',
+    propertyBody:
+      'Every Varlikent listing has its own assigned agent. Open the property and tap Message Agent to ask questions or arrange a viewing — your conversation stays in the app.',
+    propertySignInNote: 'Signing in is required to message an agent.',
+    browseProperties: 'Browse Properties',
+  },
+
   home: {
+    contactEyebrow: 'Need Help?',
+    contactHeading: 'Talk to Varlikent',
+    contactBody:
+      'Have a question about buying, renting, selling, or one of our design and construction services?',
+    contactCta: 'Contact Us',
     notificationsWithCount: 'Notifications, {count} new',
     searchA11y: 'Search properties. Opens the properties list.',
     viewAllPropertiesA11y: 'View all properties',
