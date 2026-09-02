@@ -179,6 +179,9 @@ export const ru: TranslationShape = {
   },
 
   services: {
+    /* Phase 3: the closing CTA band on every service detail page. */
+    ctaEyebrow: 'Начнём',
+    ctaAccessibility: 'Связаться с Varlikent по вопросу «{service}»',
     howWeWork: 'Как мы работаем',
     theTransformation: 'Преображение',
     intro:
@@ -220,6 +223,7 @@ export const ru: TranslationShape = {
             s4: 'Авторский надзор',
           },
         },
+        ctaLabel: 'Запросить консультацию',
         closingHeading: 'Есть идея?',
         closingBody: 'Свяжитесь с нами, чтобы обсудить ваш проект.',
       },
@@ -267,6 +271,7 @@ export const ru: TranslationShape = {
           body:
             'Стамбул расположен в активной сейсмической зоне. Каждое здание, которое мы сдаём, рассчитано по действующим турецким нормам сейсмостойкости, а запасы прочности проверяются на каждом этапе строительства, а не принимаются на веру.',
         },
+        ctaLabel: 'Обсудить проект',
         closingHeading: 'Готовы начать стройку?',
         closingBody: 'Доверьте наш опыт вашему следующему проекту в Стамбуле.',
       },
@@ -316,6 +321,7 @@ export const ru: TranslationShape = {
             a4: 'Интеграция «умного дома»',
           },
         },
+        ctaLabel: 'Начать ремонт',
         closingHeading: 'Преобразите своё пространство',
         closingBody: 'Давайте обсудим ваш проект ремонта и воплотим вашу идею в жизнь.',
       },
@@ -348,6 +354,7 @@ export const ru: TranslationShape = {
               'Многослойный общий, рабочий и акцентный свет, создающий настроение и подчёркивающий архитектуру.',
           },
         },
+        ctaLabel: 'Записаться на консультацию',
         closingHeading: 'Создайте пространство мечты',
         closingBody:
           'Запишитесь на бесплатную 30-минутную консультацию с нашей командой дизайнеров.',

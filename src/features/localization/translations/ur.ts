@@ -184,6 +184,9 @@ export const ur: TranslationShape = {
   },
 
   services: {
+    /* Phase 3: the closing CTA band on every service detail page. */
+    ctaEyebrow: 'آغاز کریں',
+    ctaAccessibility: '{service} کے بارے میں Varlikent سے رابطہ کریں',
     howWeWork: 'ہم کیسے کام کرتے ہیں',
     theTransformation: 'تبدیلی',
     intro: 'پہلے خاکے سے حتمی فروخت تک — ہم جائیداد کے ہر مرحلے میں آپ کے ساتھ ہیں۔',
@@ -223,6 +226,7 @@ export const ur: TranslationShape = {
             s4: 'تعمیراتی نگرانی',
           },
         },
+        ctaLabel: 'مشاورت کی درخواست کریں',
         closingHeading: 'کوئی خواب ہے؟',
         closingBody: 'اپنے منصوبے پر بات کرنے کے لیے ہم سے رابطہ کریں۔',
       },
@@ -267,6 +271,7 @@ export const ur: TranslationShape = {
           body:
             'استنبول ایک فعال زلزلہ زدہ علاقے میں واقع ہے۔ ہماری ہر عمارت موجودہ ترک زلزلہ ضابطوں کے مطابق ڈیزائن کی جاتی ہے، اور حفاظتی حدود کو تعمیر کے ہر مرحلے پر جانچا جاتا ہے — محض فرض نہیں کیا جاتا۔',
         },
+        ctaLabel: 'اپنے منصوبے پر بات کریں',
         closingHeading: 'تعمیر شروع کرنے کے لیے تیار ہیں؟',
         closingBody: 'استنبول میں اپنے اگلے منصوبے کے لیے ہماری تعمیراتی ٹیم کا انتخاب کریں۔',
       },
@@ -314,6 +319,7 @@ export const ur: TranslationShape = {
             a4: 'سمارٹ ہوم کا انضمام',
           },
         },
+        ctaLabel: 'تجدید کاری شروع کریں',
         closingHeading: 'اپنی جگہ کو بدلیں',
         closingBody:
           'آئیے آپ کے تزئین و آرائش کے منصوبے پر بات کریں اور آپ کا خواب حقیقت بنائیں۔',
@@ -345,6 +351,7 @@ export const ur: TranslationShape = {
             desc: 'ماحول بنانے اور فنِ تعمیر کو نمایاں کرنے کے لیے مختلف درجوں کی روشنی۔',
           },
         },
+        ctaLabel: 'مشاورت بُک کریں',
         closingHeading: 'اپنی خوابوں کی جگہ بنائیں',
         closingBody: 'ہماری ڈیزائن ٹیم کے ساتھ 30 منٹ کی مفت مشاورت بُک کریں۔',
       },

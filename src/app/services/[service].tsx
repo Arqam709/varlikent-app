@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CTABand from '@/components/ui/cta-band';
 import ScreenHeader from '@/components/ui/screen-header';
 import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
@@ -32,6 +33,41 @@ export default function ServiceDetailScreen() {
     if (router.canGoBack()) router.back();
     else router.replace('/services');
   };
+
+  /**
+   * Opens the lead form with this service's reason already chosen.
+   *
+   * ── push, never replace ─────────────────────────────────────────────────
+   * `push` keeps this page on the stack, so Contact's own Back returns to the
+   * service the customer was reading — Services → Renovation → Contact → Back
+   * → Renovation. `replace` would drop Renovation from history and land Back
+   * on Services, which is the wrong place and would also make Contact's
+   * existing `canGoBack()` fallback fire for no reason.
+   *
+   * Contact therefore needs NO service-specific back logic; ordinary history
+   * is already correct, and its `router.canGoBack() ? back() : replace('/')`
+   * fallback stays untouched for the deep-link case it was written for.
+   *
+   * ── The value is the API contract, not the label ────────────────────────
+   * `service.contactReason` is the canonical English enum value. The Turkish
+   * customer reading "Yenileme" still sends "Renovation", because the visible
+   * chip label is resolved from `reasonKey()` on the other side while the
+   * VALUE travels untranslated. Passing `t(...)` here is precisely the bug the
+   * website shipped.
+   *
+   * Params are given to the router as an object rather than hand-built into a
+   * query string, so "Interior Design" is percent-encoded by expo-router
+   * instead of by us.
+   */
+  const openContact = () => {
+    if (!service) return;
+
+    router.push({
+      pathname: '/contact',
+      params: { interestType: service.contactReason },
+    });
+  };
+
   if (!service) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -111,19 +147,39 @@ export default function ServiceDetailScreen() {
         ) : null}
 
         {/*
-          Closing statement, deliberately WITHOUT a button.
+          The closing statement, now with the button it was always written for.
 
-          The website's CTAs here ("Start a Project", "Request a Quote") all
-          submit to a contact/lead system that does not exist in the app yet.
-          Rendering a button that looks functional and does nothing is the
-          exact mistake the old "Our Services" control made, so this stays an
-          editorial sign-off until Phase 3C gives it something to do.
+          It used to be an editorial sign-off with no action, because the
+          contact destination did not exist. It does now — so the SAME copy
+          becomes the band's heading and body, rather than being replaced by
+          new CTA prose. That was deliberate: every one of these four lines
+          already reads as an invitation ("Contact us to discuss your project",
+          "Book a complimentary 30-minute consultation"), so writing fresh
+          headings would have meant 48 new strings saying what these already
+          say, in six languages, with two versions to keep in step.
+
+          Only the eyebrow and the button label are new — and the eyebrow is
+          ONE shared key rather than four, because "Get Started" is the same
+          invitation whichever service you arrived from. The label is
+          per-service, because "Start Your Renovation" and "Book a
+          Consultation" are genuinely different promises.
         */}
-        <View style={styles.closing}>
-          <View style={styles.goldRule} />
-          <Text style={styles.closingHeading}>{t(serviceKey(service, 'closingHeading'))}</Text>
-          <Text style={styles.closingBody}>{t(serviceKey(service, 'closingBody'))}</Text>
-        </View>
+        <CTABand
+          eyebrow={t('services.ctaEyebrow')}
+          heading={t(serviceKey(service, 'closingHeading'))}
+          body={t(serviceKey(service, 'closingBody'))}
+          ctaLabel={t(serviceKey(service, 'ctaLabel'))}
+          /*
+            Names the destination and what will already be filled in, so the
+            tap holds no surprise. The visible label stays the button's
+            accessibilityLabel — see the note on CTABand's prop.
+          */
+          accessibilityHint={t('services.ctaAccessibility', {
+            service: t(serviceKey(service, 'title')),
+          })}
+          onPress={openContact}
+          style={styles.cta}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -379,23 +435,19 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     color: theme.text,
   },
 
-  // ── Closing ──────────────────────────────────────────────────────
-  closing: {
+  // ── Closing CTA ──────────────────────────────────────────────────
+  /**
+   * The same `paddingHorizontal` and `Spacing.xxl` rhythm every other section
+   * on this page uses, so the band sits in the column rather than beside it.
+   *
+   * The standalone gold rule that used to open this block is gone: it existed
+   * to separate an unbounded run of text from the section above it, and the
+   * card's own border now does that job. The hero keeps its rule, which is
+   * where `styles.goldRule` is still used.
+   */
+  cta: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xxl,
-  },
-  closingHeading: {
-    fontFamily: FontFamily.headingSemiBold,
-    fontSize: FontSizes.lg,
-    color: theme.text,
-    marginTop: Spacing.lg,
-  },
-  closingBody: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSizes.sm,
-    lineHeight: 22,
-    color: theme.textMuted,
-    marginTop: Spacing.sm,
   },
 
   // ── Not found ────────────────────────────────────────────────────

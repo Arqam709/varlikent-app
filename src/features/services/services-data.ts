@@ -1,5 +1,7 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
 
+import type { ContactReason } from '@/features/contact/contact-api';
+
 /**
  * SERVICE STRUCTURE — deliberately contains NO display copy.
  *
@@ -46,6 +48,36 @@ export type ServiceStructure = {
   comparisonRows: number;
   /** Whether this service has the editorial note block. */
   hasNote: boolean;
+  /**
+   * The Contact enquiry reason this service opens the lead form with, sent as
+   * `/contact?interestType=<this>`.
+   *
+   * ── Why it lives HERE rather than in contact-api.ts or a lookup table ───
+   * A service id (`interior-design`) is a UI and router concept; a contact
+   * reason ("Interior Design") is an API contract. The binding between them
+   * has to live in exactly one place, and this is the one that makes every
+   * failure mode impossible rather than merely unlikely:
+   *
+   *   • ONE field per entry, so the mapping cannot be written twice.
+   *   • REQUIRED, so a fifth service cannot be added without deciding what it
+   *     contacts about — it is a compile error, not a silent 'General'.
+   *   • Typed `ContactReason`, so a typo like 'Interior design' is caught by
+   *     tsc rather than by a customer receiving a 400 from the enum validator.
+   *   • Adjacent to the service it describes, which is the same reasoning
+   *     `LanguageMeta.rtl` uses: a parallel table is a second place to
+   *     remember, and the failure is silent.
+   *
+   * The dependency also runs the right way. A service page already needs to
+   * reach Contact; the reverse — the pure API-contract module importing UI
+   * structure — would make contact-api.ts know about routes it never serves.
+   * The import is TYPE-ONLY, so it is erased at build and adds no runtime edge.
+   *
+   * NEVER a translated label. `t()` output is display copy; this is the value
+   * matched literally against `body('interestType').isIn([...])` on the
+   * backend. Sending "Yenileme" instead of "Renovation" is the exact bug the
+   * website shipped, and CONTACT_REASONS documents it at length.
+   */
+  contactReason: ContactReason;
 };
 
 /**
@@ -63,6 +95,7 @@ export const SERVICES: ServiceStructure[] = [
     processSteps: 4,
     comparisonRows: 0,
     hasNote: false,
+    contactReason: 'Architecture',
   },
   {
     id: 'construction',
@@ -72,6 +105,7 @@ export const SERVICES: ServiceStructure[] = [
     processSteps: 5,
     comparisonRows: 0,
     hasNote: true,
+    contactReason: 'Construction',
   },
   {
     id: 'renovation',
@@ -81,6 +115,7 @@ export const SERVICES: ServiceStructure[] = [
     processSteps: 0,
     comparisonRows: 4,
     hasNote: false,
+    contactReason: 'Renovation',
   },
   {
     id: 'interior-design',
@@ -90,6 +125,7 @@ export const SERVICES: ServiceStructure[] = [
     processSteps: 0,
     comparisonRows: 0,
     hasNote: false,
+    contactReason: 'Interior Design',
   },
 ];
 

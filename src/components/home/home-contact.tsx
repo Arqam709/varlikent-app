@@ -1,13 +1,9 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import Button from '@/components/ui/button';
-import SectionHeader from '@/components/ui/section-header';
-import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
+import CTABand from '@/components/ui/cta-band';
+import { Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
-import { useDirection } from '@/features/localization/use-direction';
-import { useThemedStyles } from '@/features/theme/use-themed-styles';
-import type { ThemePalette } from '@/features/theme/themes';
 
 /**
  * HOME → CONTACT
@@ -28,61 +24,42 @@ import type { ThemePalette } from '@/features/theme/themes';
  * "Need help?" is the question someone has AFTER browsing, not before. It
  * follows the services preview so the scroll ends on an offer of help rather
  * than on a grid the customer has already read.
+ *
+ * ── Why the card itself is no longer written here ───────────────────────
+ * It is the same composition the service pages now close with — marble card,
+ * eyebrow, Cinzel heading, muted body, full-width primary action — so it moved
+ * into ui/cta-band.tsx and this file passes copy to it. The rendered result is
+ * unchanged; what is gone is a second copy of the styles that would eventually
+ * have drifted from the service one.
+ *
+ * The outer padding stays HERE, because it is this section's place in Home's
+ * scroll and not a property of the band.
  */
 export default function HomeContact() {
   const { t } = useLanguage();
-  const styles = useThemedStyles(makeStyles);
-  const { textAlign } = useDirection();
   const router = useRouter();
 
   return (
     <View style={styles.section}>
-      {/*
-        A card rather than a bare band, so the section reads as one offer and
-        not as a fourth run of body copy. Marble is the same quiet ground the
-        service tiles use.
-      */}
-      <View style={styles.card}>
-        <SectionHeader
-          eyebrow={t('home.contactEyebrow')}
-          title={t('home.contactHeading')}
-        />
-
-        <Text style={[styles.body, { textAlign }]}>{t('home.contactBody')}</Text>
-
-        <Button
-          label={t('home.contactCta')}
-          variant="primary"
-          onPress={() => router.push('/contact')}
-          style={styles.action}
-        />
-      </View>
+      <CTABand
+        eyebrow={t('home.contactEyebrow')}
+        heading={t('home.contactHeading')}
+        body={t('home.contactBody')}
+        ctaLabel={t('home.contactCta')}
+        onPress={() => router.push('/contact')}
+      />
     </View>
   );
 }
 
-const makeStyles = (theme: ThemePalette) => StyleSheet.create({
+/**
+ * Not themed, so a plain StyleSheet rather than `useThemedStyles`: spacing
+ * carries no colour, and the band owns every token that does.
+ */
+const styles = StyleSheet.create({
   section: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
-  },
-  card: {
-    backgroundColor: theme.marble,
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: Radius.md,
-    padding: Spacing.lg,
-  },
-  body: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSizes.sm,
-    lineHeight: 22,
-    color: theme.textMuted,
-    marginTop: Spacing.sm,
-  },
-  action: {
-    alignSelf: 'stretch',
-    marginTop: Spacing.lg,
   },
 });

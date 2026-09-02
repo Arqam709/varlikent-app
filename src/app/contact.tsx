@@ -43,40 +43,7 @@ import {
 } from '@/utils/contact-links';
 import { openFirstAvailable } from '@/utils/open-external-url';
 
-/**
- * CONTACT VARLIKENT  →  route "/contact"
- *
- * The COMPANY channel. Outside the (tabs) group, like /services and
- * /favourites, so it pushes over the tab bar rather than becoming a fifth tab.
- *
- * ── The app has two communication channels, and this is only one of them ──
- *
- *   A SPECIFIC PROPERTY   Property Details → Message Agent → a real threaded
- *                         conversation with the listing's assigned agent.
- *                         Authenticated, real-time, readable in the app, and
- *                         delivered to a named person who owns that listing.
- *
- *   THE COMPANY           this screen → phone / WhatsApp / email / a lead
- *                         form. No account, no thread, routed to whichever
- *                         mailbox the owner configured for that reason.
- *
- * They are separated by INTENT, not by convenience, and nothing here weakens
- * the other. Routing a question about one flat through a lead email would lose
- * the thread, lose the agent assignment, and leave the customer with no way to
- * read the reply. So the closing section of this screen deliberately points
- * back to Message Agent rather than trying to serve that case.
- *
- * That is also why NO agent's personal phone or WhatsApp number appears here or
- * on a listing: the company's numbers are public information an owner publishes
- * deliberately; an agent's are not.
- *
- * ── Why the contact details are fetched rather than compiled in ──────────
- * Every number, address and link comes from GET /api/settings, the same
- * endpoint the website reads. An owner changing the office number in the admin
- * panel reaches both products at once instead of waiting for a store release.
- */
 
-/** Form lifecycle. `success` replaces the form rather than sitting beside it. */
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
 export default function ContactScreen() {
@@ -87,15 +54,6 @@ export default function ContactScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  /**
-   * An optional preselected reason, e.g. /contact?interestType=Renovation.
-   *
-   * Nothing sends it yet — wiring the four service pages to it is Phase 3. It
-   * is honoured now because the alternative is a screen that has to be
-   * redesigned to accept it later: `toContactReason` narrows an arbitrary
-   * string to the canonical union, so an unknown or absent value simply falls
-   * through to the default rather than reaching the backend.
-   */
   const { interestType: interestTypeParam } = useLocalSearchParams<{ interestType?: string }>();
 
   const handleBack = () => {
@@ -116,8 +74,6 @@ export default function ContactScreen() {
       setSettings(await getSiteSettings());
       setSettingsState('success');
     } catch {
-      // The message is deliberately local and generic. A failed settings load
-      // must not take the FORM down with it — the enquiry needs no settings.
       setSettingsState('error');
     }
   }, []);
@@ -128,17 +84,6 @@ export default function ContactScreen() {
 
   /* ── Form ─────────────────────────────────────────────────────────── */
 
-  /**
-   * Prefilled from the session where the account actually knows the answer.
-   *
-   * `name` and `email` are on SafeUser. There is deliberately NO phone: the
-   * backend User model has no phone field (verified), so any value here would
-   * be invented. It starts empty for everyone and is typed once.
-   *
-   * Lazy initialisers, so a later sign-in does not overwrite something the
-   * customer has already typed. Someone who edits the name and then signs in
-   * on another tab should not have their edit reverted underneath them.
-   */
   const [name, setName] = useState(() => user?.name ?? '');
   const [email, setEmail] = useState(() => user?.email ?? '');
   const [phone, setPhone] = useState('');
@@ -155,8 +100,6 @@ export default function ContactScreen() {
   const submitting = submitState === 'submitting';
 
   const handleSubmit = async () => {
-    // Guard, not just a disabled button: a double tap can land two presses
-    // before React re-renders the disabled state.
     if (submitting) return;
 
     setErrorMessage('');
@@ -168,12 +111,6 @@ export default function ContactScreen() {
       message: message.trim(),
     };
 
-    /*
-     * Local checks mirror the backend's express-validator rules so an obvious
-     * mistake costs no round trip — on a phone that is a real wait. The server
-     * remains authoritative: it re-validates everything and its rejection is
-     * surfaced verbatim below.
-     */
     if (!trimmed.name || !trimmed.email || !trimmed.phone || !trimmed.message) {
       setSubmitState('error');
       setErrorMessage(t('contact.missingFields'));
@@ -234,11 +171,6 @@ export default function ContactScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScreenHeader title={t('contact.title')} onBack={handleBack} />
 
-      {/*
-        The message field sits near the bottom of a long scroll, so the keyboard
-        would otherwise cover it. `padding` on iOS and `height` on Android is
-        the combination the message thread already uses.
-      */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -279,11 +211,7 @@ export default function ContactScreen() {
                 </Pressable>
               </View>
             ) : (
-              /*
-                Each action renders ONLY when its builder produced a real URL.
-                An owner who clears the WhatsApp number gets a screen with two
-                actions, never a third that opens an empty chat.
-              */
+
               <View style={styles.actions}>
                 {telUrl && settings?.phone ? (
                   <ContactAction
@@ -341,12 +269,6 @@ export default function ContactScreen() {
               <View style={styles.office}>
                 <Text style={[styles.address, { textAlign }]}>{address}</Text>
 
-                {/*
-                  Only when there is somewhere to go. `buildMapsUrl` falls back
-                  to a search on the address, so this is absent only when the
-                  maps link is unusable AND there is no address — in which case
-                  this whole block is not rendered either.
-                */}
                 {mapsUrl ? (
                   <Button
                     label={t('contact.openInMaps')}
@@ -374,12 +296,6 @@ export default function ContactScreen() {
             />
 
             {submitState === 'success' ? (
-              /*
-                Replaces the form rather than sitting above it. Leaving a filled
-                form on screen after a successful send invites a duplicate
-                submission, and the customer has no way to tell whether the
-                first one counted.
-              */
               <View style={styles.success}>
                 <Ionicons name="checkmark-circle" size={32} color={theme.primaryInk} />
                 <Text style={[styles.successHeading, { textAlign }]}>
@@ -433,12 +349,7 @@ export default function ContactScreen() {
                     {t('contact.reasonLabel')}
                   </Text>
 
-                  {/*
-                    `radiogroup` so a screen reader announces "3 of 8" rather
-                    than reading eight unrelated buttons. Chips rather than a
-                    picker: every option stays visible and one tap away, which
-                    a wheel or a modal list does not manage.
-                  */}
+                  
                   <View
                     style={styles.chips}
                     accessibilityRole="radiogroup"

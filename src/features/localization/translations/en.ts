@@ -182,6 +182,9 @@ export const en = {
   },
 
   services: {
+    /* Phase 3: the closing CTA band on every service detail page. */
+    ctaEyebrow: 'Get Started',
+    ctaAccessibility: 'Contact Varlikent about {service}',
     howWeWork: 'How We Work',
     theTransformation: 'The Transformation',
     intro: 'From the first sketch to the final sale — we cover every stage of the property lifecycle.',
@@ -200,6 +203,7 @@ export const en = {
           projectManagement: { title: 'Project Management', desc: 'Full oversight from groundbreaking to handover.' },
         },
         process: { heading: 'Process', steps: { s1: 'Brief & Research', s2: 'Concept Design', s3: 'Technical Development', s4: 'Construction Oversight', } },
+        ctaLabel: 'Request a Consultation',
         closingHeading: 'Have a vision?',
         closingBody: 'Contact us to discuss your project.',
       },
@@ -218,6 +222,7 @@ export const en = {
         },
         process: { heading: 'Our Process', steps: { s1: 'Site Survey', s2: 'Foundation', s3: 'Structural Frame', s4: 'Fit-Out', s5: 'Handover', } },
         note: { eyebrow: 'Built to Withstand', heading: 'Earthquake-Resistant Engineering', body: 'Istanbul sits in an active seismic zone. Every structure we deliver is engineered to current Turkish seismic design codes, with safety margins verified at each stage of construction — not assumed.' },
+        ctaLabel: 'Discuss Your Project',
         closingHeading: 'Ready to Break Ground?',
         closingBody: 'Partner with our construction team for your next Istanbul development.',
       },
@@ -237,6 +242,7 @@ export const en = {
         comparison: { heading: 'Before & After', beforeLabel: 'Before', afterLabel: 'After',
           before: { b1: 'Dated finishes', b2: 'Poor natural lighting', b3: 'Inefficient layout', b4: 'Original 1990s fixtures', },
           after: { a1: 'Premium marble surfaces', a2: 'Architectural lighting design', a3: 'Open-plan remodel', a4: 'Smart home integration', } },
+        ctaLabel: 'Start Your Renovation',
         closingHeading: 'Transform Your Space',
         closingBody: 'Let\'s discuss your renovation project and bring your vision to life.',
       },
@@ -253,6 +259,7 @@ export const en = {
           artAccessories: { title: 'Art & Accessories', desc: 'Original artwork, sculptures and decorative objects that elevate every corner.' },
           lightingDesign: { title: 'Lighting Design', desc: 'Layered ambient, task and accent lighting to create mood and highlight architecture.' },
         },
+        ctaLabel: 'Book a Consultation',
         closingHeading: 'Design Your Dream Space',
         closingBody: 'Book a complimentary 30-minute consultation with our design team.',
       },

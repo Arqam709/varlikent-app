@@ -181,6 +181,9 @@ export const ar: TranslationShape = {
   },
 
   services: {
+    /* Phase 3: the closing CTA band on every service detail page. */
+    ctaEyebrow: 'ابدأ الآن',
+    ctaAccessibility: 'تواصل مع Varlikent بخصوص {service}',
     howWeWork: 'كيف نعمل',
     theTransformation: 'التحوّل',
     intro: 'من الرسمة الأولى إلى البيع النهائي — نغطّي كل مرحلة من دورة حياة العقار.',
@@ -199,6 +202,7 @@ export const ar: TranslationShape = {
           projectManagement: { title: 'إدارة المشاريع', desc: 'إشراف كامل من وضع الحجر الأساس حتى التسليم.' },
         },
         process: { heading: 'المنهجية', steps: { s1: 'الموجز والبحث', s2: 'التصميم المبدئي', s3: 'التطوير الفني', s4: 'الإشراف على التنفيذ', } },
+        ctaLabel: 'اطلب استشارة',
         closingHeading: 'هل لديك رؤية؟',
         closingBody: 'تواصل معنا لمناقشة مشروعك.',
       },
@@ -217,6 +221,7 @@ export const ar: TranslationShape = {
         },
         process: { heading: 'منهجيتنا', steps: { s1: 'مسح الموقع', s2: 'الأساسات', s3: 'الهيكل الإنشائي', s4: 'التشطيب', s5: 'التسليم', } },
         note: { eyebrow: 'مبني ليصمد', heading: 'هندسة مقاومة للزلازل', body: 'تقع إسطنبول في منطقة زلزالية نشطة. كل منشأ نسلّمه مصمّم وفق الكودات التركية الزلزالية الحالية، مع التحقق من هوامش الأمان في كل مرحلة — لا افتراضها.' },
+        ctaLabel: 'ناقش مشروعك',
         closingHeading: 'جاهز للبدء؟',
         closingBody: 'تعاون مع فريق الإنشاء لدينا لمشروعك القادم في إسطنبول.',
       },
@@ -236,6 +241,7 @@ export const ar: TranslationShape = {
         comparison: { heading: 'قبل وبعد', beforeLabel: 'قبل', afterLabel: 'بعد',
           before: { b1: 'تشطيبات قديمة', b2: 'إضاءة طبيعية ضعيفة', b3: 'توزيع غير فعّال', b4: 'تجهيزات من التسعينيات', },
           after: { a1: 'أسطح رخامية فاخرة', a2: 'تصميم إضاءة معماري', a3: 'تخطيط مفتوح', a4: 'دمج المنزل الذكي', } },
+        ctaLabel: 'ابدأ التجديد',
         closingHeading: 'حوّل مساحتك',
         closingBody: 'لنناقش مشروع تجديدك ونحوّل رؤيتك إلى واقع.',
       },
@@ -252,6 +258,7 @@ export const ar: TranslationShape = {
           artAccessories: { title: 'الفن والإكسسوارات', desc: 'أعمال فنية أصلية ومنحوتات وقطع ديكورية ترتقي بكل ركن.' },
           lightingDesign: { title: 'تصميم الإضاءة', desc: 'إضاءة متدرّجة لخلق الأجواء وإبراز العمارة.' },
         },
+        ctaLabel: 'احجز استشارة',
         closingHeading: 'صمّم مساحة أحلامك',
         closingBody: 'احجز استشارة مجانية لمدة ٣٠ دقيقة مع فريق التصميم.',
       },

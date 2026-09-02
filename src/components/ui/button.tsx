@@ -180,6 +180,27 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontSize: FontSizes.sm,
     letterSpacing: LetterSpacing.wide,
     textTransform: 'uppercase',
+    /**
+     * Lets a long label WRAP instead of overflowing the pill.
+     *
+     * `content` is a flex row, and Yoga defaults `flexShrink` to 0 — unlike
+     * the web, where it is 1. So without this the Text keeps its full
+     * single-line width and simply runs past the button's edge; the pill does
+     * not grow to meet it and the ends are clipped.
+     *
+     * Invisible for the short English labels the app shipped with, which is
+     * why it went unnoticed. It stops being invisible the moment a label is
+     * translated: uppercase German, Russian and Urdu CTA text is routinely
+     * half again as long as the English, and at 360dp
+     * "ЗАПИСАТЬСЯ НА КОНСУЛЬТАЦИЮ" does not fit on one line at any font size
+     * worth reading. With this it wraps and `minHeight: 52` grows to fit.
+     *
+     * `textAlign` keeps a wrapped second line centred under the first, which
+     * is also what makes the pill read the same in Arabic and Urdu — the row
+     * is symmetric, so nothing here needs mirroring.
+     */
+    flexShrink: 1,
+    textAlign: 'center',
   },
   labelPrimary: {
     color: theme.primaryText,

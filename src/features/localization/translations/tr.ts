@@ -175,6 +175,9 @@ export const tr: TranslationShape = {
   },
 
   services: {
+    /* Phase 3: the closing CTA band on every service detail page. */
+    ctaEyebrow: 'Başlayalım',
+    ctaAccessibility: '{service} hakkında Varlikent ile iletişime geçin',
     howWeWork: 'Nasıl Çalışıyoruz',
     theTransformation: 'Dönüşüm',
     intro: 'İlk eskizden son satışa kadar — mülk yaşam döngüsünün her aşamasını kapsyoruz.',
@@ -193,6 +196,7 @@ export const tr: TranslationShape = {
           projectManagement: { title: 'Proje Yönetimi', desc: 'Temel atımından teslime kadar tam denetim.' },
         },
         process: { heading: 'Süreç', steps: { s1: 'Brifing ve Araştırma', s2: 'Konsept Tasarım', s3: 'Teknik Geliştirme', s4: 'İnşaat Denetimi', } },
+        ctaLabel: 'Danışmanlık Talep Edin',
         closingHeading: 'Bir vizyonunuz mu var?',
         closingBody: 'Projenizi görüşmek için bize ulaşın.',
       },
@@ -211,6 +215,7 @@ export const tr: TranslationShape = {
         },
         process: { heading: 'Sürecimiz', steps: { s1: 'Saha Etdü', s2: 'Temel', s3: 'Taşıyıcı Sistem', s4: 'İnce İşler', s5: 'Teslim', } },
         note: { eyebrow: 'Dayanıklı İnşa', heading: 'Depreme Dayanıklı Mühendislik', body: 'İstanbul aktif bir deprem bölgesindedir. Teslim ettiğimiz her yapı, güncel Türk deprem yönetmeliklerine göre mühendislik hesabıyla tasarlanır ve güvenlik payları inşaatın her aşamasında doğrulanır — varsayılmaz.' },
+        ctaLabel: 'Projenizi Görüşelim',
         closingHeading: 'Temel atmaya hazır mısınız?',
         closingBody: 'İstanbul\'daki bir sonraki projeniz için inşaat ekibimizle çalışın.',
       },
@@ -230,6 +235,7 @@ export const tr: TranslationShape = {
         comparison: { heading: 'Önce ve Sonra', beforeLabel: 'Önce', afterLabel: 'Sonra',
           before: { b1: 'Eskimiş yüzeyler', b2: 'Yetersiz doğal ışık', b3: 'Verimsiz plan', b4: '1990\'ların orijinal armatürleri', },
           after: { a1: 'Premium mermer yüzeyler', a2: 'Mimari aydınlatma tasarımı', a3: 'Açık plan düzenleme', a4: 'Akıllı ev entegrasyonu', } },
+        ctaLabel: 'Renovasyona Başlayın',
         closingHeading: 'Mekanınızı Dönüştürün',
         closingBody: 'Renovasyon projenizi konuşalım ve vizyonunuzu hayata geçirelim.',
       },
@@ -246,6 +252,7 @@ export const tr: TranslationShape = {
           artAccessories: { title: 'Sanat ve Aksesuar', desc: 'Her köşeyi yükselten özgün eserler, heykeller ve dekoratif objeler.' },
           lightingDesign: { title: 'Aydınlatma Tasarımı', desc: 'Atmosfer yaratan ve mimariyi vurgulayan katmanlı aydınlatma.' },
         },
+        ctaLabel: 'Görüşme Ayırtın',
         closingHeading: 'Hayalinizdeki Mekanı Tasarlayın',
         closingBody: 'Tasarım ekibimizle 30 dakikalık ücretsiz bir görüşme ayırtın.',
       },
