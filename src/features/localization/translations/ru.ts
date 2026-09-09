@@ -91,6 +91,11 @@ export const ru: TranslationShape = {
     garden: 'Сад',
     elevator: 'Лифт',
     conversationFailed: 'Не удалось открыть переписку. Пожалуйста, попробуйте ещё раз.',
+    location: 'Расположение',
+    approximateLocation: 'Приблизительное расположение',
+    approximateLocationNotice: 'Точное расположение этого объекта не раскрывается. Свяжитесь с агентом для получения информации.',
+    approximateRadiusValue: 'Приблизительный радиус: {km} км',
+    mapLabel: 'Карта расположения объекта',
   },
 
   messageThread: {

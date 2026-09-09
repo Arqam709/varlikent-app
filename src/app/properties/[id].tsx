@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import FavouriteButton from '@/components/properties/favourite-button';
+import { SinglePropertyMap } from '@/components/properties/property-map';
 import Button from '@/components/ui/button';
 import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
@@ -39,6 +40,11 @@ import { ApiError } from '@/services/api-client';
 import type { PropertyDetail } from '@/types/property';
 import { formatPrice } from '@/utils/format-price';
 import { getPropertyImages } from '@/utils/property-images';
+import {
+  getApproximateRadiusKm,
+  isApproximateLocation,
+  isPubliclyMappable,
+} from '@/utils/property-location';
 import VarlikentIcon from '../../../assets/brand/varlikent_icon_01.svg';
 
 
@@ -180,6 +186,7 @@ export default function PropertyDetailScreen() {
             <Description property={property} />
             <DetailRows property={property} />
             <Features property={property} />
+            <Location property={property} />
             <Agent property={property} />
           </View>
         </ScrollView>
@@ -383,6 +390,69 @@ function Features({ property }: { property: PropertyDetail }) {
             <Text style={styles.featureText}>{feature}</Text>
           </View>
         ))}
+      </View>
+    </Section>
+  );
+}
+
+/**
+ * WHERE THIS LISTING IS — in whichever of the three ways the payload allows.
+ *
+ * ── The three states, and why the third renders nothing ─────────────────
+ *   exact         a map with one marker.
+ *   approximate   a written explanation, and NO map of any kind.
+ *   unavailable   nothing at all — no section, no empty card, no grey map.
+ *
+ * The third is a product decision, not a shortcut. "We do not have a location
+ * for this listing" and "there is nothing here" are different statements, and a
+ * blank map centred on Istanbul makes the second one on the first one's behalf.
+ * It also matches this screen's own convention: Description, Features and
+ * Listed by all return null rather than render an empty heading, and the
+ * website's PropertyDetailsPage takes the identical `: null` branch. The
+ * district and address are already printed as text at the top of the screen, so
+ * nothing about the listing's whereabouts is lost by omitting this section — a
+ * point that matters for screen-reader users, for whom the map was never the
+ * primary channel.
+ *
+ * ── Order of the branches is load-bearing ──────────────────────────────
+ * Approximate is tested FIRST. A listing whose owner asked to hide the exact
+ * spot can therefore never fall through to the map branch — not even if a
+ * future API regression attaches coordinates to it. Only then is an exact,
+ * valid pin considered. The same ordering, for the same reason, as the
+ * website's.
+ */
+function Location({ property }: { property: PropertyDetail }) {
+  const { t } = useLanguage();
+  const styles = useThemedStyles(makeStyles);
+
+  if (isApproximateLocation(property)) {
+    const radiusKm = getApproximateRadiusKm(property);
+
+    return (
+      <Section title={t('propertyDetails.approximateLocation')}>
+        {/*
+          Says that the exact position is private. Says NOTHING about whether
+          one exists internally — "kept private" is true whether the owner
+          placed a precise pin or never placed one at all, and distinguishing
+          them would leak exactly what the setting exists to hide.
+        */}
+        <Text style={styles.body}>{t('propertyDetails.approximateLocationNotice')}</Text>
+
+        {radiusKm !== null ? (
+          <Text style={styles.approximateRadius}>
+            {t('propertyDetails.approximateRadiusValue', { km: String(radiusKm) })}
+          </Text>
+        ) : null}
+      </Section>
+    );
+  }
+
+  if (!isPubliclyMappable(property)) return null;
+
+  return (
+    <Section title={t('propertyDetails.location')}>
+      <View style={styles.mapFrame}>
+        <SinglePropertyMap property={property} accessibilityLabel={t('propertyDetails.mapLabel')} />
       </View>
     </Section>
   );
@@ -664,6 +734,20 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.sm,
     color: theme.text,
+  },
+
+  /**
+   * The map component draws its own bordered card; this only insets it to the
+   * same gutter every other section body uses, so the map's edges line up with
+   * the Details rows above it and the agent card below.
+   */
+  mapFrame: { paddingHorizontal: Spacing.lg },
+  approximateRadius: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.xs,
+    color: theme.textMuted,
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
   },
 
   features: {

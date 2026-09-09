@@ -93,6 +93,11 @@ export const ar: TranslationShape = {
     garden: 'حديقة',
     elevator: 'مصعد',
     conversationFailed: 'تعذّر فتح المحادثة. يُرجى المحاولة مرة أخرى.',
+    location: 'الموقع',
+    approximateLocation: 'موقع تقريبي',
+    approximateLocationNotice: 'يبقى الموقع الدقيق لهذا العقار خاصًا. تواصل مع الوكيل لمزيد من المعلومات.',
+    approximateRadiusValue: 'نصف القطر التقريبي: {km} كم',
+    mapLabel: 'خريطة موقع العقار',
   },
 
   messageThread: {

@@ -86,6 +86,11 @@ export const de: TranslationShape = {
     garden: 'Garten',
     elevator: 'Aufzug',
     conversationFailed: 'Die Unterhaltung konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.',
+    location: 'Standort',
+    approximateLocation: 'Ungefährer Standort',
+    approximateLocationNotice: 'Der genaue Standort dieser Immobilie bleibt privat. Kontaktieren Sie den Makler für weitere Informationen.',
+    approximateRadiusValue: 'Ungefährer Radius: {km} km',
+    mapLabel: 'Standortkarte der Immobilie',
   },
 
   messageThread: {

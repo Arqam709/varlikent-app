@@ -27,6 +27,65 @@ export type PropertyType =
 export type PropertyStatus = 'Available' | 'Sold' | 'Rented' | 'Pending';
 
 /**
+ * A property's location, EXACTLY AS THE PUBLIC API MAY RETURN IT.
+ *
+ * This is the public read contract — the output of `publicLocation()` in the
+ * backend's routes/properties.js — NOT the Mongo document. The stored document
+ * always holds four independent optional keys; what an anonymous visitor
+ * receives is narrower, and modelling the wider shape would invite the client
+ * to reason about coordinates that are not there.
+ *
+ * The server emits exactly three outcomes, and only these three:
+ *
+ *   key absent          nothing publishable. Either no location was ever set,
+ *                       or the stored one is a half pair / out of range /
+ *                       a numeric string. All of them look identical on the
+ *                       wire, which is deliberate — see below.
+ *
+ *   { isApproximate: true, approxRadiusKm }
+ *                       the owner asked for the exact spot to stay private.
+ *                       `lat` and `lng` ARE NOT SENT. Not omitted by the
+ *                       client, not filtered out of a marker list — absent
+ *                       from the payload, because anything less is defeated by
+ *                       opening the network tab.
+ *
+ *   { lat, lng, isApproximate: false, approxRadiusKm }
+ *                       an exact, publicly mappable coordinate.
+ *
+ * ── Why lat/lng are still declared optional ─────────────────────────────
+ * Because the approximate branch does not send them, so a required `lat` would
+ * be a lie for two of the three outcomes. TypeScript could express this as a
+ * discriminated union on `isApproximate`, and that was considered — but the
+ * value arrives from the network, where a legacy or hand-edited document can
+ * produce a combination the union declares impossible. A single optional shape
+ * plus ONE validator that every reader must pass through
+ * (`isPubliclyMappable` in utils/property-location.ts) is the honest model: it
+ * never claims a guarantee the wire cannot keep.
+ *
+ * ── Why "absent" covers both no-location and malformed ──────────────────
+ * Naming which is which would leak the very thing the approximate setting
+ * exists to hide. The server collapses them on purpose; so does this type.
+ */
+export interface PropertyPublicLocation {
+  /** WGS84 latitude, -90..90. Absent on an approximate listing. */
+  lat?: number;
+  /** WGS84 longitude, -180..180. Absent on an approximate listing. */
+  lng?: number;
+  /**
+   * `true` means DO NOT MAP, unconditionally. The server never pairs it with
+   * coordinates; if a future regression ever did, this flag still wins.
+   */
+  isApproximate?: boolean;
+  /**
+   * How vague an approximate listing is, 1-20 km. The server substitutes its
+   * own default (5) for a missing or out-of-range stored value, so in practice
+   * it is always present when `location` is — but it is cosmetic copy, never
+   * an input to whether something may be mapped.
+   */
+  approxRadiusKm?: number;
+}
+
+/**
  * The subset of a property the LIST needs.
  *
  * The API returns far more per property — address, description, agent contact
@@ -57,6 +116,17 @@ export interface PropertySummary {
   images?: string[];
   featured?: boolean;
   status?: PropertyStatus;
+  /**
+   * Present on BOTH the list and the detail response — the same
+   * `withPublicLocation` serializer wraps every public property the backend
+   * returns, so declaring it here rather than on PropertyDetail is what lets
+   * the later Properties map reuse this exact field with no second type.
+   *
+   * Absent far more often than not: 4 of the 6 live listings carry no
+   * `location` key at all. Never read `.lat` from it directly — go through
+   * `isPubliclyMappable` / `getPublicCoordinates`.
+   */
+  location?: PropertyPublicLocation;
 }
 
 /**

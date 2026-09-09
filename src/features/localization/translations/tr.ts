@@ -87,6 +87,11 @@ export const tr: TranslationShape = {
     garden: 'Bahçe',
     elevator: 'Asansör',
     conversationFailed: 'Görüşme açılamadı. Lütfen tekrar deneyin.',
+    location: 'Konum',
+    approximateLocation: 'Yaklaşık Konum',
+    approximateLocationNotice: 'Bu mülkün kesin konumu gizli tutulmaktadır. Daha fazla bilgi için danışmanla iletişime geçin.',
+    approximateRadiusValue: 'Yaklaşık yarıçap: {km} km',
+    mapLabel: 'Mülk konum haritası',
   },
 
   messageThread: {

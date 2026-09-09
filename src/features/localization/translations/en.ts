@@ -94,6 +94,11 @@ export const en = {
     garden: 'Garden',
     elevator: 'Elevator',
     conversationFailed: 'Could not open the conversation. Please try again.',
+    location: 'Location',
+    approximateLocation: 'Approximate Location',
+    approximateLocationNotice: 'The exact location of this property is kept private. Contact the agent for more information.',
+    approximateRadiusValue: 'Approximate radius: {km} km',
+    mapLabel: 'Property location map',
   },
 
   messageThread: {

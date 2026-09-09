@@ -96,6 +96,11 @@ export const ur: TranslationShape = {
     garden: 'باغ',
     elevator: 'لفٹ',
     conversationFailed: 'گفتگو نہیں کھل سکی۔ براہ کرم دوبارہ کوشش کریں۔',
+    location: 'محلِ وقوع',
+    approximateLocation: 'تخمینی محلِ وقوع',
+    approximateLocationNotice: 'اس جائیداد کا درست محلِ وقوع نجی رکھا گیا ہے۔ مزید معلومات کے لیے ایجنٹ سے رابطہ کریں۔',
+    approximateRadiusValue: 'تخمینی رداس: {km} کلومیٹر',
+    mapLabel: 'جائیداد کے محلِ وقوع کا نقشہ',
   },
 
   messageThread: {
