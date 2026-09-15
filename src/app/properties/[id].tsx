@@ -424,6 +424,7 @@ function Features({ property }: { property: PropertyDetail }) {
 function Location({ property }: { property: PropertyDetail }) {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
+  const router = useRouter();
 
   if (isApproximateLocation(property)) {
     const radiusKm = getApproximateRadiusKm(property);
@@ -451,8 +452,31 @@ function Location({ property }: { property: PropertyDetail }) {
 
   return (
     <Section title={t('propertyDetails.location')}>
+      {/*
+        A PREVIEW now, not an embedded interactive map. Tapping opens the
+        dedicated Property Location screen, which is where panning and zooming
+        belong — inside this ScrollView they only ever competed with the page.
+
+        Only THIS branch is tappable. The approximate branch above must never
+        lead to a precise map, so the affordance lives here rather than on the
+        Location heading.
+      */}
       <View style={styles.mapFrame}>
-        <SinglePropertyMap property={property} accessibilityLabel={t('propertyDetails.mapLabel')} />
+        <SinglePropertyMap
+          property={property}
+          accessibilityLabel={t('propertyDetails.openFullMapAccessibility', {
+            title: property.title,
+          })}
+          pressLabel={t('propertyDetails.viewMap')}
+          onPress={() =>
+            // Only the id travels; the location screen refetches, exactly as
+            // this screen does.
+            router.push({
+              pathname: '/properties/location/[id]',
+              params: { id: property._id },
+            })
+          }
+        />
       </View>
     </Section>
   );

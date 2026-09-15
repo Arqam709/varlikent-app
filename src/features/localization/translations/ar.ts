@@ -61,6 +61,48 @@ export const ar: TranslationShape = {
     passwordMismatch: 'كلمتا المرور غير متطابقتين.',
   },
 
+  propertiesMap: {
+    title: 'خريطة العقارات',
+    openMap: 'خريطة',
+    openMapAccessibility: 'عرض هذه النتائج على الخريطة',
+    mapLabel: 'خريطة العقارات المطابقة',
+    viewProperty: 'عرض العقار',
+    previewAccessibility: '{title}، {district}، {price}. عرض العقار.',
+    tapMarkerHint: 'اضغط على علامة لعرض العقار.',
+    noMappedProperties: 'لا توجد عقارات بمواقع على الخريطة تطابق هذه الفلاتر.',
+    backToList: 'العودة إلى القائمة',
+    nearMe: 'بالقرب مني',
+    nearMeAccessibility: 'ابحث عن عقارات بالقرب مني',
+    nearMeActiveAccessibility: 'ميزة بالقرب مني مفعّلة، تعرض العقارات ضمن {km} كيلومتر. اضغط مرتين لإيقافها.',
+    radiusValue: '{km} كم',
+    radiusTitle: 'نطاق البحث',
+    radiusAccessibility: 'نطاق البحث، {km} كيلومتر. اضغط مرتين للتغيير.',
+    radiusOptionAccessibility: 'ضمن {km} كيلومتر',
+    recenterAccessibility: 'توسيط الخريطة على موقعك',
+    noneNearby: 'لا توجد عقارات ضمن {km} كم.',
+    locationDenied: 'إذن الموقع مطلوب للعثور على عقارات بالقرب منك.',
+    locationBlocked: 'الموقع مُعطّل لتطبيق Varlikent. يمكنك تفعيله من الإعدادات.',
+    locationServicesOff: 'فعّل خدمات الموقع للعثور على عقارات بالقرب منك.',
+    locationUnavailable: 'موقعك غير متاح حاليًا. يرجى المحاولة مرة أخرى.',
+    openSettings: 'فتح الإعدادات',
+    distanceAway: 'على بُعد {distance} كم',
+    closestProperty: 'أقرب عقار على بُعد {distance} كم.',
+    showClosest: 'عرض الأقرب',
+    showClosestAccessibility: 'عرض أقرب العقارات خارج نطاق {km} كم',
+    showingClosest: 'يتم عرض أقرب العقارات خارج نطاق {km} كم.',
+    noOtherMappedProperties: 'لا توجد مواقع أخرى على الخريطة لهذه النتائج.',
+    previewAccessibilityWithDistance: '{title}، {district}، {price}، على بُعد {distance} كيلومتر. عرض العقار.',
+    outsideRadiusBy: 'خارج النطاق الذي اخترته بمقدار {distance} كم.',
+  },
+
+  propertyLocation: {
+    title: 'موقع العقار',
+    unavailable: 'موقع الخريطة غير متاح لهذا العقار.',
+    directions: 'الاتجاهات',
+    directionsAccessibility: 'احصل على الاتجاهات إلى {title}',
+    directionsFailed: 'تعذّر فتح الاتجاهات على هذا الجهاز.',
+  },
+
   propertyDetails: {
     shareProperty: 'مشاركة العقار',
     shareCallToAction: 'اعرضه على Varlikent:',
@@ -97,6 +139,8 @@ export const ar: TranslationShape = {
     approximateLocation: 'موقع تقريبي',
     approximateLocationNotice: 'يبقى الموقع الدقيق لهذا العقار خاصًا. تواصل مع الوكيل لمزيد من المعلومات.',
     approximateRadiusValue: 'نصف القطر التقريبي: {km} كم',
+    viewMap: 'عرض الخريطة',
+    openFullMapAccessibility: 'فتح الخريطة الكاملة لـ {title}',
     mapLabel: 'خريطة موقع العقار',
   },
 
@@ -306,17 +350,6 @@ export const ar: TranslationShape = {
   },
 
   contact: {
-    reasons: {
-      buying: 'الشراء',
-      renting: 'الإيجار',
-      selling: 'البيع',
-      renovation: 'التجديد',
-      interiorDesign: 'التصميم الداخلي',
-      architecture: 'العمارة',
-      construction: 'الإنشاءات',
-      general: 'استفسار عام',
-    },
-
     title: 'اتصل بنا',
     eyebrow: 'لنتحدث',
     heading: 'كيف يمكننا مساعدتك؟',
@@ -369,6 +402,17 @@ export const ar: TranslationShape = {
       'لكل عقار في فارلي كنت وكيل مخصّص. افتح العقار واضغط «مراسلة الوكيل» لطرح أسئلتك أو ترتيب معاينة — وتبقى محادثتك داخل التطبيق.',
     propertySignInNote: 'يلزم تسجيل الدخول لمراسلة الوكيل.',
     browseProperties: 'تصفّح العقارات',
+  },
+
+  about: {
+    title: 'عن Varlikent',
+    previewEyebrow: 'عن Varlikent',
+    learnMore: 'اعرف المزيد',
+    learnMoreA11y: 'يفتح مزيدًا من المعلومات عن Varlikent.',
+    imageA11y: 'Varlikent في إسطنبول',
+    refreshFailed: 'تعذّر تحميل أحدث المعلومات. تُعرض المعلومات الأساسية.',
+    unavailableTitle: 'معلومات «عن Varlikent» غير متاحة حاليًا',
+    unavailableBody: 'تحقّق من اتصالك وحاول مرة أخرى.',
   },
 
   home: {

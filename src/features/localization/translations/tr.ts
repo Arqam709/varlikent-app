@@ -55,6 +55,48 @@ export const tr: TranslationShape = {
     passwordMismatch: 'Şifreler eşleşmiyor.',
   },
 
+  propertiesMap: {
+    title: 'Mülk Haritası',
+    openMap: 'Harita',
+    openMapAccessibility: 'Bu sonuçları haritada göster',
+    mapLabel: 'Eşleşen mülklerin haritası',
+    viewProperty: 'Mülkü Görüntüle',
+    previewAccessibility: '{title}, {district}, {price}. Mülkü görüntüle.',
+    tapMarkerHint: 'Mülkü görmek için bir işarete dokunun.',
+    noMappedProperties: 'Bu filtrelere uyan, harita konumu olan mülk yok.',
+    backToList: 'Listeye dön',
+    nearMe: 'Yakınımda',
+    nearMeAccessibility: 'Yakınımdaki mülkleri bul',
+    nearMeActiveAccessibility: 'Yakınımda açık, {km} kilometre içindeki mülkler gösteriliyor. Kapatmak için iki kez dokunun.',
+    radiusValue: '{km} km',
+    radiusTitle: 'Arama yarıçapı',
+    radiusAccessibility: 'Arama yarıçapı, {km} kilometre. Değiştirmek için iki kez dokunun.',
+    radiusOptionAccessibility: '{km} kilometre içinde',
+    recenterAccessibility: 'Haritayı konumunuza ortala',
+    noneNearby: '{km} km içinde mülk yok.',
+    locationDenied: 'Yakınınızdaki mülkleri bulmak için konum izni gerekiyor.',
+    locationBlocked: 'Varlikent için konum kapalı. Ayarlar’dan açabilirsiniz.',
+    locationServicesOff: 'Yakınınızdaki mülkleri bulmak için konum servislerini açın.',
+    locationUnavailable: 'Konumunuz şu anda kullanılamıyor. Lütfen tekrar deneyin.',
+    openSettings: 'Ayarları Aç',
+    distanceAway: '{distance} km uzaklıkta',
+    closestProperty: 'En yakın mülk {distance} km uzaklıkta.',
+    showClosest: 'En yakını göster',
+    showClosestAccessibility: '{km} km yarıçapınızın dışındaki en yakın mülkleri göster',
+    showingClosest: '{km} km yarıçapınızın dışındaki en yakın mülkler gösteriliyor.',
+    noOtherMappedProperties: 'Bu sonuçlar için başka harita konumu bulunmuyor.',
+    previewAccessibilityWithDistance: '{title}, {district}, {price}, {distance} kilometre uzaklıkta. Mülkü görüntüle.',
+    outsideRadiusBy: 'Seçtiğiniz yarıçapın {distance} km dışında.',
+  },
+
+  propertyLocation: {
+    title: 'Mülk Konumu',
+    unavailable: 'Bu mülk için harita konumu mevcut değil.',
+    directions: 'Yol tarifi',
+    directionsAccessibility: '{title} için yol tarifi al',
+    directionsFailed: 'Yol tarifi bu cihazda açılamadı.',
+  },
+
   propertyDetails: {
     shareProperty: 'Mülkü paylaş',
     shareCallToAction: "Varlikent'te görüntüle:",
@@ -91,6 +133,8 @@ export const tr: TranslationShape = {
     approximateLocation: 'Yaklaşık Konum',
     approximateLocationNotice: 'Bu mülkün kesin konumu gizli tutulmaktadır. Daha fazla bilgi için danışmanla iletişime geçin.',
     approximateRadiusValue: 'Yaklaşık yarıçap: {km} km',
+    viewMap: 'Haritayı aç',
+    openFullMapAccessibility: '{title} için tam haritayı aç',
     mapLabel: 'Mülk konum haritası',
   },
 
@@ -300,17 +344,6 @@ export const tr: TranslationShape = {
   },
 
   contact: {
-    reasons: {
-      buying: 'Satın Alma',
-      renting: 'Kiralama',
-      selling: 'Satış',
-      renovation: 'Tadilat',
-      interiorDesign: 'İç Mimarlık',
-      architecture: 'Mimarlık',
-      construction: 'İnşaat',
-      general: 'Genel Talep',
-    },
-
     title: 'İletişim',
     eyebrow: 'Konuşalım',
     heading: 'Size nasıl yardımcı olabiliriz?',
@@ -363,6 +396,17 @@ export const tr: TranslationShape = {
       'Her Varlikent ilanının kendi danışmanı vardır. İlanı açıp “Danışmana Mesaj Gönder”’e dokunarak soru sorabilir veya randevu alabilirsiniz — görüşmeniz uygulama içinde kalır.',
     propertySignInNote: 'Danışmana mesaj göndermek için giriş yapmanız gerekir.',
     browseProperties: 'Mülkleri İncele',
+  },
+
+  about: {
+    title: 'Varlikent Hakkında',
+    previewEyebrow: 'Varlikent Hakkında',
+    learnMore: 'Daha Fazla Bilgi',
+    learnMoreA11y: 'Varlikent hakkında daha fazla bilgi açar.',
+    imageA11y: 'İstanbul’da Varlikent',
+    refreshFailed: 'Güncel bilgiler yüklenemedi. Temel bilgiler gösteriliyor.',
+    unavailableTitle: 'Hakkımızda bilgileri şu anda kullanılamıyor',
+    unavailableBody: 'Bağlantınızı kontrol edip tekrar deneyin.',
   },
 
   home: {

@@ -27,6 +27,7 @@ import {
 } from '@/features/properties/properties-api';
 import { ApiError } from '@/services/api-client';
 import type { ListingType, PropertyArea, PropertySummary } from '@/types/property';
+import { toMapParams } from '@/utils/property-map-filters';
 
 type LoadState = 'loading' | 'success' | 'error';
 
@@ -188,31 +189,62 @@ export default function PropertiesScreen() {
             );
           })}
         </View>
-        {/* Filters trigger on the left, result count on the right. */}
+        {/*
+          Filters and Map on the leading edge, result count on the trailing
+          edge. Map is a sibling of Filters rather than a segmented List/Map
+          control: this screen IS the list, so a "List" option here would be a
+          control whose selected state never changes.
+        */}
         <View style={styles.filterRow}>
-          <Pressable
-            onPress={() => setPanelOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              activeFilterCount > 0
-                ? t('properties.filtersActiveAccessibility', {
-                    count: String(activeFilterCount),
-                  })
-                : t('properties.filters')
-            }
-            style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}>
-            <Ionicons
-              name="options-outline"
-              size={16}
-              color={activeFilterCount > 0 ? theme.brandGreen : theme.textMuted}
-            />
-            <Text
-              style={[styles.filterText, activeFilterCount > 0 && styles.filterTextActive]}>
-              {activeFilterCount > 0
-                ? t('properties.filtersWithCount', { count: String(activeFilterCount) })
-                : t('properties.filters')}
-            </Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              onPress={() => setPanelOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                activeFilterCount > 0
+                  ? t('properties.filtersActiveAccessibility', {
+                      count: String(activeFilterCount),
+                    })
+                  : t('properties.filters')
+              }
+              style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}>
+              <Ionicons
+                name="options-outline"
+                size={16}
+                color={activeFilterCount > 0 ? theme.brandGreen : theme.textMuted}
+              />
+              <Text
+                style={[styles.filterText, activeFilterCount > 0 && styles.filterTextActive]}>
+                {activeFilterCount > 0
+                  ? t('properties.filtersWithCount', { count: String(activeFilterCount) })
+                  : t('properties.filters')}
+              </Text>
+            </Pressable>
+
+            {/*
+              Carries the CURRENT query as route params — the segment and the
+              applied secondary filters, serialized in one place by toMapParams
+              so the map can never reconstruct the search differently. Only the
+              query travels; the map refetches rather than receiving listings.
+
+              Going back needs no restoration logic: this tab screen stays
+              mounted underneath the pushed map, so its filter state is still
+              here when the map is dismissed.
+            */}
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/properties/map',
+                  params: toMapParams({ segment, filters }),
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t('propertiesMap.openMapAccessibility')}
+              style={styles.filterButton}>
+              <Ionicons name="map-outline" size={16} color={theme.textMuted} />
+              <Text style={styles.filterText}>{t('propertiesMap.openMap')}</Text>
+            </Pressable>
+          </View>
 
           {loadState === 'success' ? (
             <Text style={styles.count}>
@@ -378,6 +410,12 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: Spacing.md,
+  },
+  /** Filters and Map sit together; the count stays on the far edge. */
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   filterButton: {
     flexDirection: 'row',

@@ -57,6 +57,12 @@ test('Turkish contains no English-identical translatable values', () => {
     // DOES translate contact.emailPlaceholder, so it is deliberately absent.
     'contact.whatsappLabel',
     'contact.phonePlaceholder',
+    // '{km} km' — the SI symbol, which Turkish writes exactly as English does
+    // ("5 km"). Distorting it to force a difference would be worse Turkish, and
+    // the other five bundles do differ where their script does: Arabic 'كم',
+    // Russian 'км', Urdu 'کلومیٹر'. The surrounding prose keys
+    // (radiusTitle, radiusAccessibility, noneNearby) are all translated.
+    'propertiesMap.radiusValue',
   ])
 
   assert.deepEqual(identical.filter((key) => !allowed.has(key)), [])

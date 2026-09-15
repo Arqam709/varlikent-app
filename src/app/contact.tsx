@@ -20,13 +20,15 @@ import SectionHeader from '@/components/ui/section-header';
 import TextField from '@/components/ui/text-field';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/features/auth/auth-context';
+import { sendContactEnquiry } from '@/features/contact/contact-api';
 import {
-  CONTACT_REASONS,
-  reasonKey,
-  sendContactEnquiry,
-  toContactReason,
-  type ContactReason,
-} from '@/features/contact/contact-api';
+  FALLBACK_CONTACT_INTERESTS,
+  contactInterestLabel,
+  requestedContactInterestKey,
+  resolveContactInterest,
+  type ContactInterest,
+} from '@/features/contact/contact-interests';
+import { refreshContactInterests } from '@/features/contact/contact-interests-cache';
 import { useLanguage } from '@/features/localization/language-context';
 import { useDirection } from '@/features/localization/use-direction';
 import { getSiteSettings } from '@/features/settings/settings-api';
@@ -47,7 +49,7 @@ import { openFirstAvailable } from '@/utils/open-external-url';
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
 export default function ContactScreen() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
   const { textAlign } = useDirection();
@@ -87,9 +89,53 @@ export default function ContactScreen() {
   const [name, setName] = useState(() => user?.name ?? '');
   const [email, setEmail] = useState(() => user?.email ?? '');
   const [phone, setPhone] = useState('');
-  const [reason, setReason] = useState<ContactReason>(
-    () => toContactReason(interestTypeParam) ?? 'General'
+
+  /**
+   * The interest options, never blocking the form:
+   *
+   *   1. the bundled built-in nine, on the very first render
+   *   2. the last list the server sent, if one is cached on this device
+   *   3. the server's current list, when GET /api/contact/interests answers
+   *
+   * Admins can add, reorder and disable interests at any time, so step 2 lets
+   * a slow or offline start show recent options instead of the baseline. A
+   * failure at any step leaves the previous list in place.
+   */
+  const [interests, setInterests] = useState<readonly ContactInterest[]>(FALLBACK_CONTACT_INTERESTS);
+
+  /**
+   * True once the server's contract has loaded — which also tells us the
+   * backend is new enough to store `source: 'mobile'`. The interests endpoint
+   * and that source value ship in the SAME backend deploy, so an older backend
+   * 404s this request, this stays false, and the enquiry is sent exactly as it
+   * always was. (The older route would reject an unrecognised source.)
+   */
+  const [interestsFromServer, setInterestsFromServer] = useState(false);
+
+  useEffect(
+    () =>
+      refreshContactInterests((next, origin) => {
+        setInterests(next);
+        // Only a LIVE response proves the current backend stores
+        // source: 'mobile'. A cached list could outlive a backend rollback.
+        if (origin === 'server') setInterestsFromServer(true);
+      }),
+    []
   );
+
+  /**
+   * The chosen interest, as a KEY resolved against whichever list is current.
+   *
+   * It starts as the route's `interestType` — a stable id (service links) or a
+   * legacy value (older links and shared URLs) — left unresolved, so an
+   * admin-created interest this build has never seen is selected as soon as
+   * the server list offers it. A chip press stores that chip's id.
+   *
+   * Resolving on every render also covers disabling: a key the current list no
+   * longer offers selects General, so the form never submits a hidden option.
+   */
+  const [reasonKey, setReasonKey] = useState(() => requestedContactInterestKey(interestTypeParam));
+  const selectedInterest = resolveContactInterest(interests, reasonKey);
   const [message, setMessage] = useState('');
 
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
@@ -126,8 +172,11 @@ export default function ContactScreen() {
     try {
       await sendContactEnquiry({
         ...trimmed,
-        // The CANONICAL value, never the translated chip label.
-        interestType: reason,
+        // The entry's LEGACY value ('Interior Design') — never its id and never
+        // the translated chip label. That literal is what POST /api/contact
+        // validates, and what installed builds have always sent.
+        interestType: selectedInterest.value,
+        source: interestsFromServer ? 'mobile' : undefined,
       });
       setSubmitState('success');
     } catch (error) {
@@ -145,7 +194,7 @@ export default function ContactScreen() {
   const handleSendAnother = () => {
     setMessage('');
     setPhone('');
-    setReason(toContactReason(interestTypeParam) ?? 'General');
+    setReasonKey(requestedContactInterestKey(interestTypeParam));
     setSubmitState('idle');
     setErrorMessage('');
   };
@@ -354,14 +403,15 @@ export default function ContactScreen() {
                     style={styles.chips}
                     accessibilityRole="radiogroup"
                     accessibilityLabel={t('contact.reasonLabel')}>
-                    {CONTACT_REASONS.map((value) => {
-                      const selected = value === reason;
-                      const label = t(reasonKey(value));
+                    {interests.map((interest) => {
+                      const selected = interest.id === selectedInterest.id;
+                      // The entry's own label for this language. Display only.
+                      const label = contactInterestLabel(interest, language);
 
                       return (
                         <Pressable
-                          key={value}
-                          onPress={() => setReason(value)}
+                          key={interest.id}
+                          onPress={() => setReasonKey(interest.id)}
                           accessibilityRole="radio"
                           accessibilityState={{ selected }}
                           accessibilityLabel={t('contact.reasonA11y', { label })}

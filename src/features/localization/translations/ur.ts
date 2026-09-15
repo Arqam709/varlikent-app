@@ -64,6 +64,48 @@ export const ur: TranslationShape = {
     passwordMismatch: 'پاس ورڈ آپس میں مطابقت نہیں رکھتے۔',
   },
 
+  propertiesMap: {
+    title: 'جائیدادوں کا نقشہ',
+    openMap: 'نقشہ',
+    openMapAccessibility: 'ان نتائج کو نقشے پر دکھائیں',
+    mapLabel: 'مماثل جائیدادوں کا نقشہ',
+    viewProperty: 'جائیداد دیکھیں',
+    previewAccessibility: '{title}، {district}، {price}۔ جائیداد دیکھیں۔',
+    tapMarkerHint: 'جائیداد دیکھنے کے لیے نشان پر ٹیپ کریں۔',
+    noMappedProperties: 'ان فلٹرز سے مماثل نقشے کے مقام والی کوئی جائیداد نہیں۔',
+    backToList: 'فہرست پر واپس جائیں',
+    nearMe: 'میرے قریب',
+    nearMeAccessibility: 'میرے قریب جائیدادیں تلاش کریں',
+    nearMeActiveAccessibility: 'میرے قریب فعال ہے، {km} کلومیٹر کے اندر جائیدادیں دکھائی جا رہی ہیں۔ بند کرنے کے لیے دو بار ٹیپ کریں۔',
+    radiusValue: '{km} کلومیٹر',
+    radiusTitle: 'تلاش کا دائرہ',
+    radiusAccessibility: 'تلاش کا دائرہ، {km} کلومیٹر۔ تبدیل کرنے کے لیے دو بار ٹیپ کریں۔',
+    radiusOptionAccessibility: '{km} کلومیٹر کے اندر',
+    recenterAccessibility: 'نقشے کو اپنے مقام پر مرکوز کریں',
+    noneNearby: '{km} کلومیٹر کے اندر کوئی جائیداد نہیں۔',
+    locationDenied: 'اپنے قریب جائیدادیں تلاش کرنے کے لیے مقام کی اجازت درکار ہے۔',
+    locationBlocked: 'Varlikent کے لیے مقام بند ہے۔ آپ اسے ترتیبات میں فعال کر سکتے ہیں۔',
+    locationServicesOff: 'اپنے قریب جائیدادیں تلاش کرنے کے لیے مقام کی سروسز آن کریں۔',
+    locationUnavailable: 'آپ کا مقام اس وقت دستیاب نہیں۔ براہِ کرم دوبارہ کوشش کریں۔',
+    openSettings: 'ترتیبات کھولیں',
+    distanceAway: '{distance} کلومیٹر دور',
+    closestProperty: 'قریب ترین جائیداد {distance} کلومیٹر دور ہے۔',
+    showClosest: 'قریب ترین دکھائیں',
+    showClosestAccessibility: 'اپنے {km} کلومیٹر دائرے سے باہر قریب ترین جائیدادیں دکھائیں',
+    showingClosest: 'آپ کے {km} کلومیٹر دائرے سے باہر قریب ترین جائیدادیں دکھائی جا رہی ہیں۔',
+    noOtherMappedProperties: 'ان نتائج کے لیے نقشے پر کوئی اور مقام دستیاب نہیں۔',
+    previewAccessibilityWithDistance: '{title}، {district}، {price}، {distance} کلومیٹر دور۔ جائیداد دیکھیں۔',
+    outsideRadiusBy: 'آپ کے منتخب کردہ دائرے سے {distance} کلومیٹر باہر۔',
+  },
+
+  propertyLocation: {
+    title: 'جائیداد کا محلِ وقوع',
+    unavailable: 'اس جائیداد کے لیے نقشے کا مقام دستیاب نہیں۔',
+    directions: 'راستہ',
+    directionsAccessibility: '{title} تک راستہ معلوم کریں',
+    directionsFailed: 'اس ڈیوائس پر راستہ نہیں کھل سکا۔',
+  },
+
   propertyDetails: {
     shareProperty: 'جائیداد شیئر کریں',
     shareCallToAction: 'Varlikent پر دیکھیں:',
@@ -100,6 +142,8 @@ export const ur: TranslationShape = {
     approximateLocation: 'تخمینی محلِ وقوع',
     approximateLocationNotice: 'اس جائیداد کا درست محلِ وقوع نجی رکھا گیا ہے۔ مزید معلومات کے لیے ایجنٹ سے رابطہ کریں۔',
     approximateRadiusValue: 'تخمینی رداس: {km} کلومیٹر',
+    viewMap: 'نقشہ دیکھیں',
+    openFullMapAccessibility: '{title} کے لیے مکمل نقشہ کھولیں',
     mapLabel: 'جائیداد کے محلِ وقوع کا نقشہ',
   },
 
@@ -399,17 +443,6 @@ export const ur: TranslationShape = {
   },
 
   contact: {
-    reasons: {
-      buying: 'خریداری',
-      renting: 'کرایہ',
-      selling: 'فروخت',
-      renovation: 'تزئینِ نو',
-      interiorDesign: 'داخلی ڈیزائن',
-      architecture: 'فنِ تعمیر',
-      construction: 'تعمیرات',
-      general: 'عام استفسار',
-    },
-
     title: 'رابطہ',
     eyebrow: 'بات کرتے ہیں',
     heading: 'ہم آپ کی کیا مدد کر سکتے ہیں؟',
@@ -462,6 +495,17 @@ export const ur: TranslationShape = {
       'ورلی کینٹ کی ہر جائیداد کا اپنا مقرر کردہ ایجنٹ ہوتا ہے۔ جائیداد کھولیں اور «ایجنٹ کو پیغام» پر ٹیپ کریں تاکہ سوال پوچھ سکیں یا ملاقات طے کر سکیں — آپ کی گفتگو ایپ ہی میں رہتی ہے۔',
     propertySignInNote: 'ایجنٹ کو پیغام بھیجنے کے لیے سائن اِن ضروری ہے۔',
     browseProperties: 'جائیدادیں دیکھیں',
+  },
+
+  about: {
+    title: 'Varlikent کے بارے میں',
+    previewEyebrow: 'Varlikent کے بارے میں',
+    learnMore: 'مزید جانیں',
+    learnMoreA11y: 'Varlikent کے بارے میں مزید معلومات کھولتا ہے۔',
+    imageA11y: 'استنبول میں Varlikent',
+    refreshFailed: 'تازہ ترین معلومات لوڈ نہیں ہو سکیں۔ بنیادی معلومات دکھائی جا رہی ہیں۔',
+    unavailableTitle: 'Varlikent کے بارے میں معلومات دستیاب نہیں',
+    unavailableBody: 'اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
   },
 
   home: {

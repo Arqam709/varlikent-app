@@ -177,3 +177,75 @@ export function getApproximateRadiusKm(property: {
  * PropertySummary on the list and PropertyDetail on the details screen.
  */
 export type MappableProperty = Pick<PropertySummary, 'location'>;
+
+/**
+ * A property that has passed the privacy gate, paired with its coordinate.
+ *
+ * The coordinate is carried alongside rather than re-derived by the caller, so
+ * a map component never has to reach into `.location` itself — which is what
+ * would eventually let one careless `property.location!.lat` bypass the gate.
+ */
+export type MappablePropertyEntry<T> = {
+  property: T;
+  coordinates: PublicCoordinates;
+};
+
+/**
+ * The subset of a result set that may appear as precise markers.
+ *
+ * ── The same rule, applied to many ──────────────────────────────────────
+ * This exists so the Properties map cannot answer "which of these may I plot"
+ * differently from how the Property Details map answers "may I plot this one".
+ * It is a `filter` over `getPublicCoordinates`, and deliberately nothing more:
+ * there is no second validity test here, no relaxation for "close enough", and
+ * no branch that treats a large result set differently from a small one.
+ *
+ * So every exclusion is inherited, already tested, and stated once:
+ *   approximate            excluded, even if coordinates accidentally exist
+ *   no location            excluded
+ *   half a coordinate pair excluded
+ *   out of range / NaN     excluded
+ *   numeric strings        excluded
+ *
+ * ── Order is preserved ──────────────────────────────────────────────────
+ * The API returns newest-first, and the map's marker order follows the list's
+ * order. That matters for nothing visually today, but it means "the first
+ * marker" and "the first card" are the same listing, which is the kind of
+ * correspondence that stops being free once something sorts independently.
+ *
+ * Generic over the property type so the same function serves PropertySummary
+ * on the list map and PropertyDetail anywhere else, with no adapter and no
+ * widening to `any`.
+ */
+export function selectMappableProperties<T extends MappableProperty>(
+  properties: readonly T[] | null | undefined
+): MappablePropertyEntry<T>[] {
+  if (!Array.isArray(properties)) return [];
+
+  const entries: MappablePropertyEntry<T>[] = [];
+
+  for (const property of properties) {
+    const coordinates = getPublicCoordinates(property);
+    // getPublicCoordinates is gated on isPubliclyMappable, so a null here is
+    // the privacy rule and the validity rules speaking with one voice.
+    if (coordinates) entries.push({ property, coordinates });
+  }
+
+  return entries;
+}
+
+/**
+ * How many results could NOT be placed on the map.
+ *
+ * Deliberately ONE number covering both "private" and "unavailable". Reporting
+ * them separately would let a customer subtract one from the other and learn
+ * exactly which listings are the hidden ones — which is precisely what the
+ * approximate setting exists to prevent. The website's own map footnote is
+ * vague for the same reason, and its copy is reused verbatim on mobile.
+ */
+export function countUnmappableProperties(
+  properties: readonly MappableProperty[] | null | undefined
+): number {
+  if (!Array.isArray(properties)) return 0;
+  return properties.length - selectMappableProperties(properties).length;
+}

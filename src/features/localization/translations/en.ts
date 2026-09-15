@@ -62,6 +62,48 @@ export const en = {
     passwordMismatch: 'Passwords do not match.',
   },
 
+  propertiesMap: {
+    title: 'Properties Map',
+    openMap: 'Map',
+    openMapAccessibility: 'Show these results on a map',
+    mapLabel: 'Map of matching properties',
+    viewProperty: 'View Property',
+    previewAccessibility: '{title}, {district}, {price}. View property.',
+    tapMarkerHint: 'Tap a marker to see the property.',
+    noMappedProperties: 'No properties with map locations match these filters.',
+    backToList: 'Back to list',
+    nearMe: 'Near me',
+    nearMeAccessibility: 'Find properties near me',
+    nearMeActiveAccessibility: 'Near me is on, showing properties within {km} kilometres. Double tap to turn off.',
+    radiusValue: '{km} km',
+    radiusTitle: 'Search radius',
+    radiusAccessibility: 'Search radius, {km} kilometres. Double tap to change.',
+    radiusOptionAccessibility: 'Within {km} kilometres',
+    recenterAccessibility: 'Centre the map on your location',
+    noneNearby: 'No properties within {km} km.',
+    locationDenied: 'Location permission is needed to find properties near you.',
+    locationBlocked: 'Location is turned off for Varlikent. You can enable it in Settings.',
+    locationServicesOff: 'Turn on location services to find properties near you.',
+    locationUnavailable: 'Your location is not available right now. Please try again.',
+    openSettings: 'Open Settings',
+    distanceAway: '{distance} km away',
+    closestProperty: 'Closest property is {distance} km away.',
+    showClosest: 'Show closest',
+    showClosestAccessibility: 'Show the nearest properties outside your {km} km radius',
+    showingClosest: 'Showing the nearest properties outside your {km} km radius.',
+    noOtherMappedProperties: 'There are no other map locations available for these results.',
+    previewAccessibilityWithDistance: '{title}, {district}, {price}, {distance} kilometres away. View property.',
+    outsideRadiusBy: '{distance} km outside your selected radius.',
+  },
+
+  propertyLocation: {
+    title: 'Property Location',
+    unavailable: 'Map location is not available for this property.',
+    directions: 'Directions',
+    directionsAccessibility: 'Get directions to {title}',
+    directionsFailed: 'Directions could not be opened on this device.',
+  },
+
   propertyDetails: {
     shareProperty: 'Share property',
     shareCallToAction: 'View on Varlikent:',
@@ -98,6 +140,8 @@ export const en = {
     approximateLocation: 'Approximate Location',
     approximateLocationNotice: 'The exact location of this property is kept private. Contact the agent for more information.',
     approximateRadiusValue: 'Approximate radius: {km} km',
+    viewMap: 'View map',
+    openFullMapAccessibility: 'Open full map for {title}',
     mapLabel: 'Property location map',
   },
 
@@ -307,22 +351,6 @@ export const en = {
   },
 
   contact: {
-    /*
-     * `reasons.*` are DISPLAY LABELS only. The value submitted to
-     * POST /api/contact is the canonical English string from CONTACT_REASONS
-     * in features/contact/contact-api.ts — never one of these.
-     */
-    reasons: {
-      buying: 'Buying',
-      renting: 'Renting',
-      selling: 'Selling',
-      renovation: 'Renovation',
-      interiorDesign: 'Interior Design',
-      architecture: 'Architecture',
-      construction: 'Construction',
-      general: 'General Enquiry',
-    },
-
     title: 'Contact',
     eyebrow: "Let's Talk",
     heading: 'How can we help?',
@@ -375,6 +403,22 @@ export const en = {
       'Every Varlikent listing has its own assigned agent. Open the property and tap Message Agent to ask questions or arrange a viewing — your conversation stays in the app.',
     propertySignInNote: 'Signing in is required to message an agent.',
     browseProperties: 'Browse Properties',
+  },
+
+  /*
+   * App interface strings for Home's About preview and the /about screen.
+   * The About CONTENT itself — headings, paragraphs, figures, the image — is
+   * the website's About CMS document (GET /api/about) and never belongs here.
+   */
+  about: {
+    title: 'About Varlikent',
+    previewEyebrow: 'About Varlikent',
+    learnMore: 'Learn More',
+    learnMoreA11y: 'Opens more about Varlikent.',
+    imageA11y: 'Varlikent in Istanbul',
+    refreshFailed: 'Couldn’t load the latest information. Showing basic details.',
+    unavailableTitle: 'About information is unavailable',
+    unavailableBody: 'Check your connection and try again.',
   },
 
   home: {

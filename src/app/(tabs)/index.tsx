@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // One level deeper than before: this file moved into the (tabs) group, so the
 // relative hop to the project root gained a `../`. The `@/` imports are alias
 // based and were unaffected by the move.
+import HomeAboutPreview from '@/components/home/home-about-preview';
 import HomeContact from '@/components/home/home-contact';
 import HomeDiscovery from '@/components/home/home-discovery';
 import HomeFeaturedProperties from '@/components/home/home-featured-properties';
@@ -113,6 +114,12 @@ export default function HomeScreen() {
         <HomeDiscovery />
         <HomeFeaturedProperties />
         <HomeServicesPreview />
+        {/*
+          What the company offers, then who it is, then how to reach it. The
+          section renders at once from bundled or cached About content and
+          refreshes itself in the background, independently of everything above.
+        */}
+        <HomeAboutPreview />
         {/*
           Last, because "need help?" is the question someone has after
           browsing. The section itself is only a heading and a button — the

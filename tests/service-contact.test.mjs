@@ -1,23 +1,19 @@
-// Service → Contact reason mapping (Phase 3).
+// Service → Contact interest mapping.
 //
-// A service detail page's CTA opens /contact?interestType=<reason>, and that
-// reason is matched LITERALLY against the backend's express-validator enum
-// (`body('interestType').isIn([...])` in backend/routes/contact.js) before
-// being stored on ContactSubmission and used as the LeadRouting lookup key.
+// A service detail page's CTA opens /contact?interestType=<id>, and the Contact
+// screen resolves that id against the backend's shared contact contract, then
+// submits the resolved entry's LEGACY value — the literal string
+// POST /api/contact validates and LeadRouting keys off.
 //
-// So the mapping is an API contract wearing a UI shape, and it has exactly two
-// ways to fail:
+// ── What changed in Phase 1 ─────────────────────────────────────────────
+// Services used to carry the legacy value itself ('Interior Design'), typed
+// against mobile's own hardcoded CONTACT_REASONS. That list never included
+// Troubleshoot and was never compared with the website's. Services now carry a
+// STABLE ID ('interior_design') from the shared contract, and this file pins
+// that the resolved value is unchanged for all four services.
 //
-//   1. a service maps to a value the backend rejects — the customer taps a
-//      polished button, fills in the form, and gets a 400 they cannot act on;
-//   2. a service maps to a TRANSLATED label — the bug the website actually
-//      shipped, where a Turkish visitor submitted "Satın Alma" and the form
-//      only ever worked in English.
-//
-// Both are pure data questions, so this file stays a pure data test: no
-// rendering, no source-text matching against the service screen's copy. The
-// last two tests are the exception, and only because "the mapping is written
-// once" and "the CTA pushes" ARE the properties under test.
+// Pure data tests, plus two source checks where "the mapping is written once"
+// and "the CTA pushes" ARE the properties under test.
 
 import test, { before } from 'node:test'
 import assert from 'node:assert/strict'
@@ -49,20 +45,18 @@ const codes = ['en', 'tr', 'ar', 'de', 'ru', 'ur']
 let SERVICES
 let getService
 let serviceKey
-let CONTACT_REASONS
+let interests
 let bundles
 
 before(() => {
-  // The REAL contact module, with its one runtime import stubbed. Loading the
-  // genuine CONTACT_REASONS rather than restating them here is what makes
-  // these tests load-bearing: if someone edits the enum, this file follows.
-  const contact = load('src/features/contact/contact-api.ts', {
+  // The REAL contract module, with its one runtime import stubbed. Loading the
+  // genuine fallback rather than restating it here is what makes these tests
+  // follow the contract when it changes.
+  interests = load('src/features/contact/contact-interests.ts', {
     '@/services/api-client': { apiRequest: async () => ({}) },
-    '@/types/api': {},
   })
-  CONTACT_REASONS = contact.CONTACT_REASONS
 
-  // services-data imports ContactReason as a TYPE only, so transpilation
+  // services-data imports the interest id as a TYPE only, so transpilation
   // erases it and the module has no runtime imports of its own.
   const services = load('src/features/services/services-data.ts')
   SERVICES = services.SERVICES
@@ -71,52 +65,53 @@ before(() => {
 
   bundles = {}
   for (const code of codes) {
-    bundles[code] = load(`src/features/localization/translations/${code}.ts`, {
-      './en': {},
-    })[code]
+    bundles[code] = load(`src/features/localization/translations/${code}.ts`, { './en': {} })[code]
   }
 })
-
-/** Every string value in a bundle, flattened. */
-const values = (node, out = []) => {
-  for (const value of Object.values(node)) {
-    if (typeof value === 'string') out.push(value)
-    else if (value && typeof value === 'object') values(value, out)
-  }
-  return out
-}
 
 const at = (bundle, key) => key.split('.').reduce((node, part) => node?.[part], bundle)
 
 /* ═══════════════ The mapping ═══════════════ */
 
-test('1. every service declares exactly one contact reason', () => {
+test('1. every service declares exactly one contact interest id', () => {
   for (const service of SERVICES) {
-    assert.equal(typeof service.contactReason, 'string', `${service.id} has no contactReason`)
-    assert.ok(service.contactReason.length > 0, `${service.id} has an empty contactReason`)
+    assert.equal(typeof service.contactInterestId, 'string', `${service.id} has no contactInterestId`)
+    assert.ok(service.contactInterestId.length > 0, `${service.id} has an empty contactInterestId`)
   }
 })
 
-test('2. every mapped reason is one the backend actually accepts', () => {
-  /*
-   * CONTACT_REASONS is the same list the validator enum holds. A value outside
-   * it is a 400 the customer meets AFTER writing their enquiry, which is the
-   * most expensive possible moment to discover it.
-   */
+test('2. every mapped id exists in the shared contract', () => {
+  const ids = interests.FALLBACK_CONTACT_INTERESTS.map((i) => i.id)
   for (const service of SERVICES) {
-    assert.ok(
-      CONTACT_REASONS.includes(service.contactReason),
-      `${service.id} → "${service.contactReason}" is not a valid contact reason`
-    )
+    assert.ok(ids.includes(service.contactInterestId),
+      `${service.id} → '${service.contactInterestId}' is not a contact interest`)
   }
 })
 
 test('3. all four services are covered, and the mapping is exactly this', () => {
   // Spelled out rather than derived, so changing a service's destination is a
   // deliberate edit here and not a silent consequence somewhere else.
-  const mapping = Object.fromEntries(SERVICES.map((s) => [s.id, s.contactReason]))
+  const mapping = Object.fromEntries(SERVICES.map((s) => [s.id, s.contactInterestId]))
 
   assert.deepEqual(mapping, {
+    architecture: 'architecture',
+    construction: 'construction',
+    renovation: 'renovation',
+    'interior-design': 'interior_design',
+  })
+})
+
+test('4. each service still submits the same legacy value it always did', () => {
+  // The contract check that matters to the backend and to lead routing: moving
+  // from values to ids must not change a single submitted string.
+  const submitted = Object.fromEntries(
+    SERVICES.map((s) => [
+      s.id,
+      interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, s.contactInterestId).value,
+    ])
+  )
+
+  assert.deepEqual(submitted, {
     architecture: 'Architecture',
     construction: 'Construction',
     renovation: 'Renovation',
@@ -124,153 +119,134 @@ test('3. all four services are covered, and the mapping is exactly this', () => 
   })
 })
 
-test('4. no two services share a reason, and no service id repeats', () => {
+test('5. no two services share an interest, and no service id repeats', () => {
   const ids = SERVICES.map((s) => s.id)
-  const reasons = SERVICES.map((s) => s.contactReason)
+  const targets = SERVICES.map((s) => s.contactInterestId)
 
   assert.equal(new Set(ids).size, ids.length, 'a service id appears twice')
-  assert.equal(new Set(reasons).size, reasons.length, 'two services route to the same mailbox')
+  assert.equal(new Set(targets).size, targets.length, 'two services route to the same mailbox')
 })
 
-test('5. no service silently falls back to General', () => {
-  /*
-   * 'General' is a real reason and a legitimate choice on the Contact screen
-   * itself — but a SERVICE page reaching it would mean someone added a service
-   * and left the field at a default. Every service here has its own mailbox.
-   */
+test('6. no service silently falls back to General', () => {
   for (const service of SERVICES) {
-    assert.notEqual(service.contactReason, 'General', `${service.id} chose no destination`)
+    assert.notEqual(service.contactInterestId, 'general', `${service.id} chose no destination`)
   }
 })
 
-/* ═══════════════ Never a translated label ═══════════════ */
-
-test('6. no mapped value appears as a translated string in any bundle', () => {
-  /*
-   * The website's bug, asserted directly. Its select submitted the TRANSLATED
-   * label, so "Satın Alma" hit an enum containing only "Buying". Here the
-   * canonical value and the display label are different objects entirely — the
-   * value comes from SERVICES, the chip label from t(reasonKey(...)) — and no
-   * mapped value may coincide with any translated string in another language.
-   *
-   * English is deliberately EXCLUDED: the canonical values ARE English words,
-   * so `contact.reasons.architecture === 'Architecture'` is correct rather
-   * than a leak. The five non-English bundles are where a translated label
-   * being mistaken for a wire value would actually show up.
-   */
-  const mapped = new Set(SERVICES.map((s) => s.contactReason))
-
-  for (const code of codes.filter((c) => c !== 'en')) {
-    for (const value of values(bundles[code])) {
-      assert.equal(
-        mapped.has(value),
-        false,
-        `${code} contains "${value}", which is also a contact API value`
-      )
-    }
+test('7. mapped ids are stable machine ids, never display strings', () => {
+  const values = interests.FALLBACK_CONTACT_INTERESTS.map((i) => i.value)
+  for (const service of SERVICES) {
+    assert.match(service.contactInterestId, /^[a-z][a-z0-9_]*$/, `${service.id} maps to a display-shaped string`)
+    assert.equal(values.includes(service.contactInterestId), false,
+      `${service.id} maps to a legacy value instead of an id`)
   }
 })
 
-test('7. each CTA label resolves in every language and is not the API value', () => {
+/* ═══════════════ Preselection round-trip ═══════════════ */
+
+test('8. the id a service pushes resolves to that same entry on the Contact screen', () => {
+  for (const service of SERVICES) {
+    const resolved = interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, service.contactInterestId)
+    assert.equal(resolved.id, service.contactInterestId, `${service.id} lands on the wrong chip`)
+  }
+})
+
+test('9. older links carrying the legacy value still preselect the right entry', () => {
+  // `/contact?interestType=Interior%20Design` is what services sent before
+  // Phase 1, and what shared URLs may still carry.
+  assert.equal(interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, 'Interior Design').id, 'interior_design')
+  assert.equal(interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, 'Construction').id, 'construction')
+})
+
+test('9b. a service whose interest an admin disabled lands on General, never on a hidden option', () => {
+  // The server omits disabled interests. The service link still carries its
+  // known id; the Contact screen resolves it against the list it shows.
+  const offered = interests.FALLBACK_CONTACT_INTERESTS.filter((interest) => interest.id !== 'construction')
+  const resolved = interests.resolveContactInterest(offered, 'construction')
+
+  assert.equal(resolved.id, 'general')
+  assert.equal(resolved.value, 'General')
+})
+
+test('10. the Contact screen resolves the route param against the list it is showing', () => {
+  const screen = read('src/app/contact.tsx')
+  assert.ok(screen.includes('requestedContactInterestKey(interestTypeParam)'),
+    'the Contact screen no longer starts from the route param')
+  assert.ok(screen.includes('resolveContactInterest(interests, reasonKey)'),
+    'the selection must be resolved against the current list, not the bundled one')
+  assert.ok(screen.includes('interestType: selectedInterest.value'),
+    'the Contact screen must submit the resolved entry\'s legacy value')
+})
+
+/* ═══════════════ CTA copy ═══════════════ */
+
+test('11. each CTA label resolves in every language and is not the API value', () => {
   for (const service of SERVICES) {
     const key = serviceKey(service, 'ctaLabel')
+    const value = interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, service.contactInterestId).value
 
     for (const code of codes) {
       const label = at(bundles[code], key)
-
       assert.equal(typeof label, 'string', `${code} is missing ${key}`)
       assert.ok(label.trim().length > 0, `${code} has an empty ${key}`)
-      // The label is display copy; the reason is the wire value. They travel
-      // separately and must never be the same string.
-      assert.notEqual(
-        label,
-        service.contactReason,
-        `${code} ${key} is the raw API value rather than a label`
-      )
+      assert.notEqual(label, value, `${code} ${key} is the raw API value rather than a label`)
+      assert.notEqual(label, service.contactInterestId, `${code} ${key} is the raw id rather than a label`)
     }
   }
 })
 
-test('8. the shared CTA keys exist in every language, with the placeholder intact', () => {
+test('12. the shared CTA keys exist in every language, with the placeholder intact', () => {
   for (const code of codes) {
     const eyebrow = at(bundles[code], 'services.ctaEyebrow')
     const a11y = at(bundles[code], 'services.ctaAccessibility')
 
     assert.ok(eyebrow?.trim(), `${code} is missing services.ctaEyebrow`)
     assert.ok(a11y?.trim(), `${code} is missing services.ctaAccessibility`)
-    // A dropped placeholder produces an accessibility label that names no
-    // service at all — the failure is silent, because the string still reads.
-    assert.ok(
-      a11y.includes('{service}'),
-      `${code} services.ctaAccessibility lost its {service} placeholder`
-    )
+    assert.ok(a11y.includes('{service}'), `${code} services.ctaAccessibility lost its {service} placeholder`)
   }
 })
 
 /* ═══════════════ Unknown ids ═══════════════ */
 
-test('9. an unknown service id never produces a contact reason', () => {
-  /*
-   * The route is dynamic, so /services/anything is reachable — by a typo, a
-   * stale deep link, or a URL somebody shared. The CTA must not exist for it,
-   * and cannot: the screen returns its not-found branch before the ScrollView,
-   * and getService is the only route to a contactReason.
-   */
-  for (const id of [
-    'sell-your-property',
-    'Architecture',
-    'interior design',
-    'interior_design',
-    '',
-    undefined,
-    '../contact',
-  ]) {
+test('13. an unknown service id never produces a contact interest', () => {
+  for (const id of ['sell-your-property', 'Architecture', 'interior design', 'interior_design', '', undefined, '../contact']) {
     assert.equal(getService(id), undefined, `${String(id)} resolved to a service`)
   }
 })
 
-/* ═══════════════ One definition, and real history ═══════════════ */
+/* ═══════════════ One definition ═══════════════ */
 
-test('10. the mapping is declared in exactly one file', () => {
-  /*
-   * A second copy — a lookup table in contact-api.ts, a switch in the service
-   * screen — is how two spellings drift and one starts sending a reason the
-   * backend rejects. The field on ServiceStructure is the only place a service
-   * and its reason are written down together.
-   */
+test('14. the mapping is declared in exactly one file', () => {
   assert.equal(
-    (read('src/features/services/services-data.ts').match(/contactReason:/g) ?? []).length,
+    (read('src/features/services/services-data.ts').match(/contactInterestId:/g) ?? []).length,
     // the type declaration, plus one per service
     1 + SERVICES.length
   )
 
-  // The screen READS the field; it never re-derives it from the id.
   const screen = read('src/app/services/[service].tsx')
-  assert.ok(screen.includes('service.contactReason'), 'the screen does not use the mapping')
-  assert.equal(
-    /service(Param)?\s*===\s*'/.test(screen),
-    false,
-    'the screen compares service ids by hand instead of reading the mapping'
-  )
-
-  // And nothing translates it on the way out.
-  assert.equal(
-    /interestType:\s*t\(/.test(screen),
-    false,
-    'a translated string is being sent as the API value'
-  )
+  assert.ok(screen.includes('service.contactInterestId'), 'the screen does not use the mapping')
+  assert.equal(/service(Param)?\s*===\s*'/.test(screen), false,
+    'the screen compares service ids by hand instead of reading the mapping')
+  assert.equal(/interestType:\s*t\(/.test(screen), false, 'a translated string is being sent as the API value')
 })
 
-test('11. the CTA pushes, so Back returns to the service page', () => {
+test('15. the CTA pushes, so Back returns to the service page', () => {
   const screen = read('src/app/services/[service].tsx')
 
-  assert.ok(
-    /router\.push\(\{\s*pathname: '\/contact'/.test(screen),
-    'the CTA does not push /contact'
-  )
-  assert.equal(
-    /router\.replace\(\s*\{?\s*(pathname: )?'\/contact'/.test(screen),
-    false,
-    'replacing would drop the service page from history'
-  )
+  assert.ok(/router\.push\(\{\s*pathname: '\/contact'/.test(screen), 'the CTA does not push /contact')
+  assert.equal(/router\.replace\(\s*\{?\s*(pathname: )?'\/contact'/.test(screen), false,
+    'replacing would drop the service page from history')
+})
+
+/* ═══════════════ The old hardcoded list is gone ═══════════════ */
+
+test('16. no hardcoded reason list or bundled reason labels remain', () => {
+  const api = read('src/features/contact/contact-api.ts')
+  assert.equal(/export const CONTACT_REASONS/.test(api), false, 'CONTACT_REASONS is back')
+  assert.equal(/export function reasonKey/.test(api), false, 'reasonKey is back')
+
+  for (const code of codes) {
+    assert.equal(at(bundles[code], 'contact.reasons'), undefined,
+      `${code} still carries contact.reasons — labels belong to the shared contract`)
+  }
 })

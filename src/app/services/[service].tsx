@@ -48,23 +48,22 @@ export default function ServiceDetailScreen() {
    * is already correct, and its `router.canGoBack() ? back() : replace('/')`
    * fallback stays untouched for the deep-link case it was written for.
    *
-   * ── The value is the API contract, not the label ────────────────────────
-   * `service.contactReason` is the canonical English enum value. The Turkish
-   * customer reading "Yenileme" still sends "Renovation", because the visible
-   * chip label is resolved from `reasonKey()` on the other side while the
-   * VALUE travels untranslated. Passing `t(...)` here is precisely the bug the
-   * website shipped.
+   * ── The stable id travels, not a label ──────────────────────────────────
+   * `service.contactInterestId` is a stable id from the backend's shared
+   * contact contract ('interior_design'). The Contact screen resolves it
+   * against the served list and submits that entry's legacy value, so a
+   * Turkish customer reading "Tadilat" still sends "Renovation". Passing
+   * `t(...)` here is precisely the bug the website once shipped.
    *
-   * Params are given to the router as an object rather than hand-built into a
-   * query string, so "Interior Design" is percent-encoded by expo-router
-   * instead of by us.
+   * The param keeps its old name, `interestType`, so older links that carry a
+   * legacy value ('Interior Design') still resolve on the Contact screen.
    */
   const openContact = () => {
     if (!service) return;
 
     router.push({
       pathname: '/contact',
-      params: { interestType: service.contactReason },
+      params: { interestType: service.contactInterestId },
     });
   };
 

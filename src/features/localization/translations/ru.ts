@@ -59,6 +59,48 @@ export const ru: TranslationShape = {
     passwordMismatch: 'Пароли не совпадают.',
   },
 
+  propertiesMap: {
+    title: 'Карта объектов',
+    openMap: 'Карта',
+    openMapAccessibility: 'Показать эти результаты на карте',
+    mapLabel: 'Карта подходящих объектов',
+    viewProperty: 'Смотреть объект',
+    previewAccessibility: '{title}, {district}, {price}. Смотреть объект.',
+    tapMarkerHint: 'Нажмите на метку, чтобы посмотреть объект.',
+    noMappedProperties: 'Нет объектов с расположением на карте по этим фильтрам.',
+    backToList: 'Вернуться к списку',
+    nearMe: 'Рядом со мной',
+    nearMeAccessibility: 'Найти объекты рядом со мной',
+    nearMeActiveAccessibility: 'Режим «Рядом со мной» включён, показаны объекты в радиусе {km} километров. Двойное нажатие — выключить.',
+    radiusValue: '{km} км',
+    radiusTitle: 'Радиус поиска',
+    radiusAccessibility: 'Радиус поиска, {km} километров. Двойное нажатие — изменить.',
+    radiusOptionAccessibility: 'В радиусе {km} километров',
+    recenterAccessibility: 'Центрировать карту на вашем расположении',
+    noneNearby: 'Нет объектов в радиусе {km} км.',
+    locationDenied: 'Чтобы найти объекты рядом, нужно разрешение на доступ к расположению.',
+    locationBlocked: 'Доступ к расположению отключён для Varlikent. Включите его в настройках.',
+    locationServicesOff: 'Включите службы геолокации, чтобы найти объекты рядом с вами.',
+    locationUnavailable: 'Ваше расположение сейчас недоступно. Пожалуйста, попробуйте снова.',
+    openSettings: 'Открыть настройки',
+    distanceAway: '{distance} км от вас',
+    closestProperty: 'Ближайший объект в {distance} км от вас.',
+    showClosest: 'Показать ближайшие',
+    showClosestAccessibility: 'Показать ближайшие объекты за пределами радиуса {km} км',
+    showingClosest: 'Показаны ближайшие объекты за пределами вашего радиуса {km} км.',
+    noOtherMappedProperties: 'Для этих результатов больше нет расположений на карте.',
+    previewAccessibilityWithDistance: '{title}, {district}, {price}, {distance} километров от вас. Смотреть объект.',
+    outsideRadiusBy: 'На {distance} км за пределами выбранного радиуса.',
+  },
+
+  propertyLocation: {
+    title: 'Расположение объекта',
+    unavailable: 'Расположение на карте для этого объекта недоступно.',
+    directions: 'Маршрут',
+    directionsAccessibility: 'Проложить маршрут до {title}',
+    directionsFailed: 'Не удалось открыть маршрут на этом устройстве.',
+  },
+
   propertyDetails: {
     shareProperty: 'Поделиться объектом',
     shareCallToAction: 'Смотреть на Varlikent:',
@@ -95,6 +137,8 @@ export const ru: TranslationShape = {
     approximateLocation: 'Приблизительное расположение',
     approximateLocationNotice: 'Точное расположение этого объекта не раскрывается. Свяжитесь с агентом для получения информации.',
     approximateRadiusValue: 'Приблизительный радиус: {km} км',
+    viewMap: 'Открыть карту',
+    openFullMapAccessibility: 'Открыть полную карту для {title}',
     mapLabel: 'Карта расположения объекта',
   },
 
@@ -403,17 +447,6 @@ export const ru: TranslationShape = {
   },
 
   contact: {
-    reasons: {
-      buying: 'Покупка',
-      renting: 'Аренда',
-      selling: 'Продажа',
-      renovation: 'Ремонт',
-      interiorDesign: 'Дизайн интерьера',
-      architecture: 'Архитектура',
-      construction: 'Строительство',
-      general: 'Общий вопрос',
-    },
-
     title: 'Контакты',
     eyebrow: 'Давайте поговорим',
     heading: 'Чем мы можем помочь?',
@@ -466,6 +499,17 @@ export const ru: TranslationShape = {
       'У каждого объекта Varlikent есть закреплённый агент. Откройте объявление и нажмите «Написать агенту», чтобы задать вопрос или договориться о просмотре — переписка останется в приложении.',
     propertySignInNote: 'Чтобы написать агенту, нужно войти в аккаунт.',
     browseProperties: 'Смотреть объекты',
+  },
+
+  about: {
+    title: 'О Varlikent',
+    previewEyebrow: 'О Varlikent',
+    learnMore: 'Подробнее',
+    learnMoreA11y: 'Открывает подробную информацию о Varlikent.',
+    imageA11y: 'Varlikent в Стамбуле',
+    refreshFailed: 'Не удалось загрузить актуальную информацию. Показаны основные сведения.',
+    unavailableTitle: 'Информация о компании недоступна',
+    unavailableBody: 'Проверьте подключение и повторите попытку.',
   },
 
   home: {

@@ -54,6 +54,48 @@ export const de: TranslationShape = {
     passwordMismatch: 'Die Passwörter stimmen nicht überein.',
   },
 
+  propertiesMap: {
+    title: 'Immobilienkarte',
+    openMap: 'Karte',
+    openMapAccessibility: 'Diese Ergebnisse auf einer Karte anzeigen',
+    mapLabel: 'Karte der passenden Immobilien',
+    viewProperty: 'Immobilie ansehen',
+    previewAccessibility: '{title}, {district}, {price}. Immobilie ansehen.',
+    tapMarkerHint: 'Tippen Sie auf eine Markierung, um die Immobilie zu sehen.',
+    noMappedProperties: 'Keine Immobilien mit Kartenstandort entsprechen diesen Filtern.',
+    backToList: 'Zurück zur Liste',
+    nearMe: 'In der Nähe',
+    nearMeAccessibility: 'Immobilien in meiner Nähe finden',
+    nearMeActiveAccessibility: 'In der Nähe ist aktiv, zeigt Immobilien im Umkreis von {km} Kilometern. Zum Ausschalten doppeltippen.',
+    radiusValue: '{km} km',
+    radiusTitle: 'Suchradius',
+    radiusAccessibility: 'Suchradius, {km} Kilometer. Zum Ändern doppeltippen.',
+    radiusOptionAccessibility: 'Im Umkreis von {km} Kilometern',
+    recenterAccessibility: 'Karte auf Ihren Standort zentrieren',
+    noneNearby: 'Keine Immobilien im Umkreis von {km} km.',
+    locationDenied: 'Für Immobilien in Ihrer Nähe wird die Standortberechtigung benötigt.',
+    locationBlocked: 'Der Standort ist für Varlikent deaktiviert. Sie können ihn in den Einstellungen aktivieren.',
+    locationServicesOff: 'Aktivieren Sie die Ortungsdienste, um Immobilien in Ihrer Nähe zu finden.',
+    locationUnavailable: 'Ihr Standort ist derzeit nicht verfügbar. Bitte versuchen Sie es erneut.',
+    openSettings: 'Einstellungen öffnen',
+    distanceAway: '{distance} km entfernt',
+    closestProperty: 'Nächste Immobilie ist {distance} km entfernt.',
+    showClosest: 'Nächste anzeigen',
+    showClosestAccessibility: 'Die nächstgelegenen Immobilien außerhalb Ihres {km}-km-Radius anzeigen',
+    showingClosest: 'Es werden die nächstgelegenen Immobilien außerhalb Ihres {km}-km-Radius angezeigt.',
+    noOtherMappedProperties: 'Für diese Ergebnisse sind keine weiteren Kartenstandorte verfügbar.',
+    previewAccessibilityWithDistance: '{title}, {district}, {price}, {distance} Kilometer entfernt. Immobilie ansehen.',
+    outsideRadiusBy: '{distance} km außerhalb Ihres gewählten Radius.',
+  },
+
+  propertyLocation: {
+    title: 'Standort der Immobilie',
+    unavailable: 'Für diese Immobilie ist kein Kartenstandort verfügbar.',
+    directions: 'Route',
+    directionsAccessibility: 'Route zu {title} anzeigen',
+    directionsFailed: 'Die Route konnte auf diesem Gerät nicht geöffnet werden.',
+  },
+
   propertyDetails: {
     shareProperty: 'Immobilie teilen',
     shareCallToAction: 'Auf Varlikent ansehen:',
@@ -90,6 +132,8 @@ export const de: TranslationShape = {
     approximateLocation: 'Ungefährer Standort',
     approximateLocationNotice: 'Der genaue Standort dieser Immobilie bleibt privat. Kontaktieren Sie den Makler für weitere Informationen.',
     approximateRadiusValue: 'Ungefährer Radius: {km} km',
+    viewMap: 'Karte ansehen',
+    openFullMapAccessibility: 'Vollständige Karte für {title} öffnen',
     mapLabel: 'Standortkarte der Immobilie',
   },
 
@@ -297,17 +341,6 @@ export const de: TranslationShape = {
   },
 
   contact: {
-    reasons: {
-      buying: 'Kauf',
-      renting: 'Miete',
-      selling: 'Verkauf',
-      renovation: 'Renovierung',
-      interiorDesign: 'Innenarchitektur',
-      architecture: 'Architektur',
-      construction: 'Bau',
-      general: 'Allgemeine Anfrage',
-    },
-
     title: 'Kontakt',
     eyebrow: 'Sprechen wir',
     heading: 'Wie können wir helfen?',
@@ -360,6 +393,17 @@ export const de: TranslationShape = {
       'Jede Varlikent-Immobilie hat einen eigenen zuständigen Makler. Öffnen Sie das Inserat und tippen Sie auf „Makler kontaktieren“, um Fragen zu stellen oder eine Besichtigung zu vereinbaren — Ihr Gespräch bleibt in der App.',
     propertySignInNote: 'Für Nachrichten an einen Makler ist eine Anmeldung erforderlich.',
     browseProperties: 'Immobilien ansehen',
+  },
+
+  about: {
+    title: 'Über Varlikent',
+    previewEyebrow: 'Über Varlikent',
+    learnMore: 'Mehr erfahren',
+    learnMoreA11y: 'Öffnet weitere Informationen über Varlikent.',
+    imageA11y: 'Varlikent in İstanbul',
+    refreshFailed: 'Die neuesten Informationen konnten nicht geladen werden. Es werden grundlegende Angaben angezeigt.',
+    unavailableTitle: 'Informationen über Varlikent sind nicht verfügbar',
+    unavailableBody: 'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
   },
 
   home: {
