@@ -5,40 +5,6 @@ import {
   type LocalizedContent,
 } from '@/features/localization/localized-content';
 
-/**
- * ABOUT VARLIKENT — the shared content model for the Home preview and /about.
- *
- * ── Source of truth ─────────────────────────────────────────────────────
- * The website's About CMS: `AboutContent` in MongoDB, edited at Admin → About
- * Page, served unchanged by GET /api/about. The app never edits it. This file
- * turns that response into something safe to render and to cache:
- *
- *   normalizeAboutContent(payload)   response or cache → AboutContent | null
- *   resolveAboutContent(content, language) → plain strings for one language
- *   selectAboutPreview(resolved)     the short Home version
- *
- * Localized fields stay UNRESOLVED in AboutContent (and in the cache), so a
- * language switch re-resolves instantly without another request.
- *
- * ── What is deliberately NOT here ───────────────────────────────────────
- *   team, teamLabel, teamHeading
- *       The backend has TWO team sources — AboutContent.team (shown on the
- *       website About page) and the separate TeamMember collection (/api/team,
- *       Admin → Team). Rendering either here would pick a winner silently, so
- *       Team is left to its own shared-content phase.
- *   _id, __v, createdAt, updatedAt
- *       Database bookkeeping; never cached or shown.
- *
- * ── Rules taken from the website, not invented ──────────────────────────
- *   - stats and content blocks are ordered by `order`
- *   - `imagePosition: 'none'` means the block has no image
- *   - a stat with a blank label is NOT shown: the live document stores
- *     `{ sourceLang: 'en', en: '' }` for every label today, and the app will not
- *     make up captions for the figures
- *
- * Pure: no React, no network, no storage.
- */
-
 export type AboutImagePosition = 'left' | 'right' | 'none';
 
 export type AboutStat = {
@@ -64,7 +30,6 @@ export type AboutContent = {
   missionHeading: LocalizedContent | null;
   missionParagraph1: LocalizedContent | null;
   missionParagraph2: LocalizedContent | null;
-  /** '' when absent or unusable. */
   missionImage: string;
   stats: AboutStat[];
   contentBlocks: AboutContentBlock[];
@@ -116,15 +81,6 @@ export const ABOUT_PREVIEW_MAX_STATS = 4;
 
 const english = (text: string): LocalizedContent => ({ sourceLang: 'en', en: text });
 
-/**
- * Shown only until the cached or live About content arrives, or when neither
- * exists (a first launch with no network).
- *
- * These are the AboutContent MODEL DEFAULTS (backend/models/AboutContent.js),
- * not new copy: a brand-new About document holds exactly this text. No image
- * and no stats, because the model has no default for either that the live
- * document actually uses. Once cache or server content exists, it wins.
- */
 export const FALLBACK_ABOUT_CONTENT: AboutContent = {
   heroLabel: english('Our Story'),
   heroHeading: english('About Varlikent'),
@@ -212,13 +168,6 @@ function normalizeBlocks(value: unknown): AboutContentBlock[] {
   return byOrder(blocks);
 }
 
-/**
- * GET /api/about's body — or a cached AboutContent — made safe to render.
- *
- * Accepts `{ success, about }` or the about object itself. Returns null when
- * the payload is not an About document at all, or has no text in any
- * language, so callers keep what they already show instead of blanking it.
- */
 export function normalizeAboutContent(payload: unknown): AboutContent | null {
   if (!isPlainObject(payload)) return null;
 
@@ -269,10 +218,6 @@ export function resolveAboutContent(content: AboutContent, language: string): Re
   };
 }
 
-/**
- * The short Home version: one heading, one paragraph, the mission image and up
- * to four captioned figures. Null when there is nothing worth a section.
- */
 export function selectAboutPreview(about: ResolvedAbout): AboutPreview | null {
   const heading = about.missionHeading || about.heroHeading;
   const body = about.heroSubtext || about.missionParagraphs[0] || '';

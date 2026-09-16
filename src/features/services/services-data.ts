@@ -3,135 +3,93 @@ import type Ionicons from '@expo/vector-icons/Ionicons';
 import type { KnownContactInterestId } from '@/features/contact/contact-interests';
 
 /**
- * SERVICE STRUCTURE — deliberately contains NO display copy.
+ * SERVICE IDENTITY — the static, app-owned facts about each service.
  *
- * ── Why this file was rewritten ─────────────────────────────────────────
- * It previously held ~260 lines of English titles, descriptions, capability
- * copy, process steps and closing lines as a module-level constant. A module
- * constant is evaluated ONCE at import, before React runs, so `t()` could never
- * reach it: adding `useLanguage()` to the service screens translated the page
- * chrome and left every word of actual content in English. That is the same
- * class of bug as a module-level themed StyleSheet — a value frozen at import
- * that needed to be reactive.
+ * ── What lives here, and what does not ──────────────────────────────────
+ * Here: the route id, the icon, the translation segment for NAVIGATION copy
+ * (the title and short lines on Home, the Services list) and the Contact
+ * interest the page's call to action opens.
  *
- * Now this file holds only what genuinely does not change with language:
- * the id, the icon, and the SHAPE of each page (which optional sections exist
- * and how many items they contain). Every string lives in the translation
- * bundles under `services.items.<key>` and is resolved during render, so
- * switching language updates an open service page immediately.
+ * Not here: the service PAGE content — hero text, service cards, process
+ * steps, before/after lists, the seismic note, the closing call to action.
+ * That is admin-managed on the website (Admin → Page Content) and lives in
+ * features/services/service-content.ts, with the app's bundled six-language
+ * copy as its fallback in service-content-fallback.ts.
  *
- * ── Key derivation ──────────────────────────────────────────────────────
- * `translationKey` exists because the route id `interior-design` is not a valid
- * bare object key in the bundles, and because a screen should not have to
- * hand-build key strings. Everything a screen needs is derived from it:
+ * `translationKey` exists because the route id `interior-design` is not a
+ * valid bare object key in the bundles:
  *
  *   services.items.interiorDesign.title
- *   services.items.interiorDesign.caps.lightingDesign.desc
  */
 
 export type ServiceId = 'architecture' | 'construction' | 'renovation' | 'interior-design';
 
 export type ServiceStructure = {
   id: ServiceId;
-  /** Segment used to build `services.items.<translationKey>.*` keys. */
+  /** Segment used to build `services.items.<translationKey>.*` navigation keys. */
   translationKey: string;
   icon: keyof typeof Ionicons.glyphMap;
-  /**
-   * Capability slugs in display order. The two-digit numeral shown beside each
-   * one ("01", "02") is derived from the index, so it can never drift out of
-   * step with the list the way a hand-written `num` field could.
-   */
-  capabilities: string[];
-  /** Number of process steps, or 0 when this service has no process section. */
-  processSteps: number;
-  /** Number of before/after rows, or 0 when there is no comparison section. */
-  comparisonRows: number;
-  /** Whether this service has the editorial note block. */
-  hasNote: boolean;
   /**
    * The shared Contact interest this service opens the enquiry form with, as a
    * STABLE ID from the backend contract (backend/config/contactInterests.js),
    * sent as `/contact?interestType=<id>`.
    *
-   * An id rather than the legacy value ('Interior Design'), so this file no
-   * longer carries a display-shaped string: the Contact screen resolves the id
-   * against the served list and submits that entry's value.
+   * An id rather than the legacy value ('Interior Design'): the Contact screen
+   * resolves it against the served list and submits that entry's value, and
+   * falls back to General if the interest has been disabled.
    *
    *   • ONE field per entry, so the mapping cannot be written twice.
    *   • REQUIRED, so a new service cannot be added without deciding where it
    *     routes — a compile error, not a silent General.
-   *   • Typed `KnownContactInterestId`, so a typo is caught by tsc rather than
-   *     by a customer landing on the wrong option.
+   *   • Typed `KnownContactInterestId`, so a typo is caught by tsc.
    *
-   * The import is TYPE-ONLY, so it adds no runtime edge between this UI
-   * structure and the contact module.
+   * The import is TYPE-ONLY, so it adds no runtime edge to the contact module.
    */
   contactInterestId: KnownContactInterestId;
+  /**
+   * An app-only tool offered on this service's page, if it has one.
+   *
+   * Only Interior Design does: Design My Space, the six-step preference board
+   * (features/design-my-space). It is declared HERE rather than as a condition
+   * inside the service screen for the same reason `contactInterestId` is —
+   * which service gets what is data about services, and the screen stays one
+   * renderer for all four rather than growing a special case.
+   *
+   * Optional, because a service having no app-only tool is the normal case.
+   */
+  feature?: 'design-my-space';
+  /**
+   * Whether the hero shows its own consultation button. Defaults to shown.
+   *
+   * A MOBILE presentation choice, not content: the website keeps its hero
+   * button and the Page Content is untouched. Interior Design turns it off
+   * because on a phone its first action is Design My Space, and the closing
+   * call to action at the bottom of the page is its one consultation button —
+   * two identical "Book a Consultation" buttons on one small screen read as
+   * repetition rather than emphasis.
+   */
+  heroContactCta?: boolean;
 };
 
-/**
- * The optional sections are what stop the four pages reading as one template
- * filled in four times: process on Architecture and Construction, the
- * before/after comparison on Renovation, the seismic note on Construction.
- * Interior Design has none and is shorter as a result — which is honest.
- */
 export const SERVICES: ServiceStructure[] = [
-  {
-    id: 'architecture',
-    translationKey: 'architecture',
-    icon: 'compass-outline',
-    capabilities: ['conceptDesign', 'structuralEngineering', 'urbanPlanning', 'projectManagement'],
-    processSteps: 4,
-    comparisonRows: 0,
-    hasNote: false,
-    contactInterestId: 'architecture',
-  },
-  {
-    id: 'construction',
-    translationKey: 'construction',
-    icon: 'construct-outline',
-    capabilities: ['generalContracting', 'structuralWorks', 'mepEngineering', 'envelopeFacade'],
-    processSteps: 5,
-    comparisonRows: 0,
-    hasNote: true,
-    contactInterestId: 'construction',
-  },
-  {
-    id: 'renovation',
-    translationKey: 'renovation',
-    icon: 'hammer-outline',
-    capabilities: ['windowsDoors', 'structuralAlterations', 'electricalLighting', 'bathroomKitchen'],
-    processSteps: 0,
-    comparisonRows: 4,
-    hasNote: false,
-    contactInterestId: 'renovation',
-  },
-  {
-    id: 'interior-design',
-    translationKey: 'interiorDesign',
-    icon: 'color-palette-outline',
-    capabilities: ['conceptMoodBoards', 'furnitureSourcing', 'artAccessories', 'lightingDesign'],
-    processSteps: 0,
-    comparisonRows: 0,
-    hasNote: false,
-    contactInterestId: 'interior_design',
-  },
+  { id: 'architecture', translationKey: 'architecture', icon: 'compass-outline', contactInterestId: 'architecture' },
+  { id: 'construction', translationKey: 'construction', icon: 'construct-outline', contactInterestId: 'construction' },
+  { id: 'renovation', translationKey: 'renovation', icon: 'hammer-outline', contactInterestId: 'renovation' },
+  { id: 'interior-design', translationKey: 'interiorDesign', icon: 'color-palette-outline', contactInterestId: 'interior_design', feature: 'design-my-space', heroContactCta: false },
 ];
 
 export const getService = (id: string | undefined): ServiceStructure | undefined =>
   SERVICES.find((service) => service.id === id);
 
-/** Root key for a service's copy, e.g. `services.items.interiorDesign`. */
-export const serviceKey = (service: ServiceStructure, field: string): string =>
+/** True unless the service opts out of the hero consultation button. */
+export const showsHeroContactCta = (service: ServiceStructure): boolean => service.heroContactCta !== false;
+
+/** A navigation-copy key for a service, e.g. `services.items.interiorDesign.title`. */
+export const serviceKey = (service: ServiceStructure, field: 'title' | 'short' | 'description'): string =>
   `services.items.${service.translationKey}.${field}`;
 
-/** The "01"/"02" numeral beside a capability, derived from its position. */
+/** The "01"/"02" numeral beside a card or step, derived from its position. */
 export const capabilityNumeral = (index: number): string => String(index + 1).padStart(2, '0');
 
-/**
- * The intro line under the Services heading on Home.
- *
- * A KEY rather than a string — the previous `SERVICES_INTRO` constant was the
- * single most visible symptom of the frozen-module problem.
- */
+/** The intro line under the Services heading on Home and the Services list. */
 export const SERVICES_INTRO_KEY = 'services.intro';

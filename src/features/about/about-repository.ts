@@ -2,26 +2,6 @@ import { fetchAboutContent } from '@/features/about/about-api';
 import { readCachedAboutContent, writeCachedAboutContent } from '@/features/about/about-cache';
 import type { AboutContent } from '@/features/about/about-content';
 
-/**
- * ONE About source for the whole app.
- *
- * The Home preview and the /about screen both read through here, so there is
- * a single fetch, a single cache and a single in-memory copy rather than two
- * screens each keeping their own:
- *
- *   - `latest` is the newest document seen this session. A screen that mounts
- *     later (tapping Learn More) starts from it, with no blank frame.
- *   - Concurrent refreshes share one in-flight request.
- *   - Every mounted reader is told when newer content arrives.
- *
- * Precedence is bundled fallback → cached → server, and it only moves forward:
- * a cache read that finishes after server content has arrived is discarded,
- * so slow storage can never overwrite fresher data.
- *
- * No React here; use-about-content.ts is the hook over it. Not a global
- * Context: this is the only state it holds, and nothing else needs to share it.
- */
-
 export type AboutContentOrigin = 'cache' | 'server';
 
 export type AboutContentEntry = { content: AboutContent; origin: AboutContentOrigin };

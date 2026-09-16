@@ -181,17 +181,21 @@ test('10. the Contact screen resolves the route param against the list it is sho
 /* ═══════════════ CTA copy ═══════════════ */
 
 test('11. each CTA label resolves in every language and is not the API value', () => {
+  // Since Phase 3 the button text is service PAGE content (`ctaBtn`, admin-
+  // managed on the website) with the app's bundled copy as its fallback.
+  const fallback = load('src/features/services/service-content-fallback.ts').SERVICE_CONTENT_FALLBACK
+
   for (const service of SERVICES) {
-    const key = serviceKey(service, 'ctaLabel')
     const value = interests.resolveContactInterest(interests.FALLBACK_CONTACT_INTERESTS, service.contactInterestId).value
 
     for (const code of codes) {
-      const label = at(bundles[code], key)
-      assert.equal(typeof label, 'string', `${code} is missing ${key}`)
-      assert.ok(label.trim().length > 0, `${code} has an empty ${key}`)
-      assert.notEqual(label, value, `${code} ${key} is the raw API value rather than a label`)
-      assert.notEqual(label, service.contactInterestId, `${code} ${key} is the raw id rather than a label`)
+      const label = fallback[service.id]?.ctaBtn?.[code]
+      assert.equal(typeof label, 'string', `${code} is missing ${service.id}.ctaBtn`)
+      assert.ok(label.trim().length > 0, `${code} has an empty ${service.id}.ctaBtn`)
+      assert.notEqual(label, value, `${code} ctaBtn is the raw API value rather than a label`)
+      assert.notEqual(label, service.contactInterestId, `${code} ctaBtn is the raw id rather than a label`)
     }
+    assert.equal(typeof at(bundles.en, serviceKey(service, 'title')), 'string', 'the CTA hint still names the service')
   }
 })
 

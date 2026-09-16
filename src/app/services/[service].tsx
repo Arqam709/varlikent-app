@@ -1,31 +1,69 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import Button from '@/components/ui/button';
 import CTABand from '@/components/ui/cta-band';
 import ScreenHeader from '@/components/ui/screen-header';
 import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
+import DesignMySpaceEntry from '@/features/design-my-space/components/design-my-space-entry';
 import { useLanguage } from '@/features/localization/language-context';
-import { useTheme } from '@/features/theme/theme-context';
-import { useThemedStyles } from '@/features/theme/use-themed-styles';
-import type { ThemePalette } from '@/features/theme/themes';
+import { useDirection } from '@/features/localization/use-direction';
+import {
+  resolveServicePage,
+  type ResolvedServiceHero,
+  type ResolvedServiceSection,
+} from '@/features/services/service-content';
+import { resolveShowroomItems, type ResolvedShowroomItem } from '@/features/services/service-showroom';
 import {
   capabilityNumeral,
   getService,
   serviceKey,
+  showsHeroContactCta,
   type ServiceStructure,
 } from '@/features/services/services-data';
+import { useServiceContent } from '@/features/services/use-service-content';
+import { useServiceShowroom } from '@/features/services/use-service-showroom';
+import { useTheme } from '@/features/theme/theme-context';
+import type { ThemePalette } from '@/features/theme/themes';
+import { useThemedStyles } from '@/features/theme/use-themed-styles';
 
+/**
+ * SERVICE DETAIL — one native renderer for all four services.
+ *
+ * Content is the website's admin-managed Page Content for the service
+ * (features/services/service-content.ts), falling back to the app's bundled
+ * copy until a cached or live document exists. Sections appear in the backend
+ * contract's order — the website's order — and a section the admin hid is not
+ * rendered. The layout is the app's own: single column, stacked cards, a
+ * vertical process list and a swipeable gallery.
+ *
+ * Only interface chrome comes from `t()`: the header, the call-to-action
+ * eyebrow, accessibility hints and not-found copy.
+ */
 export default function ServiceDetailScreen() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { service: serviceParam } = useLocalSearchParams<{ service?: string }>();
   const router = useRouter();
+  /** Content ends above the Android navigation bar, which the app draws edge to edge. */
+  const insets = useSafeAreaInsets();
 
-  /** Validated, never cast — see getServiceById. */
+  /** Validated, never cast. */
   const service = getService(serviceParam);
+
+  const { content } = useServiceContent(service?.id);
+  const showroom = useServiceShowroom(service?.id);
+
+  const page = useMemo(
+    () => (service ? resolveServicePage(service.id, content, language) : null),
+    [service, content, language]
+  );
+  const gallery = useMemo(() => resolveShowroomItems(showroom.items, language), [showroom.items, language]);
 
   const handleBack = () => {
     // Uses real history, so Home → tile → Back lands on Home, while
@@ -37,26 +75,9 @@ export default function ServiceDetailScreen() {
   /**
    * Opens the lead form with this service's reason already chosen.
    *
-   * ── push, never replace ─────────────────────────────────────────────────
-   * `push` keeps this page on the stack, so Contact's own Back returns to the
-   * service the customer was reading — Services → Renovation → Contact → Back
-   * → Renovation. `replace` would drop Renovation from history and land Back
-   * on Services, which is the wrong place and would also make Contact's
-   * existing `canGoBack()` fallback fire for no reason.
-   *
-   * Contact therefore needs NO service-specific back logic; ordinary history
-   * is already correct, and its `router.canGoBack() ? back() : replace('/')`
-   * fallback stays untouched for the deep-link case it was written for.
-   *
-   * ── The stable id travels, not a label ──────────────────────────────────
-   * `service.contactInterestId` is a stable id from the backend's shared
-   * contact contract ('interior_design'). The Contact screen resolves it
-   * against the served list and submits that entry's legacy value, so a
-   * Turkish customer reading "Tadilat" still sends "Renovation". Passing
-   * `t(...)` here is precisely the bug the website once shipped.
-   *
-   * The param keeps its old name, `interestType`, so older links that carry a
-   * legacy value ('Interior Design') still resolve on the Contact screen.
+   * `push`, so Contact's Back returns to this service. The stable Contact
+   * interest id travels — never CMS text — and the Contact screen resolves it
+   * against the served list (General if that interest is disabled).
    */
   const openContact = () => {
     if (!service) return;
@@ -67,15 +88,12 @@ export default function ServiceDetailScreen() {
     });
   };
 
-  if (!service) {
+  if (!service || !page) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScreenHeader title={t('services.title')} onBack={handleBack} />
         <View style={styles.notFound}>
           <Text style={styles.notFoundTitle}>{t('services.notFound')}</Text>
-          <Text style={styles.notFoundBody}>
-            {t('services.notFound')}
-          </Text>
           <Pressable
             onPress={() => router.replace('/services')}
             accessibilityRole="button"
@@ -88,97 +106,60 @@ export default function ServiceDetailScreen() {
     );
   }
 
+  const contactHint = t('services.ctaAccessibility', { service: t(serviceKey(service, 'title')) });
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Names the destination of Back, not the current page. */}
       <ScreenHeader title={t('services.title')} onBack={handleBack} />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ServiceHero service={service} />
-
-        <Capabilities service={service} />
-
-        {service.processSteps > 0 ? (
-          <Section
-            eyebrow={t('services.howWeWork')}
-            heading={t(serviceKey(service, 'process.heading'))}>
-            <View style={styles.steps}>
-              {Array.from({ length: service.processSteps }, (_, index) => (
-                <View key={index} style={styles.step}>
-                  <Text style={styles.stepNumber}>{capabilityNumeral(index)}</Text>
-                  <Text style={styles.stepLabel}>
-                    {t(serviceKey(service, `process.steps.s${index + 1}`))}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </Section>
-        ) : null}
-
-        {service.comparisonRows > 0 ? (
-          <Section
-            eyebrow={t('services.theTransformation')}
-            heading={t(serviceKey(service, 'comparison.heading'))}>
-            <View style={styles.compare}>
-              <CompareColumn
-                label={t(serviceKey(service, 'comparison.beforeLabel'))}
-                items={Array.from({ length: service.comparisonRows }, (_, i) =>
-                  t(serviceKey(service, `comparison.before.b${i + 1}`))
-                )}
-                muted
-              />
-              <CompareColumn
-                label={t(serviceKey(service, 'comparison.afterLabel'))}
-                items={Array.from({ length: service.comparisonRows }, (_, i) =>
-                  t(serviceKey(service, `comparison.after.a${i + 1}`))
-                )}
-              />
-            </View>
-          </Section>
-        ) : null}
-
-        {service.hasNote ? (
-          <Section
-            eyebrow={t(serviceKey(service, 'note.eyebrow'))}
-            heading={t(serviceKey(service, 'note.heading'))}>
-            <Text style={styles.noteBody}>{t(serviceKey(service, 'note.body'))}</Text>
-          </Section>
-        ) : null}
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.xl + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <ServiceHero
+          hero={page.hero}
+          service={service}
+          contactHint={contactHint}
+          onContact={openContact}
+        />
 
         {/*
-          The closing statement, now with the button it was always written for.
-
-          It used to be an editorial sign-off with no action, because the
-          contact destination did not exist. It does now — so the SAME copy
-          becomes the band's heading and body, rather than being replaced by
-          new CTA prose. That was deliberate: every one of these four lines
-          already reads as an invitation ("Contact us to discuss your project",
-          "Book a complimentary 30-minute consultation"), so writing fresh
-          headings would have meant 48 new strings saying what these already
-          say, in six languages, with two versions to keep in step.
-
-          Only the eyebrow and the button label are new — and the eyebrow is
-          ONE shared key rather than four, because "Get Started" is the same
-          invitation whichever service you arrived from. The label is
-          per-service, because "Start Your Renovation" and "Book a
-          Consultation" are genuinely different promises.
+          The app-only tool, offered right under the hero on the one service
+          that has one. Which service that is comes from services-data, not
+          from a comparison written here.
         */}
-        <CTABand
-          eyebrow={t('services.ctaEyebrow')}
-          heading={t(serviceKey(service, 'closingHeading'))}
-          body={t(serviceKey(service, 'closingBody'))}
-          ctaLabel={t(serviceKey(service, 'ctaLabel'))}
-          /*
-            Names the destination and what will already be filled in, so the
-            tap holds no surprise. The visible label stays the button's
-            accessibilityLabel — see the note on CTABand's prop.
-          */
-          accessibilityHint={t('services.ctaAccessibility', {
-            service: t(serviceKey(service, 'title')),
-          })}
-          onPress={openContact}
-          style={styles.cta}
-        />
+        {service.feature === 'design-my-space' ? <DesignMySpaceEntry /> : null}
+
+        {page.sections.map((section) => {
+          switch (section.kind) {
+            case 'showroom':
+              // Only when the owner has not switched it off AND there is media to show.
+              return showroom.enabled === true && gallery.length > 0 ? (
+                <ShowroomSection key={section.kind} section={section} items={gallery} />
+              ) : null;
+            case 'services':
+              return <ServicesSection key={section.kind} section={section} />;
+            case 'process':
+              return <ProcessSection key={section.kind} section={section} />;
+            case 'transform':
+              return <TransformSection key={section.kind} section={section} />;
+            case 'seismic':
+              return <SeismicSection key={section.kind} section={section} />;
+            case 'cta':
+              return (
+                <CTABand
+                  key={section.kind}
+                  eyebrow={t('services.ctaEyebrow')}
+                  heading={section.heading}
+                  body={section.body}
+                  ctaLabel={section.button}
+                  accessibilityHint={contactHint}
+                  onPress={openContact}
+                  style={styles.cta}
+                />
+              );
+            default:
+              return null;
+          }
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -186,81 +167,177 @@ export default function ServiceDetailScreen() {
 
 /* ─────────────────────────── Pieces ─────────────────────────── */
 
-function ServiceHero({ service }: { service: ServiceStructure }) {
+function ServiceHero({
+  hero,
+  service,
+  contactHint,
+  onContact,
+}: {
+  hero: ResolvedServiceHero;
+  service: ServiceStructure;
+  contactHint: string;
+  onContact: () => void;
+}) {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
+  const { row, textAlign, isRTL } = useDirection();
+  const heading = hero.heading || t(serviceKey(service, 'title'));
+
   return (
     <View style={styles.hero}>
       {/*
-        The hero keeps its own type rather than using SectionHeader: its title
-        is 30/38, larger than either SectionHeader size, and its gold rule sits
-        below the subtitle rather than under the heading. Sharing the component
-        here would need two props to describe one screen.
+        The icon sits beside the eyebrow rather than alone below the text, so
+        it identifies the service without claiming its own band of the screen.
       */}
-      <Text style={styles.heroLabel}>{t(serviceKey(service, 'websiteLabel'))}</Text>
-      <Text style={styles.heroTitle}>{t(serviceKey(service, 'title'))}</Text>
-      <Text style={styles.heroSubtitle}>{t(serviceKey(service, 'description'))}</Text>
-
-      {/*
-        An icon rather than photography, for all four alike.
-
-        Only three of the four have an approved static image — Renovation has
-        none, and the website's service pages source imagery from an
-        admin-managed showroom API. Three photos plus one placeholder would
-        look broken, and inventing a Renovation image would fabricate a brand
-        association. Consistency wins until real imagery exists.
-      */}
-      <View style={styles.heroIcon}>
-        <Ionicons name={service.icon} size={30} color={theme.primaryInk} />
+      <View style={[styles.heroTop, { flexDirection: row }]}>
+        <View style={styles.heroIcon}>
+          <Ionicons name={service.icon} size={20} color={theme.primaryInk} />
+        </View>
+        {hero.label ? <Text style={[styles.heroLabel, { textAlign }]}>{hero.label}</Text> : null}
       </View>
 
-      <View style={styles.goldRule} />
+      <Text style={[styles.heroTitle, { textAlign }]} accessibilityRole="header">
+        {heading}
+      </Text>
+      {hero.subtitle ? <Text style={[styles.heroSubtitle, { textAlign }]}>{hero.subtitle}</Text> : null}
+
+      {/* Off where the service says so (Interior Design): its closing CTA is the one consultation button. */}
+      {hero.ctaPrimary && showsHeroContactCta(service) ? (
+        <Button label={hero.ctaPrimary} onPress={onContact} accessibilityHint={contactHint} style={styles.heroCta} />
+      ) : null}
+
+      <View style={[styles.goldRule, { alignSelf: isRTL ? 'flex-end' : 'flex-start' }]} />
     </View>
   );
 }
 
-function Capabilities({ service }: { service: ServiceStructure }) {
-  const { t } = useLanguage();
+function SectionBlock({ label, heading, children }: { label: string; heading: string; children: React.ReactNode }) {
   const styles = useThemedStyles(makeStyles);
+  const title = heading || label;
   return (
-    <Section
-      eyebrow={t(serviceKey(service, 'capabilitiesLabel'))}
-      heading={t(serviceKey(service, 'capabilitiesHeading'))}>
+    <View style={styles.section}>
+      {title ? (
+        <SectionHeader
+          eyebrow={heading && label ? label : undefined}
+          title={title}
+          tone="muted"
+          style={styles.sectionHeader}
+        />
+      ) : null}
+      {children}
+    </View>
+  );
+}
+
+function ShowroomSection({
+  section,
+  items,
+}: {
+  section: Extract<ResolvedServiceSection, { kind: 'showroom' }>;
+  items: ResolvedShowroomItem[];
+}) {
+  const styles = useThemedStyles(makeStyles);
+  const { isRTL, textAlign } = useDirection();
+  const [failed, setFailed] = useState<readonly string[]>([]);
+  const visible = items.filter((item) => !failed.includes(item.id));
+
+  // Every image failed: no empty gallery frame.
+  if (visible.length === 0) return null;
+
+  return (
+    <SectionBlock label={section.label} heading={section.heading}>
+      <FlatList
+        data={visible}
+        horizontal
+        // Starts at the reading edge in Arabic and Urdu.
+        inverted={isRTL}
+        keyExtractor={(item) => item.id}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.gallery}
+        renderItem={({ item }) => (
+          <View style={styles.galleryCard}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.galleryImage}
+              contentFit="cover"
+              transition={200}
+              accessibilityLabel={item.caption || section.heading || section.label}
+              onError={() => setFailed((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]))}
+            />
+            {item.caption ? (
+              <Text style={[styles.galleryCaption, { textAlign }]} numberOfLines={2}>
+                {item.caption}
+              </Text>
+            ) : null}
+          </View>
+        )}
+      />
+    </SectionBlock>
+  );
+}
+
+function ServicesSection({ section }: { section: Extract<ResolvedServiceSection, { kind: 'services' }> }) {
+  const styles = useThemedStyles(makeStyles);
+  const { row, textAlign } = useDirection();
+  return (
+    <SectionBlock label={section.label} heading={section.heading}>
       <View style={styles.capabilities}>
-        {service.capabilities.map((slug, index) => (
-          <View key={slug} style={styles.capability}>
+        {section.items.map((item, index) => (
+          <View key={index} style={[styles.capability, { flexDirection: row }]}>
             <Text style={styles.capabilityNum}>{capabilityNumeral(index)}</Text>
             <View style={styles.capabilityText}>
-              <Text style={styles.capabilityTitle}>
-                {t(serviceKey(service, `caps.${slug}.title`))}
-              </Text>
-              <Text style={styles.capabilityDesc}>
-                {t(serviceKey(service, `caps.${slug}.desc`))}
-              </Text>
+              <Text style={[styles.capabilityTitle, { textAlign }]}>{item.title}</Text>
+              {item.desc ? <Text style={[styles.capabilityDesc, { textAlign }]}>{item.desc}</Text> : null}
             </View>
           </View>
         ))}
       </View>
-    </Section>
+    </SectionBlock>
   );
 }
 
-function CompareColumn({
-  label,
-  items,
-  muted = false,
-}: {
-  label: string;
-  items: string[];
-  muted?: boolean;
-}) {
+function ProcessSection({ section }: { section: Extract<ResolvedServiceSection, { kind: 'process' }> }) {
   const styles = useThemedStyles(makeStyles);
+  const { row, textAlign } = useDirection();
+  return (
+    <SectionBlock label={section.label} heading={section.heading}>
+      <View style={styles.steps}>
+        {section.steps.map((step, index) => (
+          <View key={index} style={[styles.step, { flexDirection: row }]}>
+            <Text style={styles.stepNumber}>{capabilityNumeral(index)}</Text>
+            <Text style={[styles.stepLabel, { textAlign }]}>{step}</Text>
+          </View>
+        ))}
+      </View>
+    </SectionBlock>
+  );
+}
+
+function TransformSection({ section }: { section: Extract<ResolvedServiceSection, { kind: 'transform' }> }) {
+  const styles = useThemedStyles(makeStyles);
+  const { row } = useDirection();
+  return (
+    <SectionBlock label={section.label} heading={section.heading}>
+      <View style={[styles.compare, { flexDirection: row }]}>
+        <CompareColumn label={section.beforeTitle} items={section.before} muted />
+        <CompareColumn label={section.afterTitle} items={section.after} />
+      </View>
+    </SectionBlock>
+  );
+}
+
+function CompareColumn({ label, items, muted = false }: { label: string; items: string[]; muted?: boolean }) {
+  const styles = useThemedStyles(makeStyles);
+  const { textAlign } = useDirection();
+  if (items.length === 0 && !label) return null;
   return (
     <View style={styles.compareColumn}>
-      <Text style={[styles.compareLabel, !muted && styles.compareLabelAfter]}>{label}</Text>
-      {items.map((item) => (
-        <Text key={item} style={styles.compareItem}>
+      {label ? (
+        <Text style={[styles.compareLabel, !muted && styles.compareLabelAfter, { textAlign }]}>{label}</Text>
+      ) : null}
+      {items.map((item, index) => (
+        <Text key={index} style={[styles.compareItem, { textAlign }]}>
           {item}
         </Text>
       ))}
@@ -268,39 +345,33 @@ function CompareColumn({
   );
 }
 
-function Section({
-  eyebrow,
-  heading,
-  children,
-}: {
-  eyebrow: string;
-  heading: string;
-  children: React.ReactNode;
-}) {
+function SeismicSection({ section }: { section: Extract<ResolvedServiceSection, { kind: 'seismic' }> }) {
   const styles = useThemedStyles(makeStyles);
+  const { textAlign } = useDirection();
   return (
-    <View style={styles.section}>
-      {/*
-        The muted tone is used because these sections sit UNDER a hero that
-        already carries a brand-coloured eyebrow — quietening them is the
-        page's own hierarchy, not an oversight.
-      */}
-      <SectionHeader eyebrow={eyebrow} title={heading} tone="muted" style={styles.sectionHeader} />
-      {children}
-    </View>
+    <SectionBlock label={section.label} heading={section.heading}>
+      {section.body ? <Text style={[styles.noteBody, { textAlign }]}>{section.body}</Text> : null}
+    </SectionBlock>
   );
 }
 
 const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.softWhite },
-  scroll: { paddingBottom: Spacing.xxl },
+  /** Bottom padding is applied inline, with the navigation-bar inset added. */
+  scroll: {},
 
   // ── Hero ─────────────────────────────────────────────────────────
   hero: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.lg,
+  },
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   heroLabel: {
+    flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSizes.overline,
     color: theme.primaryInk,
@@ -317,39 +388,55 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   heroSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
-    lineHeight: 25,
+    lineHeight: 24,
     color: theme.textMuted,
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
   },
   heroIcon: {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     borderRadius: Radius.sm,
     backgroundColor: theme.marble,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Spacing.lg,
+  },
+  heroCta: {
+    marginTop: Spacing.md,
   },
   goldRule: {
     width: 56,
     height: 1,
     backgroundColor: theme.gold,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
   },
 
   // ── Sections ─────────────────────────────────────────────────────
   section: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xxl,
+    paddingTop: Spacing.xl,
   },
-  /**
-   * The gap the old sectionHeading style carried as its own marginBottom.
-   * Moved onto the wrapper because SectionHeader owns no outer spacing.
-   */
-  sectionHeader: { marginBottom: Spacing.lg },
+  sectionHeader: { marginBottom: Spacing.md },
 
-  // ── Capabilities ─────────────────────────────────────────────────
-  capabilities: { gap: Spacing.lg },
+  // ── Showroom gallery ─────────────────────────────────────────────
+  gallery: { gap: Spacing.md },
+  /** Wide enough to read a photograph, narrow enough that the next card peeks in. */
+  galleryCard: { width: 260 },
+  galleryImage: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    borderRadius: Radius.md,
+    backgroundColor: theme.marble,
+  },
+  galleryCaption: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSizes.xs,
+    lineHeight: 18,
+    color: theme.textMuted,
+    marginTop: Spacing.sm,
+  },
+
+  // ── Service cards ────────────────────────────────────────────────
+  capabilities: { gap: Spacing.md },
   capability: { flexDirection: 'row', gap: Spacing.md },
   capabilityNum: {
     fontFamily: FontFamily.headingSemiBold,
@@ -369,9 +456,10 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   capabilityDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
-    lineHeight: 22,
+    lineHeight: 21,
     color: theme.textMuted,
-    marginTop: Spacing.xs,
+    // Number, title and description read as one item, not three blocks.
+    marginTop: 2,
   },
 
   // ── Process ──────────────────────────────────────────────────────
@@ -384,6 +472,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
+    minHeight: 48,
   },
   stepNumber: {
     fontFamily: FontFamily.headingSemiBold,
@@ -426,7 +515,7 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     color: theme.text,
   },
 
-  // ── Note ─────────────────────────────────────────────────────────
+  // ── Seismic note ─────────────────────────────────────────────────
   noteBody: {
     fontFamily: FontFamily.body,
     fontSize: FontSizes.sm,
@@ -435,18 +524,9 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
   },
 
   // ── Closing CTA ──────────────────────────────────────────────────
-  /**
-   * The same `paddingHorizontal` and `Spacing.xxl` rhythm every other section
-   * on this page uses, so the band sits in the column rather than beside it.
-   *
-   * The standalone gold rule that used to open this block is gone: it existed
-   * to separate an unbounded run of text from the section above it, and the
-   * card's own border now does that job. The hero keeps its rule, which is
-   * where `styles.goldRule` is still used.
-   */
   cta: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xxl,
+    paddingTop: Spacing.xl,
   },
 
   // ── Not found ────────────────────────────────────────────────────
@@ -461,13 +541,6 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     fontFamily: FontFamily.headingSemiBold,
     fontSize: FontSizes.lg,
     color: theme.text,
-    textAlign: 'center',
-  },
-  notFoundBody: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSizes.sm,
-    lineHeight: 22,
-    color: theme.textMuted,
     textAlign: 'center',
   },
   notFoundAction: {

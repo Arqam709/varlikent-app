@@ -29,6 +29,7 @@ import {
   type ContactInterest,
 } from '@/features/contact/contact-interests';
 import { refreshContactInterests } from '@/features/contact/contact-interests-cache';
+import { requestedContactMessage } from '@/features/contact/contact-prefill';
 import { useLanguage } from '@/features/localization/language-context';
 import { useDirection } from '@/features/localization/use-direction';
 import { getSiteSettings } from '@/features/settings/settings-api';
@@ -56,7 +57,14 @@ export default function ContactScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const { interestType: interestTypeParam } = useLocalSearchParams<{ interestType?: string }>();
+  const { interestType: interestTypeParam, message: messageParam } = useLocalSearchParams<{
+    interestType?: string;
+    /**
+     * An optional starting message. Design My Space sends its board here; a
+     * plain link to /contact carries none and nothing changes.
+     */
+    message?: string;
+  }>();
 
   const handleBack = () => {
     // Matches the other standalone screens: fall back to Home when opened
@@ -136,7 +144,17 @@ export default function ContactScreen() {
    */
   const [reasonKey, setReasonKey] = useState(() => requestedContactInterestKey(interestTypeParam));
   const selectedInterest = resolveContactInterest(interests, reasonKey);
-  const [message, setMessage] = useState('');
+
+  /**
+   * The enquiry text, seeded ONCE from the route.
+   *
+   * A lazy initializer rather than an effect, deliberately: an effect watching
+   * `messageParam` would re-run on re-renders caused by the interests list
+   * arriving, the keyboard opening or the settings request resolving — and
+   * each time it would overwrite what the person had typed. Seeding at mount
+   * makes the prefill a starting point the user owns from the first keystroke.
+   */
+  const [message, setMessage] = useState(() => requestedContactMessage(messageParam));
 
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
