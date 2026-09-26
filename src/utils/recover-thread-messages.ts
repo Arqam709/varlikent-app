@@ -18,6 +18,12 @@ export function mergeMessagesById(
   return [...current, ...additions].sort(byId);
 }
 
+const oldestIdOf = (messages: PropertyMessage[]): string | null =>
+  messages.reduce<string | null>(
+    (min, message) => (min === null || String(message._id) < min ? String(message._id) : min),
+    null
+  );
+
 const newestIdOf = (messages: PropertyMessage[]): string | null =>
   messages.reduce<string | null>(
     (max, message) => (max === null || String(message._id) > max ? String(message._id) : max),
@@ -93,11 +99,43 @@ export function applyRecovery(
   recovery: RecoveryResult
 ): { messages: PropertyMessage[]; adoptCursor: boolean } {
   const collected = recovery?.messages ?? [];
-  if (collected.length === 0) return { messages: current, adoptCursor: false };
+
+  /*
+   * The server returns only what THIS user may see ("Delete for me" and
+   * "Delete conversation" are applied server-side). So a message that is on
+   * screen but absent from the recovered range was removed on another of this
+   * user's devices while this one was offline — and must leave here too, or
+   * the thread would never converge. Adding unknown ids alone cannot do that.
+   */
+  const reachedStart = !recovery?.hasMore;
+
+  if (collected.length === 0) {
+    // The recovery walked to the start of the thread and found nothing visible:
+    // the whole conversation was cleared for this user.
+    if (recovery?.contiguous && reachedStart && current.length > 0) {
+      return { messages: [], adoptCursor: false };
+    }
+    return { messages: current, adoptCursor: false };
+  }
 
   if (recovery.contiguous) {
+    const returned = new Set(collected.map((message) => String(message._id)));
+    const oldest = oldestIdOf(collected);
+    const newest = newestIdOf(collected);
+
+    // Authoritative inside the recovered window only. Anything newer arrived
+    // after the fetch (socket) and is kept; anything older than the window is
+    // outside what was checked — unless the walk reached the thread's start.
+    const kept = current.filter((message) => {
+      const id = String(message._id);
+      if (returned.has(id)) return true;
+      if (newest !== null && id > newest) return true;
+      if (!reachedStart && oldest !== null && id < oldest) return true;
+      return false;
+    });
+
     return {
-      messages: mergeMessagesById(current, collected),
+      messages: mergeMessagesById(kept.length === current.length ? current : kept, collected),
       adoptCursor: current.length === 0,
     };
   }

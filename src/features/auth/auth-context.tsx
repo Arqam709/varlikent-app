@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
+import { forgetAccountDesignBoards } from '@/features/design-my-space/design-board-sync';
 import { ApiError } from '@/services/api-client';
 import type { SafeUser } from '@/types/user';
 import * as authApi from './auth-api';
@@ -58,6 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SafeUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+
+  /** Read by `logout`, which must know whose data to clear after state is gone. */
+  const userIdRef = useRef<string | null>(null);
+  userIdRef.current = user?._id ?? null;
 
   useEffect(() => {
     let cancelled = false;
@@ -149,7 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [applySession]);
 
   const logout = useCallback(async () => {
+    const outgoingUserId = userIdRef.current;
     await removeToken().catch(() => {});
+    // The signed-out phone keeps no copy of this account's Design My Space
+    // boards. (They are cached per user id anyway, so another account could
+    // never read them; this removes them from the device as well.)
+    if (outgoingUserId) await forgetAccountDesignBoards(outgoingUserId).catch(() => {});
     setUser(null);
     setToken(null);
     setStatus('unauthenticated');

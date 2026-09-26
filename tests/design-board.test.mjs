@@ -1,18 +1,18 @@
-// The Design Board: the model, and the device it is saved on.
+// The Design Board model.
 //
-// A board is the user's own work, stored locally so it survives an app
-// restart, works signed out, and works offline. Two properties matter most:
+// A board is the user's own work, saved to their account (the sync, cache and
+// API are covered by design-board-sync.test.mjs). Two properties matter most:
 //
-//   1. Nothing on the device is trusted. A record written by a future version,
-//      a half-written record, or corrupted storage must degrade to "that board
-//      does not exist" and never to a crash on a screen someone is looking at.
+//   1. Nothing read back is trusted. A record from a future version, a
+//      half-written cache entry or a malformed server response must degrade to
+//      "that board does not exist" and never to a crash on a screen.
 //   2. A board keeps what the user chose. Palette items have no stable ids, so
 //      a board stores SNAPSHOTS — and an admin changing the palette next month
 //      cannot silently rewrite a design somebody saved.
 //
-// Pure: transpiled modules, an in-memory AsyncStorage.
+// Pure: transpiled modules only.
 
-import test, { before, beforeEach } from 'node:test'
+import test, { before } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -34,28 +34,7 @@ const load = (relative, imports = {}) => {
   return module.exports
 }
 
-const storage = new Map()
-let storageFailure = null
-
-const asyncStorage = {
-  __esModule: true,
-  default: {
-    getItem: async (key) => {
-      if (storageFailure) throw storageFailure
-      return storage.has(key) ? storage.get(key) : null
-    },
-    setItem: async (key, value) => {
-      if (storageFailure) throw storageFailure
-      storage.set(key, value)
-    },
-    removeItem: async (key) => { storage.delete(key) },
-  },
-}
-
-const STORE = 'varlikent_design_boards_v1'
-
 let db
-let boards
 let sp
 
 before(() => {
@@ -68,16 +47,8 @@ before(() => {
     '@/features/studio-palette/studio-palette': sp,
     '@/utils/remote-image': remoteImage,
   })
-  boards = load('src/features/design-my-space/design-board-repository.ts', {
-    '@react-native-async-storage/async-storage': asyncStorage,
-    '@/features/design-my-space/design-board': db,
-  })
 })
 
-beforeEach(() => {
-  storage.clear()
-  storageFailure = null
-})
 
 const draft = (overrides = {}) => ({
   room: 'living-room',
@@ -235,14 +206,14 @@ test('8. toggling materials adds, removes, and identifies by name AND colour', (
 
 /* ═══════════════ A palette that changed underneath ═══════════════ */
 
-test('9. a saved board still says what the user chose after the palette changes', async () => {
-  // Today: the user saves Warm Sand.
-  await boards.saveDesignBoard(board({ id: 'dms-history' }))
+test('9. a saved board still says what the user chose after the palette changes', () => {
+  // Today: the user saves Warm Sand; next month it is read back (from the
+  // server or the cache) through the same normalization.
+  const reopened = db.normalizeDesignBoard(JSON.parse(JSON.stringify(board({ id: 'dms-history' }))))
 
-  // Next month: an admin replaces the wall finishes entirely.
+  // Meanwhile an admin replaced the wall finishes entirely.
   const newPalette = [{ label: 'Terracotta', color: '#c96f4a' }]
 
-  const reopened = await boards.getDesignBoard('dms-history')
   assert.deepEqual(reopened.wall, { label: 'Warm Sand', color: '#e8ddd0' },
     'the saved board changed because the palette did')
 
@@ -262,97 +233,4 @@ test('9. a saved board still says what the user chose after the palette changes'
     reopened.materials
   )
   assert.deepEqual(materials.map((m) => m.name), ['Calacatta Marble', 'Terrazzo'])
-})
-
-/* ═══════════════ The device ═══════════════ */
-
-test('10. create, list, reopen, edit, delete', async () => {
-  assert.deepEqual(await boards.listDesignBoards(), [])
-
-  const saved = await boards.saveDesignBoard(board({ id: 'dms-1' }))
-  assert.equal(saved.id, 'dms-1')
-  assert.equal((await boards.listDesignBoards()).length, 1)
-
-  const reopened = await boards.getDesignBoard('dms-1')
-  assert.deepEqual(reopened, saved)
-
-  const edited = { ...reopened, lighting: 'night', updatedAt: '2026-09-17T09:00:00.000Z' }
-  await boards.saveDesignBoard(edited)
-
-  const list = await boards.listDesignBoards()
-  assert.equal(list.length, 1, 'editing created a second board instead of updating one')
-  assert.equal(list[0].lighting, 'night')
-  assert.equal(list[0].createdAt, saved.createdAt, 'editing rewrote the creation time')
-
-  assert.equal(await boards.deleteDesignBoard('dms-1'), true)
-  assert.deepEqual(await boards.listDesignBoards(), [])
-  assert.equal(await boards.getDesignBoard('dms-1'), null)
-})
-
-test('11. several boards stay independent, newest activity first', async () => {
-  await boards.saveDesignBoard(board({ id: 'dms-old', createdAt: '2026-09-01T10:00:00.000Z', updatedAt: '2026-09-01T10:00:00.000Z' }))
-  await boards.saveDesignBoard(board({ id: 'dms-new', room: 'kitchen', createdAt: '2026-09-15T10:00:00.000Z', updatedAt: '2026-09-15T10:00:00.000Z' }))
-
-  assert.deepEqual((await boards.listDesignBoards()).map((b) => b.id), ['dms-new', 'dms-old'])
-
-  await boards.deleteDesignBoard('dms-new')
-  const remaining = await boards.listDesignBoards()
-
-  assert.deepEqual(remaining.map((b) => b.id), ['dms-old'])
-  assert.equal(remaining[0].room, 'living-room', 'deleting one board altered another')
-})
-
-test('11b. concurrent saves do not lose each other', async () => {
-  await Promise.all([
-    boards.saveDesignBoard(board({ id: 'dms-a' })),
-    boards.saveDesignBoard(board({ id: 'dms-b' })),
-    boards.saveDesignBoard(board({ id: 'dms-c' })),
-  ])
-
-  assert.deepEqual((await boards.listDesignBoards()).map((b) => b.id).sort(), ['dms-a', 'dms-b', 'dms-c'])
-})
-
-test('12. corrupt storage is ignored, never thrown at the screen', async () => {
-  for (const raw of ['{{{', 'null', '"x"', '{"boards":[]}', '42']) {
-    storage.set(STORE, raw)
-    assert.deepEqual(await boards.listDesignBoards(), [], raw)
-    assert.equal(await boards.getDesignBoard('dms-1'), null)
-  }
-
-  // A damaged list keeps every record that is still readable.
-  storage.set(STORE, JSON.stringify([
-    board({ id: 'dms-good' }),
-    { version: 1, id: 'dms-half' },
-    { ...board({ id: 'dms-future' }), version: 99 },
-    'nonsense',
-    board({ id: 'dms-good' }),
-  ]))
-
-  assert.deepEqual((await boards.listDesignBoards()).map((b) => b.id), ['dms-good'])
-})
-
-test('13. an unavailable store reports failure instead of pretending to save', async () => {
-  storageFailure = new Error('storage unavailable')
-
-  assert.equal(await boards.saveDesignBoard(board()), null)
-  assert.equal(await boards.deleteDesignBoard('dms-1'), false)
-  assert.deepEqual(await boards.listDesignBoards(), [])
-})
-
-test('14. an invalid board is refused rather than written', async () => {
-  assert.equal(await boards.saveDesignBoard({ ...board(), room: 'attic' }), null)
-  assert.equal(await boards.saveDesignBoard({ ...board(), version: 2 }), null)
-  assert.deepEqual(await boards.listDesignBoards(), [])
-})
-
-test('15. what is written is a versioned record, readable by this build', async () => {
-  await boards.saveDesignBoard(board({ id: 'dms-shape' }))
-  const [stored] = JSON.parse(storage.get(STORE))
-
-  assert.equal(stored.version, 1)
-  assert.deepEqual(Object.keys(stored).sort(),
-    ['createdAt', 'floor', 'id', 'lighting', 'materials', 'room', 'style', 'updatedAt', 'version', 'wall'])
-  // Ids for the app's own vocabularies; snapshots for the admin's palette.
-  assert.equal(stored.room, 'living-room')
-  assert.deepEqual(stored.wall, { label: 'Warm Sand', color: '#e8ddd0' })
 })

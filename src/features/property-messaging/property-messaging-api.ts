@@ -2,7 +2,9 @@ import { apiRequest } from '@/services/api-client';
 import type {
     ConversationDetailResponse,
     ConversationListResponse,
+    ClearConversationResponse,
     ConversationMessagesResponse,
+    HideMessageResponse,
     PropertyConversationDetail,
     PropertyConversationSummary,
     PropertyMessage,
@@ -106,6 +108,39 @@ export async function markPropertyConversationRead(
 ): Promise<void> {
   await apiRequest(`/property-conversations/${conversationId}/read`, {
     method: 'PATCH',
+    token,
+  });
+}
+
+/**
+ * "Delete for me": removes one of the caller's OWN messages from the caller's
+ * own view, on every device. The other participant keeps it.
+ *
+ * The server decides ownership — another participant's message is a 403 —
+ * and repeating the call is harmless.
+ */
+export async function hidePropertyMessage(
+  token: string,
+  conversationId: string,
+  messageId: string
+): Promise<HideMessageResponse> {
+  return apiRequest<HideMessageResponse>(
+    `/property-conversations/${conversationId}/messages/${messageId}/hide`,
+    { method: 'POST', token }
+  );
+}
+
+/**
+ * "Delete conversation" for the caller only: their history so far is removed
+ * from their view and the row leaves their inbox until a new message arrives.
+ * The other participant keeps the whole conversation. Nothing is deleted.
+ */
+export async function clearPropertyConversation(
+  token: string,
+  conversationId: string
+): Promise<ClearConversationResponse> {
+  return apiRequest<ClearConversationResponse>(`/property-conversations/${conversationId}/clear`, {
+    method: 'POST',
     token,
   });
 }

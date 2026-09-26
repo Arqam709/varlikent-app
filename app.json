@@ -64,6 +64,14 @@
       "expo-secure-store",
       "expo-notifications",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Varlikent to access your photos so you can choose a room photo or profile picture.",
+          "cameraPermission": "Allow Varlikent to use your camera so you can take a photo of your room.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow Varlikent to use your location to find nearby properties.",

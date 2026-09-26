@@ -184,11 +184,14 @@ test('8. Edit Design still returns to the six steps', () => {
   assert.ok(/setStepIndex\(0\);\s*setScreen\('flow'\);/.test(edit), 'Edit Design no longer opens the flow')
 })
 
-test('board action hierarchy: one primary, one secondary, two light links', () => {
+test('board action hierarchy: one primary, two secondary, two light links', () => {
   const screen = read(SCREEN)
   const boardBlock = screen.slice(screen.indexOf("{screen === 'board' && board ?"), screen.indexOf('function StepOptions'))
 
-  assert.equal((boardBlock.match(/<Button\b/g) ?? []).length, 2, 'the board should have exactly two buttons')
+  // Request Consultation (primary), Save Design and Visualize in My Room (secondary).
+  assert.equal((boardBlock.match(/<Button\b/g) ?? []).length, 3, 'the board should have exactly three buttons')
+  assert.ok(boardBlock.indexOf("t('designMySpace.save')") < boardBlock.indexOf("t('designMySpace.roomPhoto.visualizeCta')"), 'Visualize must follow Save')
+  assert.ok(/label=\{t\('designMySpace\.roomPhoto\.visualizeCta'\)\}\s*variant="secondary"/.test(boardBlock), 'Visualize must not compete with the primary action')
   assert.ok(boardBlock.indexOf("requestConsultation')") < boardBlock.indexOf("t('designMySpace.save')"), 'Request Consultation must lead')
   assert.equal(/<Button[^>]*requestConsultation[^>]*variant="secondary"/s.test(boardBlock), false)
   assert.ok(/label=\{isSaved \? t\('designMySpace\.savedLabel'\) : t\('designMySpace\.save'\)\}\s*variant="secondary"/.test(boardBlock))

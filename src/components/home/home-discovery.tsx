@@ -43,20 +43,36 @@ export default function HomeDiscovery() {
         "button", never "search"/"text", so a screen reader never announces an
         editable field the user cannot type into.
       */}
-      <Pressable
-        onPress={() => router.push('/properties')}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.searchA11y')}
-        style={({ pressed }) => [
-          styles.searchBar,
-          { flexDirection: row },
-          pressed && styles.searchBarPressed,
-        ]}>
-        <Ionicons name="search" size={18} color={theme.textMuted} />
-        <Text style={[styles.searchText, { textAlign }]}>
-          {t('home.searchPlaceholder')}
-        </Text>
-      </Pressable>
+      <View style={[styles.searchRow, { flexDirection: row }]}>
+        <Pressable
+          onPress={() => router.push('/properties')}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.searchA11y')}
+          style={({ pressed }) => [
+            styles.searchBar,
+            { flexDirection: row },
+            pressed && styles.searchBarPressed,
+          ]}>
+          <Ionicons name="search" size={18} color={theme.textMuted} />
+          <Text style={[styles.searchText, { textAlign }]} numberOfLines={1}>
+            {t('home.searchPlaceholder')}
+          </Text>
+        </Pressable>
+
+        {/*
+          Straight to the map, the one way of browsing a phone does better than
+          the website. No params, so it opens on every listing — the same
+          starting point as the search launcher — and Near Me is one tap away
+          there. Pushed over Home, so Back returns here.
+        */}
+        <Pressable
+          onPress={() => router.push('/properties/map')}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.mapA11y')}
+          style={({ pressed }) => [styles.mapButton, pressed && styles.searchBarPressed]}>
+          <Ionicons name="map-outline" size={20} color={theme.primaryInk} />
+        </Pressable>
+      </View>
 
       {/*
         Stacked rather than side by side. At 360dp a two-column layout leaves
@@ -135,7 +151,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     // Breathing room before the full-bleed marble stats band that follows.
     paddingBottom: Spacing.xl,
   },
+  searchRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
   searchBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
@@ -145,14 +167,24 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    marginTop: Spacing.md,
     // Matches the height of a real input, so it reads as one at a glance.
     minHeight: 52,
+  },
+  /** Square, and the search bar's height, so the two read as one control row. */
+  mapButton: {
+    width: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.cardBg,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: Radius.md,
   },
   searchBarPressed: {
     borderColor: theme.brandGreen,
   },
   searchText: {
+    flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSizes.md,
     color: theme.textMuted,

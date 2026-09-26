@@ -2,9 +2,19 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ActionSheet from '@/components/ui/action-sheet';
 import Button from '@/components/ui/button';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
@@ -12,15 +22,27 @@ import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
-import { getPropertyConversations } from '@/features/property-messaging/property-messaging-api';
+import {
+  clearPropertyConversation,
+  getPropertyConversations,
+} from '@/features/property-messaging/property-messaging-api';
 import { useRealtime } from '@/features/realtime/realtime-context';
 import { ApiError } from '@/services/api-client';
 import {
+  PROPERTY_CONVERSATION_CLEARED_EVENT,
+  PROPERTY_MESSAGE_HIDDEN_EVENT,
   PROPERTY_MESSAGE_NEW_EVENT,
   type PropertyConversationSummary,
+  type PropertyConversationClearedEvent,
+  type PropertyMessageHiddenEvent,
   type PropertyMessageNewEvent,
 } from '@/types/property-messaging';
 import { applyMessageEventToConversations } from '@/utils/apply-message-event';
+import {
+  applyHiddenMessageToConversations,
+  removeConversationById,
+  restoreConversation,
+} from '@/utils/message-visibility';
 import { formatChatTime } from '@/utils/format-chat-time';
 
 
@@ -41,6 +63,8 @@ export default function ChatsScreen() {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  /** The conversation whose long-press menu is open, or null. */
+  const [actionTarget, setActionTarget] = useState<PropertyConversationSummary | null>(null);
 
   /** Generation counter: a superseded response can never overwrite a newer one. */
   const requestRef = useRef(0);
@@ -136,15 +160,80 @@ export default function ChatsScreen() {
         });
       };
 
+      /*
+       * This user's own "Delete for me" / "Delete conversation", from any of
+       * their devices (including this one — harmless, the row is already
+       * updated). The server sends these to the user's own room only.
+       *
+       * A NEW message after a clear needs nothing extra: the row is not in the
+       * list, so the new-message handler above reports it unknown and refetches,
+       * and the server returns it again with only the new activity.
+       */
+      const handleHiddenMessage = (payload: PropertyMessageHiddenEvent) => {
+        setConversations((current) => applyHiddenMessageToConversations(current, payload));
+      };
+      const handleClearedConversation = (payload: PropertyConversationClearedEvent) => {
+        if (!payload?.conversationId) return;
+        setConversations((current) => removeConversationById(current, payload.conversationId));
+      };
+
       socket.on(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+      socket.on(PROPERTY_MESSAGE_HIDDEN_EVENT, handleHiddenMessage);
+      socket.on(PROPERTY_CONVERSATION_CLEARED_EVENT, handleClearedConversation);
 
       return () => {
-        // Only this screen's own handler. Never removeAllListeners — the open
-        // thread subscribes to the same event and would lose its subscription.
+        // Only this screen's own handlers. Never removeAllListeners — the open
+        // thread subscribes to the same events and would lose its subscriptions.
         socket.off(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+        socket.off(PROPERTY_MESSAGE_HIDDEN_EVENT, handleHiddenMessage);
+        socket.off(PROPERTY_CONVERSATION_CLEARED_EVENT, handleClearedConversation);
       };
     }, [realtime, realtime?.isConnected, status, user?._id, load])
   );
+
+  /*
+   * DELETE CONVERSATION — long press → sheet → confirmation → request.
+   *
+   * Removes the conversation from THIS user's chats only. The agent keeps
+   * every message and is told nothing. The row comes back by itself when a new
+   * message arrives — showing only that new activity, never the cleared history.
+   *
+   * Optimistic: the row goes as soon as the user confirms and is put back in
+   * activity order if the server refuses. In-flight list loads are invalidated
+   * first, so a response started before the delete cannot restore the row.
+   */
+  const deleteConversation = async (conversation: PropertyConversationSummary) => {
+    if (!token) return;
+
+    requestRef.current++;
+    setConversations((current) => removeConversationById(current, conversation._id));
+
+    try {
+      await clearPropertyConversation(token, conversation._id);
+    } catch {
+      setConversations((current) => restoreConversation(current, conversation));
+      Alert.alert(t('chats.deleteConversationTitle'), t('chats.deleteConversationFailed'));
+    }
+  };
+
+  /** Runs after the sheet has fully closed — see ActionSheet. */
+  const confirmDeleteConversation = (conversation: PropertyConversationSummary) => {
+    const name = conversation.counterparty?.name?.trim() || t('messageThread.agent');
+    Alert.alert(
+      t('chats.deleteConversationTitle'),
+      t('chats.deleteConversationBody', { name }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('chats.deleteConversationConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            void deleteConversation(conversation);
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -195,6 +284,7 @@ export default function ChatsScreen() {
               conversation={item}
               currentUserId={user?._id ?? null}
               onPress={() => router.push({ pathname: '/messages/[id]', params: { id: item._id } })}
+              onLongPress={() => setActionTarget(item)}
             />
           )}
           
@@ -217,6 +307,24 @@ export default function ChatsScreen() {
           }
         />
       )}
+
+      <ActionSheet
+        visible={actionTarget !== null}
+        onClose={() => setActionTarget(null)}
+        actions={
+          actionTarget
+            ? [
+                {
+                  key: 'delete-conversation',
+                  label: t('chats.deleteConversation'),
+                  icon: 'trash-outline',
+                  destructive: true,
+                  onPress: () => confirmDeleteConversation(actionTarget),
+                },
+              ]
+            : []
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -261,11 +369,14 @@ function ChatRow({
   conversation,
   currentUserId,
   onPress,
+  onLongPress,
 }: {
   conversation: PropertyConversationSummary;
   /** The signed-in customer, for deciding whose message the preview shows. */
   currentUserId: string | null;
   onPress: () => void;
+  /** Opens the row's actions (Delete conversation). */
+  onLongPress: () => void;
 }) {
   const { t } = useLanguage();
   const styles = useThemedStyles(makeStyles);
@@ -275,7 +386,7 @@ function ChatRow({
   const agentName = conversation.counterparty?.name?.trim() || t('messageThread.agent');
 
   // A conversation can outlive its listing, which is hard-deleted.
-  const propertyTitle = conversation.property?.title?.trim() || 'Listing no longer available';
+  const propertyTitle = conversation.property?.title?.trim() || t('messageThread.listingGone');
 
   const avatar = conversation.counterparty?.avatar?.trim();
   const unread = conversation.unreadCount > 0;
@@ -292,6 +403,13 @@ function ChatRow({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={350}
+      accessibilityHint={t('chats.conversationOptionsHint')}
+      accessibilityActions={[{ name: 'longpress', label: t('chats.deleteConversation') }]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'longpress') onLongPress();
+      }}
       accessibilityRole="button"
       accessibilityLabel={
         [

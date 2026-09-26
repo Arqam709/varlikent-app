@@ -116,6 +116,27 @@ export interface SendMessageResponse {
   message: PropertyMessage;
 }
 
+/**
+ * POST /:id/messages/:messageId/hide — "Delete for me" on one of the caller's
+ * own messages. Changes the caller's view only.
+ *
+ * `lastMessage` is the caller's inbox preview afterwards; `inInbox: false`
+ * means they can see nothing left in the conversation, so it left their inbox.
+ */
+export interface HideMessageResponse {
+  success: true;
+  conversationId: string;
+  messageId: string;
+  lastMessage: ConversationLastMessage | null;
+  inInbox: boolean;
+}
+
+/** POST /:id/clear — "Delete conversation" for the caller only. */
+export interface ClearConversationResponse {
+  success: true;
+  conversationId: string;
+}
+
 export interface MarkReadResponse {
   success: true;
   unreadCount: number;
@@ -136,6 +157,19 @@ export const MAX_MESSAGE_LENGTH = 2000;
  * one place on this side of the wire.
  */
 export const PROPERTY_MESSAGE_NEW_EVENT = 'property-message:new';
+
+/**
+ * This user hid one of their own messages, on one of their devices. Sent ONLY
+ * to this user's own devices — the other participant is never told. Must match
+ * MESSAGE_HIDDEN_EVENT in backend/services/propertyMessagingRealtime.js.
+ */
+export const PROPERTY_MESSAGE_HIDDEN_EVENT = 'property-message:hidden';
+
+/**
+ * This user cleared ("deleted") a conversation, on one of their devices. Sent
+ * ONLY to this user's own devices. Must match CONVERSATION_CLEARED_EVENT.
+ */
+export const PROPERTY_CONVERSATION_CLEARED_EVENT = 'property-conversation:cleared';
 
 /**
  * Payload of `property-message:new`.
@@ -159,4 +193,17 @@ export interface PropertyMessageNewEvent {
   message: PropertyMessage;
   lastMessage: ConversationLastMessage;
   lastActivityAt: string;
+}
+
+/** Payload of `property-message:hidden` — the same body the hide route returns. */
+export interface PropertyMessageHiddenEvent {
+  conversationId: string;
+  messageId: string;
+  lastMessage: ConversationLastMessage | null;
+  inInbox: boolean;
+}
+
+/** Payload of `property-conversation:cleared`. */
+export interface PropertyConversationClearedEvent {
+  conversationId: string;
 }

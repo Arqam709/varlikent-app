@@ -3,6 +3,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -15,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import ActionSheet from '@/components/ui/action-sheet';
 import Button from '@/components/ui/button';
 import ScreenHeader from '@/components/ui/screen-header';
 import { FontFamily, FontSizes, LetterSpacing, Radius, Spacing } from '@/constants/theme';
@@ -25,6 +27,7 @@ import type { ThemePalette } from '@/features/theme/themes';
 import { useAuth } from '@/features/auth/auth-context';
 import { setActiveConversation } from '@/features/push/active-conversation';
 import {
+  hidePropertyMessage,
   getPropertyConversation,
   getPropertyMessages,
   markPropertyConversationRead,
@@ -35,15 +38,24 @@ import { useRecoveryReconcile } from '@/features/realtime/use-recovery-reconcile
 import { ApiError } from '@/services/api-client';
 import {
   MAX_MESSAGE_LENGTH,
+  PROPERTY_CONVERSATION_CLEARED_EVENT,
+  PROPERTY_MESSAGE_HIDDEN_EVENT,
   PROPERTY_MESSAGE_NEW_EVENT,
+  type PropertyConversationClearedEvent,
   type PropertyConversationDetail,
   type PropertyMessage,
+  type PropertyMessageHiddenEvent,
   type PropertyMessageNewEvent,
 } from '@/types/property-messaging';
 import { appendUniqueMessage } from '@/utils/append-unique-message';
 import { formatPrice } from '@/utils/format-price';
+import { canHideMessage, removeMessageById } from '@/utils/message-visibility';
 import { listingTypeKey } from '@/utils/property-labels';
-import { applyRecovery, collectRecoveryPages } from '@/utils/recover-thread-messages';
+import {
+  applyRecovery,
+  collectRecoveryPages,
+  mergeMessagesById,
+} from '@/utils/recover-thread-messages';
 
 
 type LoadState = 'loading' | 'success' | 'error';
@@ -90,6 +102,9 @@ export default function ConversationScreen() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
+
+  /** The message whose long-press menu is open, or null. */
+  const [actionTarget, setActionTarget] = useState<PropertyMessage | null>(null);
 
   const listRef = useRef<FlatList<PropertyMessage>>(null);
 
@@ -239,12 +254,39 @@ export default function ConversationScreen() {
       }
     };
 
+    /*
+     * "Delete for me" done on ANOTHER of this user's devices (the server sends
+     * these to the user's own room only — the other participant never gets
+     * them). The device that acted has already removed the message; for it this
+     * is a harmless no-op. Nothing new was said, so no scroll and no mark-read.
+     */
+    const handleHiddenMessage = (payload: PropertyMessageHiddenEvent) => {
+      if (!payload || payload.conversationId !== id || !payload.messageId) return;
+      setMessages((current) => removeMessageById(current, payload.messageId));
+    };
+
+    /*
+     * The whole conversation was cleared on another of this user's devices:
+     * everything loaded here is no longer part of their history. Later messages
+     * arrive through the new-message event as usual.
+     */
+    const handleClearedConversation = (payload: PropertyConversationClearedEvent) => {
+      if (!payload || payload.conversationId !== id) return;
+      setMessages([]);
+      setCursor(null);
+      setHasMore(false);
+    };
+
     socket.on(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+    socket.on(PROPERTY_MESSAGE_HIDDEN_EVENT, handleHiddenMessage);
+    socket.on(PROPERTY_CONVERSATION_CLEARED_EVENT, handleClearedConversation);
 
     return () => {
       // Same instance, same function reference — so navigating between threads
       // cannot leave a previous screen's handler behind and run one event twice.
       socket.off(PROPERTY_MESSAGE_NEW_EVENT, handleNewMessage);
+      socket.off(PROPERTY_MESSAGE_HIDDEN_EVENT, handleHiddenMessage);
+      socket.off(PROPERTY_CONVERSATION_CLEARED_EVENT, handleClearedConversation);
     };
   }, [realtime, realtime?.isConnected, id, token, user?._id, loadState]);
 
@@ -272,7 +314,10 @@ export default function ConversationScreen() {
 
     setMessages((current) => {
       const { messages: next } = applyRecovery(current, recovery);
-      appliedNew = next.length !== current.length;
+      // New ids, not a length change: recovery can now also REMOVE messages
+      // this user hid or cleared on another device, which is not news.
+      const known = new Set(current.map((message) => String(message._id)));
+      appliedNew = next.some((message) => !known.has(String(message._id)));
       return next;
     });
 
@@ -371,9 +416,59 @@ export default function ConversationScreen() {
     }
   };
 
+  const counterpartyName = conversation?.counterparty?.name || t('messageThread.agent');
+
+  /*
+   * DELETE FOR ME — long press → sheet → confirmation → request.
+   *
+   * Only the user's OWN messages offer it (canHideMessage), and the server
+   * re-checks ownership regardless. The message disappears from THIS user's
+   * thread; the other participant keeps it, unchanged, and is told nothing.
+   *
+   * Optimistic: removed as soon as the user confirms, and put back in its
+   * place (by _id order) if the server refuses. The inbox row is not touched
+   * from here — Chats hears the same `property-message:hidden` event this
+   * account's devices receive, and refetches on focus as well.
+   */
+  const hideMessage = async (message: PropertyMessage) => {
+    if (!token || !id) return;
+
+    setMessages((current) => removeMessageById(current, message._id));
+
+    try {
+      await hidePropertyMessage(token, id, message._id);
+    } catch {
+      setMessages((current) => mergeMessagesById(current, [message]));
+      Alert.alert(t('messageThread.deleteForMeTitle'), t('messageThread.deleteForMeFailed'));
+    }
+  };
+
+  /** Runs after the sheet has fully closed — see ActionSheet. */
+  const confirmHide = (message: PropertyMessage) => {
+    Alert.alert(
+      t('messageThread.deleteForMeTitle'),
+      t('messageThread.deleteForMeBody', { name: counterpartyName }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('messageThread.deleteForMeConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            void hideMessage(message);
+          },
+        },
+      ]
+    );
+  };
+
+  const openMessageActions = (message: PropertyMessage) => {
+    // The sheet slides up from the bottom; an open keyboard would sit over it.
+    Keyboard.dismiss();
+    setActionTarget(message);
+  };
+
   const isClosed = conversation?.status === 'closed';
   const canSend = draft.trim().length > 0 && !sending && !isClosed;
-  const counterpartyName = conversation?.counterparty?.name || t('messageThread.agent');
 
   /* ── Auth gate ─────────────────────────────────────────────────────── */
 
@@ -448,7 +543,14 @@ export default function ConversationScreen() {
               </View>
             }
             renderItem={({ item }) => (
-              <MessageBubble message={item} mine={item.sender === user?._id} />
+              <MessageBubble
+                message={item}
+                mine={item.sender === user?._id}
+                // V1: only the user's own messages have an action.
+                onLongPress={
+                  canHideMessage(item, user?._id) ? () => openMessageActions(item) : undefined
+                }
+              />
             )}
             onContentSizeChange={() => {
               if (!shouldScrollToEnd.current) return;
@@ -501,6 +603,24 @@ export default function ConversationScreen() {
           )}
         </KeyboardAvoidingView>
       )}
+
+      <ActionSheet
+        visible={actionTarget !== null}
+        onClose={() => setActionTarget(null)}
+        actions={
+          actionTarget
+            ? [
+                {
+                  key: 'delete-for-me',
+                  label: t('messageThread.deleteForMe'),
+                  icon: 'trash-outline',
+                  destructive: true,
+                  onPress: () => confirmHide(actionTarget),
+                },
+              ]
+            : []
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -544,16 +664,57 @@ function PropertyCard({
   );
 }
 
-function MessageBubble({ message, mine }: { message: PropertyMessage; mine: boolean }) {
+function MessageBubble({
+  message,
+  mine,
+  onLongPress,
+}: {
+  message: PropertyMessage;
+  mine: boolean;
+  /** Present only when this message has an action (the user's own). */
+  onLongPress?: () => void;
+}) {
   const styles = useThemedStyles(makeStyles);
+  const { t } = useLanguage();
+
+  const bubble = (pressed = false) => (
+    <View
+      style={[
+        styles.bubble,
+        mine ? styles.bubbleMine : styles.bubbleTheirs,
+        onLongPress ? styles.bubbleFill : null,
+        pressed && styles.bubblePressed,
+      ]}>
+      <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
+      <Text style={[styles.bubbleTime, mine && styles.bubbleTimeMine]}>
+        {formatMessageTime(message.createdAt)}
+      </Text>
+    </View>
+  );
+
   return (
     <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
-      <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-        <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
-        <Text style={[styles.bubbleTime, mine && styles.bubbleTimeMine]}>
-          {formatMessageTime(message.createdAt)}
-        </Text>
-      </View>
+      {onLongPress ? (
+        /*
+         * Long press only — no onPress, so taps, scrolling and the keyboard
+         * behave exactly as before; a drag that starts on the bubble cancels
+         * the press and scrolls the list. Screen readers get the same menu as a
+         * named custom action instead of a gesture they cannot perform.
+         */
+        <Pressable
+          onLongPress={onLongPress}
+          delayLongPress={350}
+          accessibilityHint={t('messageThread.messageOptionsHint')}
+          accessibilityActions={[{ name: 'longpress', label: t('messageThread.deleteForMe') }]}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'longpress') onLongPress();
+          }}
+          style={styles.bubblePressable}>
+          {({ pressed }) => bubble(pressed)}
+        </Pressable>
+      ) : (
+        bubble()
+      )}
     </View>
   );
 }
@@ -681,6 +842,13 @@ const makeStyles = (theme: ThemePalette) => StyleSheet.create({
     alignSelf: 'flex-end',
   },
   bubbleTimeMine: { color: 'rgba(255,255,255,0.75)' },
+  /**
+   * The pressable takes the bubble's 82% cap and the bubble inside fills it
+   * (bubbleFill) — otherwise the percentage would compound to 82% of 82%.
+   */
+  bubblePressable: { maxWidth: '82%' },
+  bubbleFill: { maxWidth: '100%' },
+  bubblePressed: { opacity: 0.75 },
 
   composer: {
     borderTopWidth: 1,

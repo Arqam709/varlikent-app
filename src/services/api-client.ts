@@ -18,17 +18,31 @@ export type ApiErrorKind =
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;
   readonly status?: number;
+  /**
+   * The backend's machine-readable reason, when it sends one (e.g.
+   * `PHOTO_TOO_SMALL`). Lets a screen show its own translated message instead
+   * of the backend's English text. Absent for most endpoints.
+   */
+  readonly code?: string;
 
-  constructor(kind: ApiErrorKind, message: string, status?: number) {
+  constructor(kind: ApiErrorKind, message: string, status?: number, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.kind = kind;
     this.status = status;
+    this.code = code;
   }
 }
 
+/** A short, safe `code` from an error body, if it has one. */
+export function extractErrorCode(body: unknown): string | undefined {
+  if (!body || typeof body !== 'object') return undefined;
+  const { code } = body as { code?: unknown };
+  return typeof code === 'string' && /^[A-Z0-9_]{1,64}$/.test(code) ? code : undefined;
+}
+
 /** Maps an HTTP status onto our error kinds. */
-function kindForStatus(status: number): ApiErrorKind {
+export function kindForStatus(status: number): ApiErrorKind {
   if (status === 401 || status === 403) return 'auth';
   if (status >= 400 && status < 500) return 'validation';
   if (status >= 500) return 'server';
@@ -50,7 +64,7 @@ function fallbackMessage(status: number): string {
  *
  * Never returns a stack trace or raw internal error text.
  */
-function extractMessage(body: unknown, status: number): string {
+export function extractMessage(body: unknown, status: number): string {
   if (body && typeof body === 'object') {
     const data = body as ApiErrorResponse;
 
@@ -151,7 +165,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new ApiError(
       kindForStatus(response.status),
       extractMessage(payload, response.status),
-      response.status
+      response.status,
+      extractErrorCode(payload)
     );
   }
 

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,6 +10,7 @@ import SectionHeader from '@/components/ui/section-header';
 import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
 import DesignBoardSummary from '@/features/design-my-space/components/design-board-summary';
 import DesignChoiceCard from '@/features/design-my-space/components/design-choice-card';
+import DesignMySpaceGate from '@/features/design-my-space/components/design-my-space-gate';
 import DesignMaterialChoice from '@/features/design-my-space/components/design-material-choice';
 import DesignSavedBoardCard from '@/features/design-my-space/components/design-saved-board-card';
 import DesignStepProgress from '@/features/design-my-space/components/design-step-progress';
@@ -23,6 +24,7 @@ import {
   finishSnapshot,
   isSameFinish,
   isSameMaterial,
+  isServerDesignBoardId,
   isStepComplete,
   materialOptionsWithSelection,
   materialSnapshot,
@@ -30,12 +32,16 @@ import {
   type DesignBoard,
   type DesignDraft,
 } from '@/features/design-my-space/design-board';
-import {
-  deleteDesignBoard,
-  listDesignBoards,
-  saveDesignBoard,
-} from '@/features/design-my-space/design-board-repository';
 import { designConsultationRoute } from '@/features/design-my-space/design-board-serializer';
+import {
+  deleteDesignBoardFor,
+  designBoardSaveErrorKey,
+  designMySpaceAccess,
+  loadDesignBoards,
+  saveDesignBoardFor,
+  withSavedDesignBoard,
+  type DesignBoardOwner,
+} from '@/features/design-my-space/design-board-sync';
 import {
   DESIGN_MY_SPACE_EXIT_HREF,
   draftSignature,
@@ -50,6 +56,7 @@ import {
   designOptionLabelKey,
   type DesignStep,
 } from '@/features/design-my-space/design-options';
+import { useAuth } from '@/features/auth/auth-context';
 import { useLanguage } from '@/features/localization/language-context';
 import { useDirection } from '@/features/localization/use-direction';
 import { useStudioPalette } from '@/features/studio-palette/use-studio-palette';
@@ -58,12 +65,29 @@ import type { ThemePalette } from '@/features/theme/themes';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 
 /**
- * DESIGN MY SPACE — a guided design brief, on the device.
+ * DESIGN MY SPACE — a guided design brief, saved to the user's account.
  *
  * Six steps, a board, and a handoff to the enquiry form the app already has.
  * It is not a renderer and does not pretend to be one: the user is describing
- * a room they want, not previewing one. No AI, no photographs of their home,
- * no camera, no 3D.
+ * a room they want, not previewing one. No AI and no 3D.
+ *
+ * From a board saved to the account, "Visualize in My Room" opens
+ * /design-room-photo, where the user adds a private photo of the room for a
+ * FUTURE visualization. Nothing here generates or claims a redesigned image.
+ *
+ * ── Signed-in only ──────────────────────────────────────────────────────
+ * Every board belongs to an account: MongoDB holds it, and this device keeps
+ * a per-user cache (design-board-sync). The route therefore decides ACCESS
+ * before anything else:
+ *
+ *   restoring   the stored session is still being checked → a spinner; the
+ *               visitor is neither gated nor shown anything yet
+ *   signed out  the same full-screen sign-in gate as Favourites; no board
+ *               can be listed, opened, created, edited, saved or deleted
+ *   signed in   the boards of that account, in a component KEYED by the user
+ *               id — so logging out unmounts it, and a different account
+ *               gets a fresh one with none of the previous user's list,
+ *               draft or open board in memory
  *
  * ── Why one route and not six ───────────────────────────────────────────
  * The steps share one draft and one palette, and Back between them must not
@@ -80,15 +104,44 @@ import { useThemedStyles } from '@/features/theme/use-themed-styles';
  * ── Where the values come from ──────────────────────────────────────────
  *   rooms, styles, lighting   app-owned vocabularies, translated (design-options)
  *   walls, floors, materials  admin-managed Studio Palette, English names
- *   the saved board           this device only (design-board-repository)
- *
- * Signing in is never required: this is an exploration tool, and boards live
- * in local storage precisely so an anonymous visitor can use all of it.
+ *   the saved board           the signed-in account, cached per user
+ *                             (design-board-sync)
  */
 
 type Screen = 'landing' | 'flow' | 'board';
 
 export default function DesignMySpaceScreen() {
+  const { user, token, status } = useAuth();
+  const userId = user?._id ?? null;
+  const leaveDesignMySpace = useLeaveDesignMySpace();
+
+  // Memoized so the owner object — and every effect keyed on it — only
+  // changes when the account or its token actually does.
+  const access = useMemo(() => designMySpaceAccess(status, userId, token), [status, userId, token]);
+
+  if (access.state === 'signed-in') {
+    return <DesignMySpaceBoards key={access.owner.userId} owner={access.owner} />;
+  }
+
+  return <DesignMySpaceGate restoring={access.state === 'restoring'} onBack={leaveDesignMySpace} />;
+}
+
+/**
+ * Leaves the feature for the Interior Design page — the one exit, shared by
+ * the sign-in gate and the boards. `dismissTo` pops back to it when it is
+ * underneath (the normal case), and replaces this screen with it when Design
+ * My Space was opened without that history.
+ */
+function useLeaveDesignMySpace() {
+  const router = useRouter();
+  return useCallback(() => {
+    router.dismissTo(DESIGN_MY_SPACE_EXIT_HREF);
+  }, [router]);
+}
+
+/* ─────────────────────────── Signed in ─────────────────────────── */
+
+function DesignMySpaceBoards({ owner }: { owner: DesignBoardOwner }) {
   const styles = useThemedStyles(makeStyles);
   const { t } = useLanguage();
   const { theme } = useTheme();
@@ -111,20 +164,36 @@ export default function DesignMySpaceScreen() {
 
   const [boards, setBoards] = useState<DesignBoard[]>([]);
   /**
-   * The draft's signature as it was when last saved or opened from disk.
+   * The draft's signature as it was when last saved or opened.
    * Comparing against it drives both "Save Design" / "Saved" and whether
    * leaving the board needs a confirmation.
    */
   const [savedDraft, setSavedDraft] = useState<string | null>(null);
-  const [saveFailed, setSaveFailed] = useState(false);
+  /** The translation key for why the last save failed, or null. */
+  const [saveErrorKey, setSaveErrorKey] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  /** The account could not be reached: the list is this user's cached copy. */
+  const [showingCachedBoards, setShowingCachedBoards] = useState(false);
+
+  /** Only the newest list load may publish, so a slow one cannot overwrite a newer one. */
+  const loadRef = useRef(0);
 
   const step: DesignStep = DESIGN_STEPS[stepIndex];
   const unsaved = hasUnsavedChanges(savedDraft, draft);
   const isSaved = !unsaved;
 
   const refreshBoards = useCallback(async () => {
-    setBoards(await listDesignBoards());
-  }, []);
+    const load = ++loadRef.current;
+    const current = () => loadRef.current === load;
+
+    const result = await loadDesignBoards(owner, (cached) => {
+      if (current()) setBoards(cached);
+    });
+    if (!current()) return;
+
+    setBoards(result.boards);
+    setShowingCachedBoards(result.failed);
+  }, [owner]);
 
   useEffect(() => {
     void refreshBoards();
@@ -132,14 +201,7 @@ export default function DesignMySpaceScreen() {
 
   /* ── Movement ───────────────────────────────────────────────────────── */
 
-  /**
-   * Leaves the feature for the Interior Design page. `dismissTo` pops back to
-   * it when it is underneath (the normal case), and replaces this screen with
-   * it when Design My Space was opened without that history.
-   */
-  const leaveDesignMySpace = useCallback(() => {
-    router.dismissTo(DESIGN_MY_SPACE_EXIT_HREF);
-  }, [router]);
+  const leaveDesignMySpace = useLeaveDesignMySpace();
 
   /**
    * THE Back handler. Every back control calls this and nothing else, so the
@@ -147,7 +209,7 @@ export default function DesignMySpaceScreen() {
    * Always returns true: this screen has handled the press.
    */
   const handleBack = useCallback((): boolean => {
-    setSaveFailed(false);
+    setSaveErrorKey(null);
     const action = resolveBackAction(screen, stepIndex, unsaved);
 
     switch (action.type) {
@@ -187,7 +249,7 @@ export default function DesignMySpaceScreen() {
     setBoardId(createDesignBoardId());
     setCreatedAt(null);
     setSavedDraft(null);
-    setSaveFailed(false);
+    setSaveErrorKey(null);
     setStepIndex(0);
     setScreen('flow');
   };
@@ -198,7 +260,7 @@ export default function DesignMySpaceScreen() {
     setBoardId(board.id);
     setCreatedAt(board.createdAt);
     setSavedDraft(draftSignature(next));
-    setSaveFailed(false);
+    setSaveErrorKey(null);
     setScreen('board');
   };
 
@@ -211,8 +273,15 @@ export default function DesignMySpaceScreen() {
         text: t('designMySpace.delete'),
         style: 'destructive',
         onPress: async () => {
-          await deleteDesignBoard(board.id);
-          await refreshBoards();
+          const deleted = await deleteDesignBoardFor(owner, board.id);
+
+          // Never removed from the list unless it is really gone.
+          if (!deleted) {
+            Alert.alert(t('designMySpace.deleteTitle'), t('designMySpace.deleteFailed'));
+            return;
+          }
+
+          setBoards((current) => current.filter((item) => item.id !== board.id));
           // Editing the board that was just deleted would save it again.
           if (board.id === boardId) startNewDesignSilently();
         },
@@ -250,18 +319,48 @@ export default function DesignMySpaceScreen() {
   );
 
   const handleSave = async () => {
-    if (!board) return;
+    if (!board || saving) return;
 
-    const saved = await saveDesignBoard({ ...board, updatedAt: new Date().toISOString() });
+    // Taken now: what was saved is the draft as it was when Save was pressed.
+    const signature = draftSignature(draft);
+
+    setSaving(true);
+    // The reason travels with the failure, so the message can be accurate: an
+    // expired session, or a server without this endpoint, is not "check your
+    // connection".
+    let failure: unknown = null;
+    const saved = await saveDesignBoardFor(
+      owner,
+      { ...board, updatedAt: new Date().toISOString() },
+      { onError: (error) => { failure = error; } }
+    );
+    setSaving(false);
+
     if (!saved) {
-      setSaveFailed(true);
+      setSaveErrorKey(designBoardSaveErrorKey(failure));
       return;
     }
 
-    setSaveFailed(false);
+    setSaveErrorKey(null);
+    // A first save to an account swaps the device id for the server's, so the
+    // next save updates this board instead of creating another.
+    setBoardId(saved.id);
     setCreatedAt(saved.createdAt);
-    setSavedDraft(draftSignature(draft));
-    await refreshBoards();
+    setSavedDraft(signature);
+    setBoards((current) => withSavedDesignBoard(current, saved, board.id));
+  };
+
+  /**
+   * Room photos are for a board that exists in the account: a future
+   * visualization will reference the saved board, so an unsaved or edited
+   * board must be saved first. The board id travels as a route parameter; it
+   * is NOT stored on the room photo, which stays reusable across boards.
+   */
+  const canVisualize = isSaved && isServerDesignBoardId(boardId);
+
+  const handleVisualize = () => {
+    if (!canVisualize) return;
+    router.push({ pathname: '/design-room-photo', params: { boardId } });
   };
 
   const handleConsultation = () => {
@@ -287,7 +386,9 @@ export default function DesignMySpaceScreen() {
               size="lg"
               rule
             />
-            <Text style={[styles.body, { textAlign }]}>{t('designMySpace.landingBody')}</Text>
+            <Text style={[styles.body, { textAlign }]}>
+              {t('designMySpace.landingBody')}
+            </Text>
 
             <Button
               label={t('designMySpace.startNew')}
@@ -304,8 +405,16 @@ export default function DesignMySpaceScreen() {
                 style={styles.savedHeader}
               />
 
+              {showingCachedBoards ? (
+                <Text accessibilityRole="alert" style={[styles.muted, { textAlign }]}>
+                  {t('designMySpace.savedOffline')}
+                </Text>
+              ) : null}
+
               {boards.length === 0 ? (
-                <Text style={[styles.muted, { textAlign }]}>{t('designMySpace.savedEmpty')}</Text>
+                <Text style={[styles.muted, { textAlign }]}>
+                  {t('designMySpace.savedEmpty')}
+                </Text>
               ) : (
                 <View style={styles.savedList}>
                   {boards.map((item) => (
@@ -343,7 +452,7 @@ export default function DesignMySpaceScreen() {
                 palette={palette}
                 onChange={(next) => {
                   setDraft(next);
-                  setSaveFailed(false);
+                  setSaveErrorKey(null);
                 }}
               />
             </View>
@@ -385,9 +494,9 @@ export default function DesignMySpaceScreen() {
 
             <DesignBoardSummary board={board} />
 
-            {saveFailed ? (
+            {saveErrorKey ? (
               <Text accessibilityRole="alert" style={[styles.error, { textAlign }]}>
-                {t('designMySpace.saveFailed')}
+                {t(saveErrorKey)}
               </Text>
             ) : null}
 
@@ -401,10 +510,21 @@ export default function DesignMySpaceScreen() {
               <Button
                 label={isSaved ? t('designMySpace.savedLabel') : t('designMySpace.save')}
                 variant="secondary"
-                disabled={isSaved}
+                disabled={isSaved || saving}
                 onPress={handleSave}
                 style={styles.stretch}
               />
+              <Button
+                label={t('designMySpace.roomPhoto.visualizeCta')}
+                variant="secondary"
+                disabled={!canVisualize}
+                onPress={handleVisualize}
+                accessibilityHint={t('designMySpace.roomPhoto.visualizeA11y')}
+                style={styles.stretch}
+              />
+              {!canVisualize ? (
+                <Text style={[styles.muted, { textAlign }]}>{t('designMySpace.roomPhoto.saveFirst')}</Text>
+              ) : null}
 
               {/*
                 The two lightweight actions share one row: changing the board, and

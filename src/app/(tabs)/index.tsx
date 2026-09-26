@@ -14,6 +14,7 @@ import HomeFeaturedProperties from '@/components/home/home-featured-properties';
 import HomeHero from '@/components/home/home-hero';
 import HomeLanguagePicker from '@/components/home/home-language-picker';
 import HomeServicesPreview from '@/components/home/home-services-preview';
+import HomeTestimonials from '@/components/home/home-testimonials';
 import { FontFamily, FontSizes, Radius, Spacing } from '@/constants/theme';
 import { useLanguage } from '@/features/localization/language-context';
 import { useTheme } from '@/features/theme/theme-context';
@@ -120,6 +121,12 @@ export default function HomeScreen() {
           refreshes itself in the background, independently of everything above.
         */}
         <HomeAboutPreview />
+        {/*
+          Client reviews straight after the company's own account of itself:
+          what Varlikent says, then what its clients say. Renders nothing until
+          reviews arrive, and nothing at all if there are none.
+        */}
+        <HomeTestimonials />
         {/*
           Last, because "need help?" is the question someone has after
           browsing. The section itself is only a heading and a button — the

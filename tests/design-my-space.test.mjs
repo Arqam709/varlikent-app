@@ -10,8 +10,8 @@
 //      already has — the same stable contact interest the service page sends,
 //      with no new endpoint and no new interest.
 //   3. The screen's guarantees: six steps, no AI or camera anywhere near this
-//      feature, an entry point only on Interior Design, and no palette request
-//      from Home.
+//      feature, an entry point only on Interior Design, no palette request
+//      from Home — and nothing at all for a visitor who is not signed in.
 
 import test, { before } from 'node:test'
 import assert from 'node:assert/strict'
@@ -302,10 +302,10 @@ test('16. all six steps are rendered by the one screen', () => {
   for (const step of options.DESIGN_STEPS) {
     assert.ok(screen.includes(`case '${step}':`), `the screen does not render the ${step} step`)
   }
-  // One route, not six.
+  // One route for the six steps, not six — plus the separate room-photo step.
   assert.deepEqual(
     fs.readdirSync(path.join(ROOT, 'src/app')).filter((name) => name.startsWith('design')),
-    ['design-my-space.tsx']
+    ['design-my-space.tsx', 'design-room-photo.tsx']
   )
 })
 
@@ -343,20 +343,37 @@ test('19. Home never requests the palette', () => {
   }
 })
 
-test('20. no AI, camera, photo upload or AR anywhere in this feature', () => {
+test('20. no AI provider or AR anywhere; the camera only where a room photo is taken', () => {
+  const ROOM_PHOTO_SCREEN = 'src/app/design-room-photo.tsx'
+  const PICKER = 'src/features/design-my-space/room-photo-picker.ts'
   const files = [
     SCREEN,
+    ROOM_PHOTO_SCREEN,
     'src/features/contact/contact-prefill.ts',
     ...fs.readdirSync(path.join(ROOT, 'src/features/design-my-space')).filter((f) => f.endsWith('.ts')).map((f) => `src/features/design-my-space/${f}`),
     ...fs.readdirSync(path.join(ROOT, 'src/features/design-my-space/components')).map((f) => `src/features/design-my-space/components/${f}`),
     ...fs.readdirSync(path.join(ROOT, 'src/features/studio-palette')).map((f) => `src/features/studio-palette/${f}`),
   ]
 
-  const forbidden = /expo-image-picker|expo-camera|launchCamera|launchImageLibraryAsync|ImagePicker|openai|gemini|anthropic|generateImage|\/upload|ARKit|LiDAR/i
+  // The app may REQUEST a visualization (it sends two ids and a retry key), but
+  // no provider is integrated and no generated image is handled anywhere:
+  // producing one is entirely the backend's job, and none exists yet.
+  const deferred = /openai|gemini|anthropic|stability|replicate|generateImage|ARKit|LiDAR/i
+  // A generated image would be fetched from a result endpoint. There is none.
+  // A generated image is now real, and is fetched from the API with the
+  // user's token. What must never appear is a private storage URL or id.
+  const storageUrl = /res\.cloudinary|signedUrl|sign_url|publicId/
+  // Room photos never go through the public admin media endpoint.
+  const adminUpload = /['"`]\/upload['"`]/
+  const picker = /expo-image-picker|expo-camera|launchCamera|launchImageLibraryAsync|ImagePicker|expo-image-manipulator/
 
   for (const file of files) {
     const source = read(file)
-    assert.equal(forbidden.test(source), false, `${file} reaches for a deferred capability`)
+    assert.equal(deferred.test(source), false, `${file} reaches for a deferred capability`)
+    assert.equal(storageUrl.test(source), false, `${file} handles a private storage URL`)
+    assert.equal(adminUpload.test(source), false, `${file} uses the public /upload endpoint`)
+    // The picker and manipulator live in exactly one module.
+    if (file !== PICKER) assert.equal(picker.test(source), false, `${file} uses the camera or picker directly`)
     // No dead "coming soon" controls either.
     assert.equal(/Generate With AI|Scan Room|Coming Soon/i.test(source), false, `${file} has a placeholder control`)
   }
@@ -406,10 +423,108 @@ test('22. selection is announced, never carried by colour alone', () => {
   assert.ok(progress.includes('accessibilityValue='), 'progress is only visual')
 })
 
-test('23. an anonymous visitor can use all of it', () => {
-  const screen = read(SCREEN)
-  const repository = read('src/features/design-my-space/design-board-repository.ts')
+/* ═══════════════ 5. Signed in only ═══════════════ */
 
-  assert.equal(/useAuth|requireAuth|token/.test(screen), false, 'the screen gates on a session')
-  assert.equal(/useAuth|apiRequest|token/.test(repository), false, 'saving a board needs an account')
+const GATE = 'src/features/design-my-space/components/design-my-space-gate.tsx'
+
+/** The source of one top-level function in the screen, up to the next one. */
+const screenFunction = (screen, name) => {
+  const start = screen.indexOf(`function ${name}(`)
+  assert.ok(start >= 0, `the screen has no ${name}`)
+  const next = screen.indexOf('\nfunction ', start + 1)
+  return screen.slice(start, next < 0 ? undefined : next)
+}
+
+test('23. a visitor who is not signed in gets the sign-in gate and nothing else', () => {
+  const screen = read(SCREEN)
+  const route = screenFunction(screen, 'DesignMySpaceScreen')
+
+  // The route renders exactly two things: the boards for a signed-in owner,
+  // or the gate. There is no third, signed-out way in.
+  assert.ok(route.includes("if (access.state === 'signed-in') {"))
+  assert.ok(route.includes('<DesignMySpaceBoards key={access.owner.userId} owner={access.owner} />'))
+  assert.ok(route.includes("<DesignMySpaceGate restoring={access.state === 'restoring'} onBack={leaveDesignMySpace} />"))
+  assert.equal((screen.match(/<DesignMySpaceBoards\b/g) ?? []).length, 1, 'the boards render from somewhere unguarded')
+
+  // The gate is the app's existing pattern (Favourites): sign in or register.
+  // Shared by every Design My Space screen, so it lives in one component.
+  const gate = read(GATE)
+  assert.ok(gate.includes("router.push('/login')"))
+  assert.ok(gate.includes("router.push('/register')"))
+  assert.ok(gate.includes("t('designMySpace.gateTitle')"))
+  // ...and offers no board, draft, palette or storage of any kind.
+  for (const reach of ['loadDesignBoards', 'saveDesignBoardFor', 'deleteDesignBoardFor', 'useStudioPalette', 'DesignSavedBoardCard', 'startNewDesign', 'owner']) {
+    assert.equal(gate.includes(reach), false, `the sign-in gate reaches ${reach}`)
+  }
+
+  // Every board operation needs an owner, which only a signed-in session has.
+  const boards = screenFunction(screen, 'DesignMySpaceBoards')
+  assert.ok(boards.includes('{ owner }: { owner: DesignBoardOwner }'))
+})
+
+test('23b. access: restoring is not signed out, and only a complete session is signed in', () => {
+  const route = screenFunction(read(SCREEN), 'DesignMySpaceScreen')
+  assert.ok(route.includes('designMySpaceAccess(status, userId, token)'))
+
+  const sync = read('src/features/design-my-space/design-board-sync.ts')
+  const body = sync.slice(sync.indexOf('export function designMySpaceAccess'))
+  // Order matters: the loading check comes first.
+  assert.ok(body.indexOf("status === 'loading'") < body.indexOf("status === 'authenticated'"))
+
+  // While restoring, the gate shows a spinner — never the sign-in prompt.
+  const gate = read(GATE)
+  assert.ok(gate.indexOf('{restoring ? (') < gate.indexOf('<ActivityIndicator'))
+  assert.ok(gate.indexOf('<ActivityIndicator') < gate.indexOf("router.push('/login')"))
+})
+
+test('23c. the anonymous device store is gone from the app', () => {
+  assert.equal(fs.existsSync(path.join(ROOT, 'src/features/design-my-space/design-board-repository.ts')), false)
+
+  const sources = []
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const relative = `${dir}/${entry.name}`
+      if (entry.isDirectory()) walk(relative)
+      else if (/\.(ts|tsx)$/.test(entry.name)) sources.push(relative)
+    }
+  }
+  walk('src')
+
+  for (const file of sources) {
+    const source = read(file)
+    assert.equal(source.includes('design-board-repository'), false, `${file} imports the removed device store`)
+    // The old key may only be NAMED (in comments explaining why it is left alone),
+    // never used as a string a storage call could read or write.
+    assert.equal(/['"]varlikent_design_boards_v1['"]/.test(source), false, `${file} still uses the anonymous storage key`)
+  }
+})
+
+test('24. storage and HTTP stay behind the sync layer, never in the screen', () => {
+  const screen = read(SCREEN)
+
+  assert.equal(/AsyncStorage|apiRequest|fetch\(|\/design-boards/.test(screen), false, 'the screen talks to storage or the API directly')
+  for (const name of ['saveDesignBoard(', 'deleteDesignBoard(', 'saveAccountDesignBoard', 'deleteAccountDesignBoard']) {
+    assert.equal(screen.includes(name), false, `the screen bypasses design-board-sync with ${name}`)
+  }
+  // Both go through the sync layer, with the owner as the first argument.
+  // (Matched across line breaks: the call may be wrapped.)
+  assert.match(screen, /saveDesignBoardFor\(\s*owner/)
+  assert.match(screen, /deleteDesignBoardFor\(\s*owner/)
+})
+
+test('25. logging out or switching account leaves nothing of the previous user on screen', () => {
+  const screen = read(SCREEN)
+  const boards = screenFunction(screen, 'DesignMySpaceBoards')
+
+  // All board state — list, draft, open board — lives in the component keyed
+  // by the user id, so it is unmounted on logout and rebuilt empty for the
+  // next account in the same render, with no effect-timing window.
+  for (const state of ['useState<DesignBoard[]>([])', 'useState<DesignDraft>(EMPTY_DESIGN_DRAFT)', 'useState(createDesignBoardId)']) {
+    assert.ok(boards.includes(state), `${state} is not owned by the keyed component`)
+  }
+  const route = screenFunction(screen, 'DesignMySpaceScreen')
+  assert.equal(/useState|useRef|useEffect/.test(route), false, 'the route holds state that would survive an account change')
+
+  // List loads are sequenced, so a slow load cannot overwrite a newer one.
+  assert.ok(boards.includes('const load = ++loadRef.current;'))
 })

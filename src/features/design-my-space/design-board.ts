@@ -183,15 +183,57 @@ export function normalizeDesignBoard(value: unknown): DesignBoard | null {
   };
 }
 
+/* ── Boards saved to an account ────────────────────────────────────────── */
+
+/**
+ * A MongoDB ObjectId: 24 hex characters.
+ *
+ * Device ids (`dms-…`) always contain hyphens, so the two id spaces can never
+ * be confused — which is what tells a save whether a board already exists on
+ * the server (update it) or only on this device so far (create it).
+ */
+const SERVER_ID_PATTERN = /^[0-9a-f]{24}$/i;
+
+export const isServerDesignBoardId = (id: string): boolean => SERVER_ID_PATTERN.test(id);
+
+export function designBoardFromServer(value: unknown): DesignBoard | null {
+  if (!isPlainObject(value)) return null;
+  const { _id: serverId } = value;
+  if (typeof serverId !== 'string' || !isServerDesignBoardId(serverId)) return null;
+  return normalizeDesignBoard({ ...value, id: serverId });
+}
+
+/** What a board sends to the server: its content, never ids, owner or timestamps. */
+export type DesignBoardPayload = Pick<DesignBoard, 'room' | 'style' | 'wall' | 'floor' | 'materials' | 'lighting'>;
+
+export function designBoardPayload(board: DesignBoard): DesignBoardPayload {
+  return {
+    room: board.room,
+    style: board.style,
+    wall: { label: board.wall.label, color: board.wall.color },
+    floor: { label: board.floor.label, color: board.floor.color },
+    materials: board.materials.map((material) =>
+      material.image
+        ? { name: material.name, color: material.color, image: material.image }
+        : { name: material.name, color: material.color }
+    ),
+    lighting: board.lighting,
+  };
+}
+
 /* ── Ids ───────────────────────────────────────────────────────────────── */
 
 /**
- * A local board id.
+ * A device board id.
  *
- * Not security-sensitive and never leaves the device, so `Math.random` is
- * appropriate and no uuid dependency is warranted. Time-prefixed so ids sort
- * roughly by age and a collision would need two boards created in the same
- * millisecond AND the same 8 random characters.
+ * Not security-sensitive, so `Math.random` is appropriate and no uuid
+ * dependency is warranted. Time-prefixed so ids sort roughly by age and a
+ * collision would need two boards created in the same millisecond AND the
+ * same 8 random characters.
+ *
+ * A signed-in user's first save sends it to the server as `clientId`, which
+ * makes a retried save update the same board; the board is known by the
+ * server's `_id` from then on.
  */
 export function createDesignBoardId(): string {
   return `dms-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

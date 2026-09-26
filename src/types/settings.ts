@@ -34,6 +34,14 @@ export interface SiteSettings {
   instagram?: string;
   linkedin?: string;
   /**
+   * Whether Design My Space may request a room visualization.
+   *
+   * OFF until a provider exists: with it on and no worker running, a request
+   * would queue and never finish. The room-photo screen only offers the action
+   * when this is true, and the backend refuses creation regardless.
+   */
+  designGenerationsEnabled?: boolean;
+  /**
    * Per-service switches for the website's showroom galleries. Declared
    * because the endpoint returns it; nothing in the app reads it yet.
    */
