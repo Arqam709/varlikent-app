@@ -51,7 +51,9 @@ test('11. Interior Design shows no hero consultation button', () => {
   assert.equal(services.showsHeroContactCta(services.getService('interior-design')), false)
 
   const screen = read(SCREEN)
-  assert.ok(screen.includes('{hero.ctaPrimary && showsHeroContactCta(service) ? ('), 'the hero button ignores the service setting')
+  // The hero shows the app's own action label (or the CMS text) — but never
+  // on a service that turns its hero button off.
+  assert.ok(screen.includes('{(ctaLabel || hero.ctaPrimary) && showsHeroContactCta(service) ? ('), 'the hero button ignores the service setting')
 })
 
 test('14. Architecture, Construction and Renovation keep their hero button', () => {
@@ -62,7 +64,7 @@ test('14. Architecture, Construction and Renovation keep their hero button', () 
   assert.equal((read('src/features/services/services-data.ts').match(/heroContactCta: false/g) ?? []).length, 1)
 })
 
-test('12. Interior Design still ends with the consultation CTA, which opens Contact', () => {
+test('12. Interior Design ends with its one action, Design My Space', () => {
   const page = sc.resolveServicePage('interior-design', null, 'en')
   const cta = page.sections.find((section) => section.kind === 'cta')
 
@@ -72,7 +74,12 @@ test('12. Interior Design still ends with the consultation CTA, which opens Cont
 
   const screen = read(SCREEN)
   const ctaCase = screen.slice(screen.indexOf("case 'cta':"), screen.indexOf('default:', screen.indexOf("case 'cta':")))
-  assert.ok(ctaCase.includes('onPress={openContact}'))
+  // The closing CTA is the page's primary action with the app's own label —
+  // "Design My Space" top and bottom, never the CMS "Book a Consultation".
+  assert.ok(ctaCase.includes('onPress={openPrimaryAction}'))
+  assert.ok(ctaCase.includes('ctaLabel={actionLabel ?? section.button}'))
+  assert.equal(services.getService('interior-design').primaryAction, 'design-my-space')
+  assert.equal(services.getService('renovation').primaryAction, 'renovation-planner')
   // The hero-CTA setting does not reach the closing CTA.
   assert.equal(ctaCase.includes('showsHeroContactCta'), false)
 })

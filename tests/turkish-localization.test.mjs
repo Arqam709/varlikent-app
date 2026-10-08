@@ -63,6 +63,11 @@ test('Turkish contains no English-identical translatable values', () => {
     // Russian 'км', Urdu 'کلومیٹر'. The surrounding prose keys
     // (radiusTitle, radiusAccessibility, noneNearby) are all translated.
     'propertiesMap.radiusValue',
+    // The same two cases on the service request form: "Villa" is the Turkish
+    // word too (as properties.types.villa above), and '~{size} m²' is the SI
+    // unit, written in Turkish exactly as in English.
+    'serviceRequests.options.propertyTypes.villa',
+    'serviceRequests.sizeValue',
   ])
 
   assert.deepEqual(identical.filter((key) => !allowed.has(key)), [])
@@ -137,8 +142,13 @@ test('backend-authored property text stays raw while controlled property types a
 
   for (const file of files) {
     const source = read(file)
-    for (const forbidden of ['t(property.title', 't(property.description', 't(property.district']) {
-      assert.equal(source.includes(forbidden), false, `${file} translates backend-authored data`)
+    for (const field of ['title', 'description', 'district']) {
+      // A standalone `t(` call only — not the tail of another identifier.
+      // `resolveLocalizedContent(property.description, …)` is the CORRECT way
+      // to show the backend's own localized description, and ends in the same
+      // characters as the forbidden call.
+      const forbidden = new RegExp(`(^|[^A-Za-z0-9_$.])t\\(property\\.${field}\\b`)
+      assert.equal(forbidden.test(source), false, `${file} translates backend-authored data`)
     }
   }
 

@@ -23,6 +23,7 @@ import {
   capabilityNumeral,
   getService,
   serviceKey,
+  primaryActionKey,
   showsHeroContactCta,
   type ServiceStructure,
 } from '@/features/services/services-data';
@@ -88,6 +89,24 @@ export default function ServiceDetailScreen() {
     });
   };
 
+  /**
+   * The page's call to action. Interior Design and Renovation open their TOOL
+   * (Design My Space, the renovation planner — see `primaryAction`), which
+   * files nothing; every other service opens the Contact form.
+   */
+  const openPrimaryAction = () => {
+    if (!service) return;
+    if (service.primaryAction === 'design-my-space') {
+      router.push('/design-my-space');
+      return;
+    }
+    if (service.primaryAction === 'renovation-planner') {
+      router.push('/renovation-planner');
+      return;
+    }
+    openContact();
+  };
+
   if (!service || !page) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -108,6 +127,15 @@ export default function ServiceDetailScreen() {
 
   const contactHint = t('services.ctaAccessibility', { service: t(serviceKey(service, 'title')) });
 
+  /*
+   * A tool-first service names its own action in the app's words, top and
+   * bottom alike — the CMS button text ("Book a Consultation", "Start Your
+   * Renovation") describes an enquiry, which these buttons no longer are.
+   */
+  const action = service.primaryAction;
+  const actionLabel = action ? t(primaryActionKey(action, 'label')) : null;
+  const actionHint = action ? t(primaryActionKey(action, 'hint')) : contactHint;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Names the destination of Back, not the current page. */}
@@ -117,8 +145,9 @@ export default function ServiceDetailScreen() {
         <ServiceHero
           hero={page.hero}
           service={service}
-          contactHint={contactHint}
-          onContact={openContact}
+          contactHint={actionHint}
+          ctaLabel={actionLabel}
+          onContact={openPrimaryAction}
         />
 
         {/*
@@ -149,10 +178,10 @@ export default function ServiceDetailScreen() {
                   key={section.kind}
                   eyebrow={t('services.ctaEyebrow')}
                   heading={section.heading}
-                  body={section.body}
-                  ctaLabel={section.button}
-                  accessibilityHint={contactHint}
-                  onPress={openContact}
+                  body={action ? t(primaryActionKey(action, 'body')) : section.body}
+                  ctaLabel={actionLabel ?? section.button}
+                  accessibilityHint={actionHint}
+                  onPress={openPrimaryAction}
                   style={styles.cta}
                 />
               );
@@ -171,11 +200,14 @@ function ServiceHero({
   hero,
   service,
   contactHint,
+  ctaLabel = null,
   onContact,
 }: {
   hero: ResolvedServiceHero;
   service: ServiceStructure;
   contactHint: string;
+  /** The app's own label for a tool-first service; otherwise the CMS text. */
+  ctaLabel?: string | null;
   onContact: () => void;
 }) {
   const { t } = useLanguage();
@@ -203,8 +235,8 @@ function ServiceHero({
       {hero.subtitle ? <Text style={[styles.heroSubtitle, { textAlign }]}>{hero.subtitle}</Text> : null}
 
       {/* Off where the service says so (Interior Design): its closing CTA is the one consultation button. */}
-      {hero.ctaPrimary && showsHeroContactCta(service) ? (
-        <Button label={hero.ctaPrimary} onPress={onContact} accessibilityHint={contactHint} style={styles.heroCta} />
+      {(ctaLabel || hero.ctaPrimary) && showsHeroContactCta(service) ? (
+        <Button label={ctaLabel || hero.ctaPrimary} onPress={onContact} accessibilityHint={contactHint} style={styles.heroCta} />
       ) : null}
 
       <View style={[styles.goldRule, { alignSelf: isRTL ? 'flex-end' : 'flex-start' }]} />

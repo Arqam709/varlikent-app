@@ -65,6 +65,23 @@ export async function fetchDesignGenerations(
 }
 
 /** GET /api/design-generations/:id */
+/**
+ * Every visualization this account has (up to `maxPages` × 50), newest first.
+ *
+ * For My Designs, which groups them under their boards on the device: a few
+ * sequential list pages instead of one request per board. The backend caps a
+ * page at 50, and retention (90 days, 20 a day at most) keeps the total small.
+ */
+export async function fetchAllDesignGenerations(token: string, maxPages = 6): Promise<DesignGeneration[]> {
+  const all: DesignGeneration[] = [];
+  for (let page = 1; page <= maxPages; page += 1) {
+    const { generations, hasMore } = await fetchDesignGenerations(token, { page, limit: 50 });
+    all.push(...generations);
+    if (!hasMore) break;
+  }
+  return all;
+}
+
 export async function fetchDesignGeneration(token: string, id: string): Promise<DesignGeneration> {
   return generationOrThrow(await apiRequest<GenerationResponse>(`/design-generations/${id}`, { token }));
 }

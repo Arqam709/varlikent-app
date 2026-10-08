@@ -55,10 +55,6 @@ before(() => {
     '@/features/studio-palette/studio-palette': sp,
     '@/utils/remote-image': remoteImage,
   })
-  serializer = load('src/features/design-my-space/design-board-serializer.ts', {
-    '@/features/design-my-space/design-options': options,
-    '@/features/design-my-space/design-board': db,
-  })
   services = load('src/features/services/services-data.ts')
 
   for (const code of LANGS) {
@@ -215,60 +211,24 @@ const sampleBoard = () =>
     { id: 'dms-message', now: '2026-09-16T10:00:00.000Z' }
   )
 
-test('9. the serialized board carries every part of the brief, on one line', () => {
-  const message = serializer.serializeDesignBoard(sampleBoard(), translate('en'))
-
-  assert.equal(
-    message,
-    'Design Board · Room: Living Room · Style: Warm Modern · Wall: Warm Sand (#e8ddd0) · ' +
-      'Floor: Dark Oak (#4a3728) · Materials: Calacatta Marble, Aged Brass · Lighting: Warm Evening'
-  )
-
-  // The admin inbox and the lead email both collapse newlines, so the message
-  // must not rely on them.
-  assert.equal(/[\r\n]/.test(message), false)
+test('9. a saved board is requested as a design — never as a text message to Contact', () => {
+  const screen = read(SCREEN)
+  // The deliberate step to Varlikent opens the request stage with the board…
+  assert.ok(screen.includes("router.push({ pathname: '/service-request', params: { type: 'interior_design', boardId } })"))
+  // …and only for a board saved to the account.
+  assert.ok(screen.includes('const canRequest = isSaved && isServerDesignBoardId(boardId);'))
+  assert.ok(/disabled=\{!canRequest\}/.test(screen))
+  // The old text-only Contact fallback is gone.
+  assert.equal(screen.includes("'/contact'"), false)
+  assert.equal(fs.existsSync(path.join(ROOT, 'src/features/design-my-space/design-board-serializer.ts')), false)
 })
 
-test('10. it serializes in the user’s language, with the palette’s own names', () => {
-  for (const code of LANGS) {
-    const message = serializer.serializeDesignBoard(sampleBoard(), translate(code))
-
-    assert.ok(message.includes(at(bundles[code], 'designMySpace.rooms.livingRoom')), `${code} room`)
-    assert.ok(message.includes(at(bundles[code], 'designMySpace.lighting.warm')), `${code} lighting`)
-    // Studio Palette has no translations; the names stay as the admin saved them.
-    assert.ok(message.includes('Warm Sand'), `${code} wall name`)
-    assert.ok(message.includes('#4a3728'), `${code} floor colour`)
+test('10. designing, saving and visualizing never file a request by themselves', () => {
+  for (const file of ['src/app/design-my-space.tsx', 'src/app/design-room-photo.tsx']) {
+    const source = read(file)
+    assert.equal(source.includes('submitServiceRequest'), false, `${file} submits a request`)
+    assert.equal(source.includes('sendContactEnquiry'), false, `${file} sends an enquiry`)
   }
-})
-
-test('11. choosing no materials says so, rather than leaving a blank', () => {
-  const board = { ...sampleBoard(), materials: [] }
-  const message = serializer.serializeDesignBoard(board, translate('en'))
-
-  assert.ok(message.includes('Materials: No materials chosen'))
-  assert.equal(/Materials:\s*·/.test(message), false, 'an empty value was rendered')
-  assert.equal(message.includes('undefined'), false)
-})
-
-test('12. the route sends the stable interest id and the board, nothing else', () => {
-  const route = serializer.designConsultationRoute(sampleBoard(), translate('en'))
-
-  assert.equal(route.pathname, '/contact')
-  assert.deepEqual(Object.keys(route.params).sort(), ['interestType', 'message'])
-  assert.equal(route.params.interestType, 'interior_design')
-
-  // Never a display label, never a palette value.
-  assert.notEqual(route.params.interestType, 'Interior Design')
-  assert.equal(route.params.interestType.includes('#'), false)
-
-  for (const part of ['Room:', 'Style:', 'Wall:', 'Floor:', 'Materials:', 'Lighting:']) {
-    assert.ok(route.params.message.includes(part), `the message has no ${part}`)
-  }
-})
-
-test('13. the interest is the SAME one the Interior Design page already sends', () => {
-  const service = services.getService('interior-design')
-  assert.equal(serializer.DESIGN_CONSULTATION_INTEREST, service.contactInterestId)
 })
 
 test('14. the Contact screen seeds the message once and never overwrites typing', () => {
@@ -305,7 +265,8 @@ test('16. all six steps are rendered by the one screen', () => {
   // One route for the six steps, not six — plus the separate room-photo step.
   assert.deepEqual(
     fs.readdirSync(path.join(ROOT, 'src/app')).filter((name) => name.startsWith('design')),
-    ['design-my-space.tsx', 'design-room-photo.tsx']
+    // …and My Designs (Account), the list of saved boards with their visualizations.
+    ['design-my-space.tsx', 'design-room-photo.tsx', 'designs.tsx']
   )
 })
 
@@ -442,7 +403,8 @@ test('23. a visitor who is not signed in gets the sign-in gate and nothing else'
   // The route renders exactly two things: the boards for a signed-in owner,
   // or the gate. There is no third, signed-out way in.
   assert.ok(route.includes("if (access.state === 'signed-in') {"))
-  assert.ok(route.includes('<DesignMySpaceBoards key={access.owner.userId} owner={access.owner} />'))
+  // `requestedBoardId` lets My Varlikent reopen one saved board directly.
+  assert.ok(route.includes('<DesignMySpaceBoards key={access.owner.userId} owner={access.owner} requestedBoardId={requestedBoardId} />'))
   assert.ok(route.includes("<DesignMySpaceGate restoring={access.state === 'restoring'} onBack={leaveDesignMySpace} />"))
   assert.equal((screen.match(/<DesignMySpaceBoards\b/g) ?? []).length, 1, 'the boards render from somewhere unguarded')
 
@@ -459,7 +421,8 @@ test('23. a visitor who is not signed in gets the sign-in gate and nothing else'
 
   // Every board operation needs an owner, which only a signed-in session has.
   const boards = screenFunction(screen, 'DesignMySpaceBoards')
-  assert.ok(boards.includes('{ owner }: { owner: DesignBoardOwner }'))
+  // The owner is still required; the one addition is the optional board to open.
+  assert.ok(/owner: DesignBoardOwner;\s*requestedBoardId\?: string \| null;/.test(boards))
 })
 
 test('23b. access: restoring is not signed out, and only a complete session is signed in', () => {

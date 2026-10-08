@@ -1,3 +1,4 @@
+import { normalizePropertyDetail } from '@/features/properties/property-detail';
 import { ApiError, apiRequest } from '@/services/api-client';
 import type {
   ListingType,
@@ -140,5 +141,7 @@ export async function getPropertyById(id: string): Promise<PropertyDetail> {
     throw new ApiError('unknown', 'This property could not be found.');
   }
 
-  return response.property;
+  // The raw body is not the app's model: `description` is localized content
+  // that may arrive as a string or a per-language object. See property-detail.
+  return normalizePropertyDetail(response.property);
 }

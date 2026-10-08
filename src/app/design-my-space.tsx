@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +32,6 @@ import {
   type DesignBoard,
   type DesignDraft,
 } from '@/features/design-my-space/design-board';
-import { designConsultationRoute } from '@/features/design-my-space/design-board-serializer';
 import {
   deleteDesignBoardFor,
   designBoardSaveErrorKey,
@@ -119,8 +118,16 @@ export default function DesignMySpaceScreen() {
   // changes when the account or its token actually does.
   const access = useMemo(() => designMySpaceAccess(status, userId, token), [status, userId, token]);
 
+  /**
+   * `?boardId=` opens one saved board directly — how My Varlikent → My Designs
+   * (and a visualization's "open design") reopen a board. Absent, the screen
+   * starts on its landing view exactly as before.
+   */
+  const params = useLocalSearchParams<{ boardId?: string }>();
+  const requestedBoardId = typeof params.boardId === 'string' && params.boardId ? params.boardId : null;
+
   if (access.state === 'signed-in') {
-    return <DesignMySpaceBoards key={access.owner.userId} owner={access.owner} />;
+    return <DesignMySpaceBoards key={access.owner.userId} owner={access.owner} requestedBoardId={requestedBoardId} />;
   }
 
   return <DesignMySpaceGate restoring={access.state === 'restoring'} onBack={leaveDesignMySpace} />;
@@ -132,16 +139,28 @@ export default function DesignMySpaceScreen() {
  * underneath (the normal case), and replaces this screen with it when Design
  * My Space was opened without that history.
  */
-function useLeaveDesignMySpace() {
+function useLeaveDesignMySpace(openedDirectly = false) {
   const router = useRouter();
   return useCallback(() => {
+    // A board opened directly from My Varlikent returns there, not to the
+    // Interior Design page the customer never came from.
+    if (openedDirectly && router.canGoBack()) {
+      router.back();
+      return;
+    }
     router.dismissTo(DESIGN_MY_SPACE_EXIT_HREF);
-  }, [router]);
+  }, [router, openedDirectly]);
 }
 
 /* ─────────────────────────── Signed in ─────────────────────────── */
 
-function DesignMySpaceBoards({ owner }: { owner: DesignBoardOwner }) {
+function DesignMySpaceBoards({
+  owner,
+  requestedBoardId = null,
+}: {
+  owner: DesignBoardOwner;
+  requestedBoardId?: string | null;
+}) {
   const styles = useThemedStyles(makeStyles);
   const { t } = useLanguage();
   const { theme } = useTheme();
@@ -201,7 +220,7 @@ function DesignMySpaceBoards({ owner }: { owner: DesignBoardOwner }) {
 
   /* ── Movement ───────────────────────────────────────────────────────── */
 
-  const leaveDesignMySpace = useLeaveDesignMySpace();
+  const leaveDesignMySpace = useLeaveDesignMySpace(requestedBoardId !== null);
 
   /**
    * THE Back handler. Every back control calls this and nothing else, so the
@@ -363,11 +382,36 @@ function DesignMySpaceBoards({ owner }: { owner: DesignBoardOwner }) {
     router.push({ pathname: '/design-room-photo', params: { boardId } });
   };
 
-  const handleConsultation = () => {
+  /**
+   * "Request this design" — the deliberate step from a design to Varlikent.
+   *
+   * Designing, saving and visualizing file nothing. This opens the request
+   * stage with the saved board (the server checks ownership and snapshots its
+   * choices). A board not yet saved to the account cannot be referenced, so
+   * the button waits for Save rather than falling back to a text-only enquiry.
+   */
+  const canRequest = isSaved && isServerDesignBoardId(boardId);
+  const handleRequestDesign = () => {
     if (!board) return;
-    // push, so Back from Contact returns to the board.
-    router.push(designConsultationRoute(board, (key, values) => t(key, values)));
+    if (!canRequest) return;
+    router.push({ pathname: '/service-request', params: { type: 'interior_design', boardId } });
   };
+
+  /**
+   * Opens the board the route asked for, once the list containing it is loaded.
+   * Once only: after that the customer is free to move around the feature.
+   * `openBoard` is read through a ref because it is recreated every render.
+   */
+  const openedRequestedRef = useRef(false);
+  const openBoardRef = useRef(openBoard);
+  openBoardRef.current = openBoard;
+  useEffect(() => {
+    if (!requestedBoardId || openedRequestedRef.current) return;
+    const requested = boards.find((item) => item.id === requestedBoardId);
+    if (!requested) return;
+    openedRequestedRef.current = true;
+    openBoardRef.current(requested);
+  }, [boards, requestedBoardId]);
 
   /* ── Views ──────────────────────────────────────────────────────────── */
 
@@ -502,11 +546,15 @@ function DesignMySpaceBoards({ owner }: { owner: DesignBoardOwner }) {
 
             <View style={styles.boardActions}>
               <Button
-                label={t('designMySpace.requestConsultation')}
-                onPress={handleConsultation}
-                accessibilityHint={t('designMySpace.requestConsultationA11y')}
+                label={t('designMySpace.visualize.requestThisDesign')}
+                onPress={handleRequestDesign}
+                disabled={!canRequest}
+                accessibilityHint={t('designMySpace.visualize.requestThisDesignA11y')}
                 style={styles.stretch}
               />
+              {!canRequest ? (
+                <Text style={[styles.muted, { textAlign }]}>{t('designMySpace.saveToRequest')}</Text>
+              ) : null}
               <Button
                 label={isSaved ? t('designMySpace.savedLabel') : t('designMySpace.save')}
                 variant="secondary"

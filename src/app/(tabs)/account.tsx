@@ -131,6 +131,12 @@ export default function AccountScreen() {
           />
         </SettingsSection>
 
+        {/*
+          What this customer has saved, created and submitted — one row per
+          concept, each opening its own list directly. Starting something new
+          (designing a room, planning a renovation) belongs to the service
+          pages, never here.
+        */}
         <SettingsSection title={t('account.sectionActivity')}>
           <SettingsRow
             label={t('favourites.title')}
@@ -146,6 +152,16 @@ export default function AccountScreen() {
             label={t('account.notifications')}
             icon="sparkles-outline"
             onPress={() => router.push('/notifications')}
+          />
+          <SettingsRow
+            label={t('designs.title')}
+            icon="color-palette-outline"
+            onPress={() => router.push('/designs')}
+          />
+          <SettingsRow
+            label={t('requests.title')}
+            icon="document-text-outline"
+            onPress={() => router.push('/requests')}
             isLast
           />
         </SettingsSection>

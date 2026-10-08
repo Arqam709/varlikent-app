@@ -8,22 +8,9 @@ import {
 import { ApiError, apiRequest } from '@/services/api-client';
 import { apiUpload, appendFile, type UploadFile } from '@/services/api-upload';
 
-/**
- * ROOM PHOTO ENDPOINTS — network only.
- *
- * Every call carries the signed-in user's token; the backend scopes each query
- * by the authenticated id, so a photo id that belongs to someone else is a 404.
- */
-
 type PhotoResponse = { success: true; photo?: unknown };
 type PhotosResponse = { success: true; photos?: unknown };
 
-/**
- * GET /api/design-room-photos — this user's ready room photos, newest first.
- *
- * Exists so a photo from an earlier visit can be found again, reused or
- * deleted; it is not a gallery. Unreadable entries are skipped.
- */
 export async function fetchRoomPhotos(token: string): Promise<RoomPhoto[]> {
   const response = await apiRequest<PhotosResponse>('/design-room-photos', { token });
   if (!Array.isArray(response?.photos)) {
@@ -38,13 +25,6 @@ function photoOrThrow(response: PhotoResponse | null): RoomPhoto {
   return photo;
 }
 
-/**
- * POST /api/design-room-photos
- *
- * `consentVersion` is appended BEFORE the photo: the backend checks consent as
- * the file part begins, so a request without it is refused before any photo
- * bytes are accepted. Callers only reach this after the user ticked consent.
- */
 export async function uploadRoomPhoto(token: string, file: UploadFile): Promise<RoomPhoto> {
   const form = new FormData();
   form.append(ROOM_PHOTO_FORM_FIELDS.consent, ROOM_PHOTO_CONSENT_VERSION);

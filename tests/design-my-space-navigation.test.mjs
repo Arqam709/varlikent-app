@@ -151,9 +151,16 @@ test('4 & 10. header, hardware Back, the step Back button and the exit link shar
   assert.equal(/goBack\(|handleHeaderBack/.test(screen), false, 'an older, divergent back path remains')
   assert.equal(/setStepIndex\(DESIGN_STEPS\.length - 1\)/.test(screen), false, 'the board can still step back to Lighting')
 
-  // Leaving always goes to the same place.
+  // Leaving goes to ONE place, decided in ONE function: the Interior Design
+  // page — except when a board was opened directly from My Varlikent, where
+  // the customer is returned to the list they came from. Both branches live
+  // in useLeaveDesignMySpace and nowhere else.
   assert.equal((screen.match(/router\.dismissTo\(DESIGN_MY_SPACE_EXIT_HREF\)/g) ?? []).length, 1)
-  assert.equal(/router\.(back|replace)\(/.test(screen), false, 'an exit path skips the shared destination')
+  assert.equal((screen.match(/router\.back\(/g) ?? []).length, 1, 'an extra exit path appeared')
+  assert.equal(/router\.replace\(/.test(screen), false, 'an exit path skips the shared destination')
+  const leave = screen.slice(screen.indexOf('function useLeaveDesignMySpace'), screen.indexOf('/* ─', screen.indexOf('function useLeaveDesignMySpace')))
+  assert.ok(leave.includes('router.back()') && leave.includes('openedDirectly && router.canGoBack()'),
+    'returning to My Varlikent is not confined to a board opened directly')
 })
 
 test('10b. hardware Back is only intercepted while the screen is focused', () => {
@@ -188,12 +195,12 @@ test('board action hierarchy: one primary, two secondary, two light links', () =
   const screen = read(SCREEN)
   const boardBlock = screen.slice(screen.indexOf("{screen === 'board' && board ?"), screen.indexOf('function StepOptions'))
 
-  // Request Consultation (primary), Save Design and Visualize in My Room (secondary).
+  // Request This Design (primary), Save Design and Visualize in My Room (secondary).
   assert.equal((boardBlock.match(/<Button\b/g) ?? []).length, 3, 'the board should have exactly three buttons')
   assert.ok(boardBlock.indexOf("t('designMySpace.save')") < boardBlock.indexOf("t('designMySpace.roomPhoto.visualizeCta')"), 'Visualize must follow Save')
   assert.ok(/label=\{t\('designMySpace\.roomPhoto\.visualizeCta'\)\}\s*variant="secondary"/.test(boardBlock), 'Visualize must not compete with the primary action')
-  assert.ok(boardBlock.indexOf("requestConsultation')") < boardBlock.indexOf("t('designMySpace.save')"), 'Request Consultation must lead')
-  assert.equal(/<Button[^>]*requestConsultation[^>]*variant="secondary"/s.test(boardBlock), false)
+  assert.ok(boardBlock.indexOf("requestThisDesign')") < boardBlock.indexOf("t('designMySpace.save')"), 'Request This Design must lead')
+  assert.equal(/<Button[^>]*requestThisDesign'\)[^>]*variant="secondary"/s.test(boardBlock), false)
   assert.ok(/label=\{isSaved \? t\('designMySpace\.savedLabel'\) : t\('designMySpace\.save'\)\}\s*variant="secondary"/.test(boardBlock))
   assert.ok(boardBlock.indexOf("t('designMySpace.edit')") < boardBlock.indexOf("t('designMySpace.backToService')"))
 })

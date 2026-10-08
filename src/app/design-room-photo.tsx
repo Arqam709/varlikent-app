@@ -120,6 +120,7 @@ function RoomPhotoFlow({
   const { theme } = useTheme();
   const { row, textAlign } = useDirection();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const [stage, setStage] = useState<Stage>({ name: 'choose' });
   const [consented, setConsented] = useState(false);
@@ -534,6 +535,24 @@ function RoomPhotoFlow({
                           style={styles.stretch}
                         />
                         <Text style={[styles.muted, { textAlign }]}>{t('designMySpace.visualize.conceptNote')}</Text>
+
+                        {/*
+                          "I have a concept — now make it real." Opens an
+                          Interior Design request that carries this exact
+                          board and visualization; the server re-checks both
+                          belong to this customer and keeps its own copies.
+                        */}
+                        <Button
+                          label={t('designMySpace.visualize.requestThisDesign')}
+                          onPress={() =>
+                            router.push({
+                              pathname: '/service-request',
+                              params: { type: 'interior_design', boardId, generationId: watched.id },
+                            })
+                          }
+                          accessibilityHint={t('designMySpace.visualize.requestThisDesignA11y')}
+                          style={styles.stretch}
+                        />
                       </>
                     ) : null}
 

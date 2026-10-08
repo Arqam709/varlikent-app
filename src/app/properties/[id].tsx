@@ -30,6 +30,8 @@ import {
 } from '@/utils/property-labels';
 import { buildPropertyShareMessage, buildPropertyUrl } from '@/utils/property-share';
 import { useLanguage } from '@/features/localization/language-context';
+import { resolveLocalizedContent } from '@/features/localization/localized-content';
+import { useDirection } from '@/features/localization/use-direction';
 import { useTheme } from '@/features/theme/theme-context';
 import { useThemedStyles } from '@/features/theme/use-themed-styles';
 import type { ThemePalette } from '@/features/theme/themes';
@@ -304,15 +306,24 @@ function Specs({ property }: { property: PropertyDetail }) {
 }
 
 function Description({ property }: { property: PropertyDetail }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { textAlign } = useDirection();
   const styles = useThemedStyles(makeStyles);
-  const text = property.description?.trim();
+
+  /*
+   * Localized admin content, resolved in the reader's language and falling back
+   * requested → English → the admin's own language → any language — the same
+   * chain as the website's localizedText. A legacy plain-string description
+   * resolves to itself. Anything unusable resolves to '' and the section is
+   * simply left out, so one optional field can never take the screen down.
+   */
+  const text = resolveLocalizedContent(property.description, language);
   if (!text) return null;
 
   return (
     <Section title={t('propertyDetails.about')}>
-      {/* Verified plain text on the live data — no HTML to strip. */}
-      <Text style={styles.body}>{text}</Text>
+      {/* Plain text — no HTML to strip. Aligned to the reading direction. */}
+      <Text style={[styles.body, { textAlign }]}>{text}</Text>
     </Section>
   );
 }

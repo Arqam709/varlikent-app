@@ -5,6 +5,8 @@
  * Type declarations only — erased at build time, no runtime cost.
  */
 
+import type { LocalizedContent } from '@/features/localization/localized-content';
+
 /** Backend enum: `['Sale', 'Rent']`. */
 export type ListingType = 'Sale' | 'Rent';
 
@@ -202,7 +204,14 @@ export interface PropertyAgent {
  */
 export interface PropertyDetail extends PropertySummary {
   address?: string;
-  description?: string;
+  /**
+   * Admin-written, localized by the backend at save time — so NOT a string:
+   * either a legacy plain string (listings saved before localization) or a
+   * `{ sourceLang, en, tr, ar, de, ru, ur }` object. Normalized to exactly that
+   * by normalizePropertyDetail, and resolved to the current language with
+   * resolveLocalizedContent when rendered. null when there is no description.
+   */
+  description?: LocalizedContent | null;
   rooms?: string;
   floor?: number;
   totalFloors?: number;

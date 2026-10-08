@@ -125,8 +125,17 @@ test('the screen reads the shared content source per service and per language', 
 test('the Contact CTAs still send the service’s stable Contact interest id', () => {
   const screen = read(SCREEN)
   assert.ok(/router\.push\(\{\s*pathname: '\/contact',\s*params: \{ interestType: service\.contactInterestId \},?\s*\}\)/.test(screen))
-  assert.equal((screen.match(/onPress=\{openContact\}/g) ?? []).length, 1, 'the closing CTA')
-  assert.ok(screen.includes('onContact={openContact}'), 'the hero CTA')
+  // Both CTAs go through the page's primary action: the service's own TOOL
+  // where it declares one (Design My Space, the renovation planner — neither
+  // files anything), and exactly the Contact form above for every other one.
+  assert.equal((screen.match(/onPress=\{openPrimaryAction\}/g) ?? []).length, 1, 'the closing CTA')
+  assert.ok(screen.includes('onContact={openPrimaryAction}'), 'the hero CTA')
+  const primary = screen.slice(screen.indexOf('const openPrimaryAction'), screen.indexOf('};', screen.indexOf('const openPrimaryAction')))
+  assert.ok(primary.includes("router.push('/design-my-space')"), 'Interior Design does not open its tool')
+  assert.ok(primary.includes("router.push('/renovation-planner')"), 'Renovation does not open its planner')
+  assert.ok(primary.includes('openContact();'), 'services without a tool no longer fall back to Contact')
+  // No service page opens the request stage directly any more.
+  assert.equal(screen.includes('/service-request'), false)
 })
 
 test('the screen follows reading direction and theme tokens', () => {

@@ -69,14 +69,35 @@ export type ServiceStructure = {
    * repetition rather than emphasis.
    */
   heroContactCta?: boolean;
+  /**
+   * What this page's call-to-action lets the customer DO, instead of opening
+   * the Contact form.
+   *
+   *   design-my-space     Interior Design → design a room (app/design-my-space)
+   *   renovation-planner  Renovation → plan the work (app/renovation-planner)
+   *
+   * Both are tools, not enquiries: using them files nothing. A request to
+   * Varlikent is a separate, explicit step taken FROM a finished design or
+   * plan ("Request this design", "Request renovation from Varlikent").
+   *
+   * One action per page, named by the app — top and bottom buttons say the
+   * same thing, so the page never implies two different features.
+   */
+  primaryAction?: 'design-my-space' | 'renovation-planner';
 };
 
 export const SERVICES: ServiceStructure[] = [
   { id: 'architecture', translationKey: 'architecture', icon: 'compass-outline', contactInterestId: 'architecture' },
   { id: 'construction', translationKey: 'construction', icon: 'construct-outline', contactInterestId: 'construction' },
-  { id: 'renovation', translationKey: 'renovation', icon: 'hammer-outline', contactInterestId: 'renovation' },
-  { id: 'interior-design', translationKey: 'interiorDesign', icon: 'color-palette-outline', contactInterestId: 'interior_design', feature: 'design-my-space', heroContactCta: false },
+  { id: 'renovation', translationKey: 'renovation', icon: 'hammer-outline', contactInterestId: 'renovation', primaryAction: 'renovation-planner' },
+  { id: 'interior-design', translationKey: 'interiorDesign', icon: 'color-palette-outline', contactInterestId: 'interior_design', feature: 'design-my-space', heroContactCta: false, primaryAction: 'design-my-space' },
 ];
+
+/** Translation keys for a primary action's own label, closing-band body and hint. */
+export const primaryActionKey = (
+  action: NonNullable<ServiceStructure['primaryAction']>,
+  field: 'label' | 'body' | 'hint'
+): string => `services.primaryActions.${action === 'design-my-space' ? 'designMySpace' : 'renovationPlanner'}.${field}`;
 
 export const getService = (id: string | undefined): ServiceStructure | undefined =>
   SERVICES.find((service) => service.id === id);
