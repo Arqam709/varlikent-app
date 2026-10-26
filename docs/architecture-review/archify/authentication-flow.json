@@ -1,0 +1,366 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Varlikent Authentication and Permission Flow",
+    "output": "docs/architecture-review/authentication-flow.html",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [
+      1085,
+      700
+    ],
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    }
+  },
+  "participants": [
+    {
+      "id": "person",
+      "type": "external",
+      "label": "Person",
+      "sublabel": "untrusted input"
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Web or mobile",
+      "sublabel": "stores the JWT",
+      "sources": [
+        {
+          "path": "frontend/src/contexts/AuthContext.jsx",
+          "line": 45,
+          "end_line": 67,
+          "label": "store token + user"
+        },
+        {
+          "path": "frontend/src/lib/api.js",
+          "line": 9,
+          "end_line": 15,
+          "label": "attach Bearer token"
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.jsx",
+          "line": 112,
+          "end_line": 119,
+          "label": "Google access token"
+        }
+      ]
+    },
+    {
+      "id": "idp",
+      "type": "security",
+      "label": "Google, Microsoft",
+      "sublabel": "identity provider",
+      "sources": [
+        {
+          "path": "backend/services/googleAuth.js",
+          "line": 318,
+          "end_line": 346,
+          "label": "Google ID token check"
+        },
+        {
+          "path": "backend/routes/auth.js",
+          "line": 35,
+          "end_line": 73,
+          "label": "Microsoft JWKS check"
+        }
+      ]
+    },
+    {
+      "id": "authRoutes",
+      "type": "backend",
+      "label": "/api/auth",
+      "sublabel": "routes/auth.js",
+      "sources": [
+        {
+          "path": "backend/routes/auth.js",
+          "line": 108,
+          "end_line": 139,
+          "label": "password login"
+        },
+        {
+          "path": "backend/routes/auth.js",
+          "line": 250,
+          "end_line": 303,
+          "label": "Google login"
+        },
+        {
+          "path": "backend/routes/auth.js",
+          "line": 329,
+          "end_line": 403,
+          "label": "Microsoft login"
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "type": "security",
+      "label": "Auth guards",
+      "sublabel": "protect, role checks",
+      "sources": [
+        {
+          "path": "backend/middleware/auth.js",
+          "line": 4,
+          "end_line": 31,
+          "label": "userFromToken + protect"
+        },
+        {
+          "path": "backend/middleware/checkPermission.js",
+          "line": 1,
+          "end_line": 20,
+          "label": "role + permission"
+        },
+        {
+          "path": "backend/realtime/socket.js",
+          "line": 53,
+          "end_line": 78,
+          "label": "socket handshake"
+        }
+      ]
+    },
+    {
+      "id": "route",
+      "type": "backend",
+      "label": "Protected route",
+      "sublabel": "handler",
+      "sources": [
+        {
+          "path": "backend/routes/properties.js",
+          "line": 1015,
+          "end_line": 1019,
+          "label": "guard chain example"
+        },
+        {
+          "path": "backend/routes/agent.js",
+          "line": 9,
+          "label": "agent-only router"
+        }
+      ]
+    },
+    {
+      "id": "users",
+      "type": "database",
+      "label": "users",
+      "sublabel": "MongoDB collection",
+      "sources": [
+        {
+          "path": "backend/models/User.js",
+          "line": 4,
+          "end_line": 13,
+          "label": "role enum"
+        },
+        {
+          "path": "backend/models/User.js",
+          "line": 88,
+          "end_line": 95,
+          "label": "bcrypt hash + compare"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 166,
+      "to": 302,
+      "label": "1. Password"
+    },
+    {
+      "from": 316,
+      "to": 480,
+      "label": "2. Google or Microsoft"
+    },
+    {
+      "from": 494,
+      "to": 602,
+      "label": "3. Every protected request"
+    }
+  ],
+  "messages": [
+    {
+      "id": "type-credentials",
+      "from": "person",
+      "to": "client",
+      "y": 180,
+      "label": "email, password"
+    },
+    {
+      "id": "post-login",
+      "from": "client",
+      "to": "authRoutes",
+      "y": 208,
+      "label": "POST /auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "id": "find-email",
+      "from": "authRoutes",
+      "to": "users",
+      "y": 236,
+      "label": "findOne({ email })"
+    },
+    {
+      "id": "hash-back",
+      "from": "users",
+      "to": "authRoutes",
+      "y": 264,
+      "label": "user, bcrypt hash",
+      "variant": "return"
+    },
+    {
+      "id": "jwt-back",
+      "from": "authRoutes",
+      "to": "client",
+      "y": 292,
+      "label": "JWT (7 days) + user",
+      "variant": "return",
+      "note": "signToken puts only the user id in the token. Role is read from MongoDB on every request."
+    },
+    {
+      "id": "oauth",
+      "from": "client",
+      "to": "idp",
+      "y": 330,
+      "label": "OAuth sign-in"
+    },
+    {
+      "id": "provider-token",
+      "from": "idp",
+      "to": "client",
+      "y": 358,
+      "label": "provider token",
+      "variant": "return"
+    },
+    {
+      "id": "post-social",
+      "from": "client",
+      "to": "authRoutes",
+      "y": 386,
+      "label": "POST /auth/google or /microsoft",
+      "variant": "emphasis"
+    },
+    {
+      "id": "verify",
+      "from": "authRoutes",
+      "to": "idp",
+      "y": 414,
+      "label": "verify token",
+      "variant": "security",
+      "note": "Google: signature, audience allowlist and email_verified. Microsoft: signature and issuer, 4-hour clock tolerance."
+    },
+    {
+      "id": "link-create",
+      "from": "authRoutes",
+      "to": "users",
+      "y": 442,
+      "label": "find, link or create user"
+    },
+    {
+      "id": "jwt-back-social",
+      "from": "authRoutes",
+      "to": "client",
+      "y": 470,
+      "label": "same Varlikent JWT",
+      "variant": "return"
+    },
+    {
+      "id": "bearer",
+      "from": "client",
+      "to": "guard",
+      "y": 508,
+      "label": "Authorization: Bearer JWT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "load-user",
+      "from": "guard",
+      "to": "users",
+      "y": 536,
+      "label": "findById, isActive?",
+      "variant": "security"
+    },
+    {
+      "id": "set-user",
+      "from": "guard",
+      "to": "route",
+      "y": 564,
+      "label": "req.user",
+      "note": "requireRole and requirePermission run next. Owner passes every permission check."
+    },
+    {
+      "id": "response",
+      "from": "route",
+      "to": "client",
+      "y": 592,
+      "label": "200 JSON, or 401 / 403",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "authRoutes",
+      "from": 208,
+      "to": 292,
+      "type": "backend"
+    },
+    {
+      "participant": "authRoutes",
+      "from": 386,
+      "to": 470,
+      "type": "backend"
+    },
+    {
+      "participant": "guard",
+      "from": 508,
+      "to": 564,
+      "type": "security"
+    },
+    {
+      "participant": "route",
+      "from": 564,
+      "to": 592,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Trust boundaries",
+      "items": [
+        "Person and client are untrusted: the web keeps the JWT in localStorage, the app in SecureStore",
+        "The only thing the backend trusts is a JWT it signed with JWT_SECRET",
+        "ProtectedRoute in the browser is UX; protect() is the real boundary",
+        "Socket.IO sends the same JWT in handshake.auth.token and may join only room user:<id>"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Who may do what",
+      "items": [
+        "Roles: owner, admin, agent, user. One role per account",
+        "Admins need a named permission per area; owner bypasses permission checks",
+        "Agents get /api/agent and their own conversations, never /admin"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Security concerns found in code",
+      "items": [
+        "Microsoft login matches accounts by preferred_username, an unverified, tenant-controlled claim",
+        "No rate limit on login, register, forgot-password or reset-password",
+        "Logout does not revoke the token; a stolen JWT works for up to 7 days",
+        "Minimum password length is 6; code reads MICROSOFT_CLIENT_ID but .env.example documents MS_CLIENT_ID"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "What is done well",
+      "items": [
+        "Google tokens are checked against an audience allowlist before any lookup",
+        "A deactivated account fails on HTTP and on the socket through the same userFromToken",
+        "Reset tokens are stored hashed and expire after one hour"
+      ]
+    }
+  ]
+}

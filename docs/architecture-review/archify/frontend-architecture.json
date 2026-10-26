@@ -1,0 +1,545 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Varlikent Web Frontend",
+    "output": "docs/architecture-review/frontend-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    },
+    "views": [
+      {
+        "id": "visitor",
+        "label": "Visitor browsing",
+        "focus": [
+          "browser",
+          "entry",
+          "router",
+          "publicPages",
+          "chat",
+          "apiClient",
+          "backend"
+        ],
+        "note": "Public pages need no login. The chatbot widget is mounted by PublicLayout on every public page."
+      },
+      {
+        "id": "admin",
+        "label": "Admin opens the dashboard",
+        "focus": [
+          "router",
+          "guard",
+          "auth",
+          "admin",
+          "apiClient",
+          "backend"
+        ],
+        "note": "ProtectedRoute checks role flags from AuthContext; the backend re-checks every call."
+      },
+      {
+        "id": "agent",
+        "label": "Agent reads the inbox",
+        "focus": [
+          "router",
+          "guard",
+          "agent",
+          "realtime",
+          "apiClient",
+          "backend"
+        ],
+        "note": "REST loads and sends messages; the socket only tells the page that something new arrived."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Browser",
+      "sublabel": "www.varlikent.com",
+      "pos": [
+        40,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "entry",
+      "type": "frontend",
+      "label": "main.jsx",
+      "sublabel": "entry, provider tree",
+      "pos": [
+        280,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/main.jsx",
+          "line": 38,
+          "end_line": 60,
+          "label": "provider order"
+        },
+        {
+          "path": "frontend/index.html",
+          "line": 1,
+          "end_line": 20,
+          "label": "HTML shell"
+        }
+      ]
+    },
+    {
+      "id": "prefs",
+      "type": "frontend",
+      "label": "Language and theme",
+      "sublabel": "contexts, localStorage",
+      "pos": [
+        280,
+        280
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/contexts/LanguageContext.jsx",
+          "line": 119,
+          "end_line": 124,
+          "label": "lang + RTL dir"
+        },
+        {
+          "path": "frontend/src/contexts/ThemeContext.jsx",
+          "line": 98,
+          "end_line": 125,
+          "label": "data-theme + sync"
+        }
+      ]
+    },
+    {
+      "id": "router",
+      "type": "frontend",
+      "label": "App.jsx router",
+      "sublabel": "React Router, 42 routes",
+      "pos": [
+        520,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/App.jsx",
+          "line": 56,
+          "end_line": 128,
+          "label": "route table"
+        }
+      ]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "AuthContext",
+      "sublabel": "user, token, role flags",
+      "pos": [
+        1000,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/contexts/AuthContext.jsx",
+          "line": 11,
+          "end_line": 51,
+          "label": "restore + store session"
+        },
+        {
+          "path": "frontend/src/contexts/AuthContext.jsx",
+          "line": 142,
+          "end_line": 165,
+          "label": "role flags"
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "type": "security",
+      "label": "ProtectedRoute",
+      "sublabel": "UX guard, fails closed",
+      "pos": [
+        760,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/components/ProtectedRoute.jsx",
+          "line": 21,
+          "end_line": 46,
+          "label": "role guard map"
+        }
+      ]
+    },
+    {
+      "id": "publicPages",
+      "type": "frontend",
+      "label": "Public pages",
+      "sublabel": "home, listings, services",
+      "pos": [
+        520,
+        280
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/App.jsx",
+          "line": 66,
+          "end_line": 82,
+          "label": "public routes"
+        },
+        {
+          "path": "frontend/src/components/PublicLayout.jsx",
+          "line": 7,
+          "end_line": 32,
+          "label": "navbar, footer, chatbot"
+        }
+      ]
+    },
+    {
+      "id": "agent",
+      "type": "frontend",
+      "label": "Agent portal",
+      "sublabel": "/agent, role agent only",
+      "pos": [
+        1000,
+        280
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/App.jsx",
+          "line": 107,
+          "end_line": 120,
+          "label": "agent routes"
+        },
+        {
+          "path": "frontend/src/pages/AgentMessages.jsx",
+          "line": 1,
+          "end_line": 30,
+          "label": "inbox page"
+        }
+      ]
+    },
+    {
+      "id": "admin",
+      "type": "frontend",
+      "label": "Admin portal",
+      "sublabel": "/admin, admin or owner",
+      "pos": [
+        760,
+        280
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/App.jsx",
+          "line": 85,
+          "end_line": 100,
+          "label": "admin routes"
+        },
+        {
+          "path": "frontend/src/components/AdminLayout.jsx",
+          "line": 51,
+          "end_line": 89,
+          "label": "permission-gated nav"
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "type": "frontend",
+      "label": "ChatContext",
+      "sublabel": "chatbot state per page",
+      "pos": [
+        520,
+        450
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/contexts/ChatContext.jsx",
+          "line": 405,
+          "end_line": 464,
+          "label": "sendMessage"
+        },
+        {
+          "path": "frontend/src/components/AIChatbot.jsx",
+          "line": 291,
+          "end_line": 297,
+          "label": "widget send"
+        }
+      ]
+    },
+    {
+      "id": "realtime",
+      "type": "messagebus",
+      "label": "RealtimeContext",
+      "sublabel": "socket.io, agents only",
+      "pos": [
+        1000,
+        450
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/contexts/RealtimeContext.jsx",
+          "line": 76,
+          "end_line": 125,
+          "label": "connect / disconnect"
+        },
+        {
+          "path": "frontend/src/lib/socket.js",
+          "line": 52,
+          "end_line": 64,
+          "label": "createSocket"
+        }
+      ]
+    },
+    {
+      "id": "apiClient",
+      "type": "frontend",
+      "label": "axios API client",
+      "sublabel": "lib/api.js adds Bearer token from localStorage",
+      "pos": [
+        280,
+        620
+      ],
+      "size": [
+        630,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/lib/api.js",
+          "line": 3,
+          "end_line": 15,
+          "label": "interceptor"
+        },
+        {
+          "path": "frontend/src/lib/propertyMessagingApi.js",
+          "line": 20,
+          "label": "one feature API module"
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "type": "backend",
+      "label": "Varlikent Express API",
+      "sublabel": "VITE_API_URL, same backend as the mobile app",
+      "pos": [
+        280,
+        790
+      ],
+      "size": [
+        870,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/server.js",
+          "line": 61,
+          "end_line": 108,
+          "label": "/api routers"
+        },
+        {
+          "path": "backend/config/origins.js",
+          "line": 65,
+          "end_line": 67,
+          "label": "allowed origins"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "load",
+      "from": "browser",
+      "to": "entry",
+      "label": "loads SPA",
+      "variant": "emphasis"
+    },
+    {
+      "id": "wrap",
+      "from": "entry",
+      "to": "prefs",
+      "label": "wraps app",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "render",
+      "from": "entry",
+      "to": "router",
+      "label": "renders",
+      "variant": "emphasis"
+    },
+    {
+      "id": "guarded",
+      "from": "router",
+      "to": "guard",
+      "label": "guarded",
+      "variant": "security"
+    },
+    {
+      "id": "open",
+      "from": "router",
+      "to": "publicPages",
+      "label": "no guard",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "role-check",
+      "from": "guard",
+      "to": "auth",
+      "label": "useAuth()",
+      "variant": "security"
+    },
+    {
+      "id": "to-admin",
+      "from": "guard",
+      "to": "admin",
+      "label": "isAdmin",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "to-agent",
+      "from": "guard",
+      "to": "agent",
+      "label": "isAgent",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "widget",
+      "from": "publicPages",
+      "to": "chat",
+      "label": "AIChatbot",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "chat-api",
+      "from": "chat",
+      "to": "apiClient",
+      "label": "POST /chat",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pages-api",
+      "from": "admin",
+      "to": "apiClient",
+      "label": "api.get / api.post",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "inbox",
+      "from": "agent",
+      "to": "realtime",
+      "label": "subscribe",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "rest",
+      "from": "apiClient",
+      "to": "backend",
+      "label": "HTTPS + Bearer JWT",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "ws",
+      "from": "realtime",
+      "to": "backend",
+      "label": "handshake auth.token",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "How a user moves through the site",
+      "items": [
+        "Every URL goes through one flat route table in App.jsx",
+        "Public pages render inside PublicLayout: navbar, page, footer, chatbot",
+        "Guarded pages pass ProtectedRoute, which redirects to /login or /"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Access boundaries",
+      "items": [
+        "Roles: user, agent, admin, owner. isAdmin is true for admin and owner",
+        "Admin nav links are hidden per permission by hasPermission()",
+        "/favourites and /settings pass the same guard with login only, no role",
+        "This is UX only: the token and user live in localStorage and can be edited"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "No service layer",
+      "items": [
+        "43 files call the axios client directly; only messaging has its own API module",
+        "No response interceptor: a 401 is handled, or not, by each caller",
+        "AuthContext also calls the client for login, register and /auth/me"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Not drawn",
+      "items": [
+        "FavouritesContext and SiteSettingsContext follow the same context-to-client pattern",
+        "19 source files are imported by nothing, including PropertyContext and AdminLogin",
+        "Translations live in one 10,545-line file, locales/translations.js"
+      ]
+    }
+  ]
+}

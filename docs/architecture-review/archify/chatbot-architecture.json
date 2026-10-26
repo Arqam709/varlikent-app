@@ -1,0 +1,559 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Varlikent AI Chatbot Pipeline",
+    "output": "docs/architecture-review/chatbot-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    }
+  },
+  "lanes": [
+    {
+      "id": "web",
+      "label": "Web client (React)"
+    },
+    {
+      "id": "handler",
+      "label": "Route handler: backend/routes/chat.js"
+    },
+    {
+      "id": "services",
+      "label": "Parsing and search services"
+    },
+    {
+      "id": "outside",
+      "label": "Gemini API and MongoDB"
+    }
+  ],
+  "phases": [
+    {
+      "id": "ask",
+      "label": "Ask",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "interpret",
+      "label": "Interpret",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "answer",
+      "label": "Search and answer",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "message",
+    "send",
+    "gate",
+    "parse",
+    "merge",
+    "filter",
+    "semantic",
+    "keyword",
+    "reply",
+    "render"
+  ],
+  "nodes": [
+    {
+      "id": "message",
+      "lane": "web",
+      "col": 0,
+      "type": "external",
+      "label": "User message",
+      "sublabel": "AIChatbot widget",
+      "width": 150,
+      "sources": [
+        {
+          "path": "frontend/src/components/AIChatbot.jsx",
+          "line": 291,
+          "end_line": 297,
+          "label": "handleSend"
+        },
+        {
+          "path": "frontend/src/components/PublicLayout.jsx",
+          "line": 29,
+          "label": "mounted on public pages"
+        }
+      ]
+    },
+    {
+      "id": "send",
+      "lane": "web",
+      "col": 1,
+      "type": "frontend",
+      "label": "ChatContext",
+      "sublabel": "sends state with message",
+      "tag": "client holds memory",
+      "width": 150,
+      "sources": [
+        {
+          "path": "frontend/src/contexts/ChatContext.jsx",
+          "line": 405,
+          "end_line": 464,
+          "label": "sendMessage payload"
+        }
+      ]
+    },
+    {
+      "id": "render",
+      "lane": "web",
+      "col": 5,
+      "type": "frontend",
+      "label": "Reply and cards",
+      "sublabel": "text plus up to 5 listings",
+      "width": 150,
+      "sources": [
+        {
+          "path": "frontend/src/components/AIChatbot.jsx",
+          "line": 720,
+          "label": "property cards"
+        },
+        {
+          "path": "backend/routes/chat.js",
+          "line": 814,
+          "end_line": 827,
+          "label": "response shape"
+        }
+      ]
+    },
+    {
+      "id": "gate",
+      "lane": "handler",
+      "col": 1,
+      "type": "security",
+      "label": "Request gate",
+      "sublabel": "optionalAuth, page check",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 60,
+          "end_line": 99,
+          "label": "auth + ownership"
+        },
+        {
+          "path": "backend/routes/chat.js",
+          "line": 101,
+          "end_line": 127,
+          "label": "page gate"
+        }
+      ]
+    },
+    {
+      "id": "exits",
+      "lane": "handler",
+      "col": 4,
+      "type": "backend",
+      "label": "Early answers",
+      "sublabel": "lead, area, name, clarify",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 297,
+          "end_line": 307,
+          "label": "lead capture flow"
+        },
+        {
+          "path": "backend/routes/chat.js",
+          "line": 408,
+          "end_line": 410,
+          "label": "area info (OpenStreetMap)"
+        },
+        {
+          "path": "backend/routes/chat.js",
+          "line": 572,
+          "end_line": 578,
+          "label": "clarifying question"
+        }
+      ]
+    },
+    {
+      "id": "reply",
+      "lane": "handler",
+      "col": 5,
+      "type": "backend",
+      "label": "Reply builder",
+      "sublabel": "templates, not Gemini",
+      "tag": "saves if signed in",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 773,
+          "end_line": 786,
+          "label": "buildReply"
+        },
+        {
+          "path": "backend/services/chatReplyBuilder.js",
+          "line": 280,
+          "label": "reply templates"
+        },
+        {
+          "path": "backend/routes/chat.js",
+          "line": 798,
+          "end_line": 812,
+          "label": "recordChatExchange"
+        }
+      ]
+    },
+    {
+      "id": "parse",
+      "lane": "services",
+      "col": 2,
+      "type": "backend",
+      "label": "Intent parser",
+      "sublabel": "Gemini, else keywords",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 207,
+          "end_line": 221,
+          "label": "parse + fallback"
+        },
+        {
+          "path": "backend/utils/geminiPropertyParser.js",
+          "line": 1187,
+          "end_line": 1233,
+          "label": "Gemini call"
+        },
+        {
+          "path": "backend/services/chatMessageParsing.js",
+          "line": 806,
+          "label": "keywordFallbackParser"
+        }
+      ]
+    },
+    {
+      "id": "merge",
+      "lane": "handler",
+      "col": 3,
+      "type": "backend",
+      "label": "Merge with context",
+      "sublabel": "new intent + old filters",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 232,
+          "end_line": 236,
+          "label": "resolveConversationState"
+        },
+        {
+          "path": "backend/services/chatConversationMemory.js",
+          "line": 468,
+          "label": "merge rules"
+        }
+      ]
+    },
+    {
+      "id": "filter",
+      "lane": "services",
+      "col": 3,
+      "type": "backend",
+      "label": "Mongo filter",
+      "sublabel": "type, district, price",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/routes/chat.js",
+          "line": 615,
+          "end_line": 621,
+          "label": "build filter"
+        },
+        {
+          "path": "backend/services/chatFilters.js",
+          "line": 183,
+          "label": "buildMongoFilter"
+        }
+      ]
+    },
+    {
+      "id": "semantic",
+      "lane": "services",
+      "col": 4,
+      "type": "backend",
+      "label": "Semantic search",
+      "sublabel": "cosine in Node, 0.6 floor",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/services/chatPropertySearch.js",
+          "line": 345,
+          "end_line": 381,
+          "label": "tried first for soft wishes"
+        },
+        {
+          "path": "backend/services/propertySemanticSearch.js",
+          "line": 104,
+          "end_line": 162,
+          "label": "score every candidate"
+        }
+      ]
+    },
+    {
+      "id": "keyword",
+      "lane": "services",
+      "col": 5,
+      "type": "backend",
+      "label": "Fallback search",
+      "sublabel": "$text, then relax filters",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/services/chatPropertySearch.js",
+          "line": 247,
+          "end_line": 297,
+          "label": "$text description search"
+        },
+        {
+          "path": "backend/services/chatPropertySearch.js",
+          "line": 55,
+          "end_line": 115,
+          "label": "fallback levels 0 to 3"
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "lane": "outside",
+      "col": 2,
+      "type": "external",
+      "label": "Gemini text model",
+      "sublabel": "gemini-3.1-flash-lite",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/utils/geminiPropertyParser.js",
+          "line": 1195,
+          "end_line": 1200,
+          "label": "generateContent"
+        }
+      ]
+    },
+    {
+      "id": "embed",
+      "lane": "outside",
+      "col": 4,
+      "type": "external",
+      "label": "Gemini embeddings",
+      "sublabel": "gemini-embedding-001",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/utils/embeddings.js",
+          "line": 10,
+          "end_line": 36,
+          "label": "embedContent"
+        },
+        {
+          "path": "backend/services/propertyEmbeddingService.js",
+          "line": 58,
+          "end_line": 66,
+          "label": "stored per listing"
+        }
+      ]
+    },
+    {
+      "id": "mongo",
+      "lane": "outside",
+      "col": 5,
+      "type": "database",
+      "label": "properties",
+      "sublabel": "text index + vectors",
+      "width": 150,
+      "sources": [
+        {
+          "path": "backend/models/Property.js",
+          "line": 209,
+          "end_line": 213,
+          "label": "descriptionEmbedding"
+        },
+        {
+          "path": "backend/models/Property.js",
+          "line": 243,
+          "end_line": 260,
+          "label": "weighted text index"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "type",
+      "from": "message",
+      "to": "send",
+      "variant": "default"
+    },
+    {
+      "id": "post",
+      "from": "send",
+      "to": "gate",
+      "label": "POST /api/chat",
+      "variant": "emphasis",
+      "fromSide": "bottom"
+    },
+    {
+      "id": "to-parser",
+      "from": "gate",
+      "to": "parse",
+      "label": "message + history",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "ask-gemini",
+      "from": "parse",
+      "to": "llm",
+      "label": "JSON intent",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "to-merge",
+      "from": "parse",
+      "to": "merge",
+      "variant": "emphasis"
+    },
+    {
+      "id": "to-exits",
+      "from": "merge",
+      "to": "exits",
+      "label": "not a search",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "exit-reply",
+      "from": "exits",
+      "to": "render",
+      "label": "direct reply",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "to-filter",
+      "from": "merge",
+      "to": "filter",
+      "label": "search",
+      "variant": "emphasis"
+    },
+    {
+      "id": "to-semantic",
+      "from": "filter",
+      "to": "semantic",
+      "variant": "emphasis"
+    },
+    {
+      "id": "embed-query",
+      "from": "semantic",
+      "to": "embed",
+      "label": "embed query",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "semantic-hit",
+      "from": "semantic",
+      "to": "reply",
+      "label": "strong match",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "load-candidates",
+      "from": "semantic",
+      "to": "mongo",
+      "label": "load candidates",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "to-keyword",
+      "from": "semantic",
+      "to": "keyword",
+      "label": "no strong match",
+      "variant": "default"
+    },
+    {
+      "id": "query-mongo",
+      "from": "keyword",
+      "to": "mongo",
+      "label": "find()",
+      "variant": "default"
+    },
+    {
+      "id": "to-reply",
+      "from": "keyword",
+      "to": "reply",
+      "label": "up to 5",
+      "variant": "emphasis"
+    },
+    {
+      "id": "respond",
+      "from": "reply",
+      "to": "render",
+      "label": "JSON",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "What Gemini does and does not do",
+      "items": [
+        "Gemini turns the message into a JSON intent, and turns text into embedding vectors",
+        "Gemini never writes the reply and never picks properties",
+        "If the key is missing or the call fails, a keyword parser takes over and aiUsed is false"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Search order",
+      "items": [
+        "Plain criteria: structured filter, then relax price and size, then district",
+        "Soft wishes such as quiet or sea view: semantic first, then $text, then the structured fallback",
+        "A final pass can re-rank by distance to a place using OpenStreetMap"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Where conversation memory lives",
+      "items": [
+        "The browser sends currentFilters, the last 10 turns and shown property ids every time",
+        "The server is stateless per request; it trusts that state without re-checking it",
+        "Signed-in users also get ChatConversation and ChatMessage records; guests get none"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Risks seen in code",
+      "items": [
+        "POST /api/chat is public with no rate limit, and each call can spend Gemini quota",
+        "Semantic search loads every candidate vector into Node memory",
+        "recordChatExchange is repeated nine times in one 833-line handler",
+        "Fallback steps 3 and 4 in searchWithFallback build the same query"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Existing but not on this path",
+      "items": [
+        "The mobile app has no chatbot screen and never calls /api/chat",
+        "Admin listing assistant uses the same Gemini model on /api/admin/property-assistant",
+        "Listing vectors are created when an admin saves a property, not at chat time"
+      ]
+    }
+  ]
+}

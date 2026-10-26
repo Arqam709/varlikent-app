@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "c8d15a74-8b97-4fe8-920b-69810ee47911",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\backend-architecture.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\backend-architecture.html",
+  "specification": {
+    "sha256": "6a12edb123697269a7d54d45018aca505a84d844bbfaaa77259ec499b7066656",
+    "bytes": 9672
+  },
+  "artifact": {
+    "sha256": "d0a852a1a03ff5d62c84695a3c29810d70c09203afc564e810374ce785386c3e",
+    "bytes": 776482
+  }
+}

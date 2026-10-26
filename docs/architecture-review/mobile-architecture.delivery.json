@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "0f7b387e-a55b-455b-86da-cf85c270d426",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\mobile-architecture.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\mobile-architecture.html",
+  "specification": {
+    "sha256": "ab21ba202c62973f190f7ec4eb564ea6aaee5709800a5c497a1976ccf553cace",
+    "bytes": 9810
+  },
+  "artifact": {
+    "sha256": "5bdcbf1654478738e0b8c3c173a836c303a831ebf6cedc546444e4c65a995f68",
+    "bytes": 782889
+  }
+}

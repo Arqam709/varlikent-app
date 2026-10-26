@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "fd278ea0-7391-4859-89e6-d2924bf34634",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\authentication-flow.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\authentication-flow.html",
+  "specification": {
+    "sha256": "4c5dc050e57aec1d59e2704c2df86766232151a763d2a13791f16e5940dc3968",
+    "bytes": 8911
+  },
+  "artifact": {
+    "sha256": "8cb503f18758226eeccb0c68bcec78e6a9cd796d6376e048d6800fc06294d742",
+    "bytes": 767483
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Varlikent Mobile App (Expo)",
+    "output": "docs/architecture-review/mobile-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varlikent-app.git",
+      "revision": "71046f67bb5f00be2b6d255ba3da48dfcaff4e64"
+    },
+    "views": [
+      {
+        "id": "browse",
+        "label": "Browse a property",
+        "focus": ["person", "root", "tabs", "screens", "featureApi", "apiClient", "backend"],
+        "note": "Property reads are public: the screen calls properties-api, which calls apiRequest without a token."
+      },
+      {
+        "id": "sign-in",
+        "label": "Sign in",
+        "focus": ["authScreens", "authCtx", "google", "featureApi", "apiClient", "backend"],
+        "note": "Password or native Google sign-in; the JWT is saved in SecureStore and restored with /auth/me."
+      },
+      {
+        "id": "chat",
+        "label": "Message an agent",
+        "focus": ["screens", "featureApi", "apiClient", "realtime", "socket", "pushCtx", "expoPush", "backend"],
+        "note": "REST sends and loads; the socket and push only announce that something new exists."
+      }
+    ]
+  },
+  "components": [
+    { "id": "person", "type": "external", "label": "Customer", "sublabel": "Android phone", "pos": [40, 290], "size": [150, 64] },
+    {
+      "id": "authScreens", "type": "frontend", "label": "(auth) screens", "sublabel": "login, register, reset", "pos": [300, 110], "size": [150, 64],
+      "sources": [
+        { "path": "src/app/(auth)/login.tsx", "line": 41, "label": "useAuth().login" },
+        { "path": "src/components/auth/google-sign-in-section.tsx", "line": 1, "end_line": 20, "label": "Google button" }
+      ]
+    },
+    {
+      "id": "authCtx", "type": "security", "label": "AuthProvider", "sublabel": "JWT kept in SecureStore", "pos": [560, 110], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/auth/auth-context.tsx", "line": 58, "end_line": 181, "label": "session state" },
+        { "path": "src/features/auth/token-storage.ts", "line": 8, "end_line": 29, "label": "SecureStore token" }
+      ]
+    },
+    {
+      "id": "google", "type": "external", "label": "Google Sign-In", "sublabel": "native, web client ID", "pos": [820, 110], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/auth/google-signin.ts", "line": 106, "label": "configure webClientId" },
+        { "path": "src/features/auth/google-signin.ts", "line": 158, "end_line": 195, "label": "returns ID token" }
+      ]
+    },
+    {
+      "id": "root", "type": "frontend", "label": "Root layout", "sublabel": "fonts, splash, providers", "pos": [300, 290], "size": [150, 64],
+      "sources": [
+        { "path": "src/app/_layout.tsx", "line": 175, "end_line": 214, "label": "provider order + Stack" }
+      ]
+    },
+    {
+      "id": "tabs", "type": "frontend", "label": "Bottom tabs", "sublabel": "4 tabs, Home to Account", "pos": [560, 290], "size": [150, 64],
+      "sources": [
+        { "path": "src/app/(tabs)/_layout.tsx", "line": 36, "end_line": 122, "label": "four tabs" }
+      ]
+    },
+    {
+      "id": "screens", "type": "frontend", "label": "Stack screens", "sublabel": "listing, thread, design", "pos": [820, 290], "size": [150, 64],
+      "sources": [
+        { "path": "src/app/properties/[id].tsx", "line": 523, "label": "property details" },
+        { "path": "src/app/messages/[id].tsx", "line": 72, "label": "message thread" },
+        { "path": "src/app/design-my-space.tsx", "line": 113, "label": "Design My Space" }
+      ]
+    },
+    {
+      "id": "featureApi", "type": "frontend", "label": "Feature API modules", "sublabel": "typed calls per feature", "pos": [1080, 290], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/properties/properties-api.ts", "line": 101, "end_line": 136, "label": "property reads" },
+        { "path": "src/features/property-messaging/property-messaging-api.ts", "line": 93, "label": "sendPropertyMessage" },
+        { "path": "src/features/auth/auth-api.ts", "line": 1, "end_line": 20, "label": "auth calls" }
+      ]
+    },
+    {
+      "id": "prefs", "type": "frontend", "label": "Language and theme", "sublabel": "AsyncStorage, 6 languages", "pos": [300, 470], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/localization/language-context.tsx", "line": 119, "label": "LanguageProvider" },
+        { "path": "src/features/theme/theme-context.tsx", "line": 54, "label": "ThemeProvider" }
+      ]
+    },
+    {
+      "id": "pushCtx", "type": "messagebus", "label": "PushProvider", "sublabel": "register, open on tap", "pos": [560, 470], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/push/push-context.tsx", "line": 43, "end_line": 163, "label": "register + deep link" },
+        { "path": "src/features/push/push-notifications.ts", "line": 175, "label": "Expo push token" }
+      ]
+    },
+    {
+      "id": "realtime", "type": "messagebus", "label": "RealtimeProvider", "sublabel": "socket while signed in", "pos": [820, 470], "size": [150, 64],
+      "sources": [
+        { "path": "src/features/realtime/realtime-context.tsx", "line": 52, "end_line": 119, "label": "connect on token" },
+        { "path": "src/features/realtime/realtime-context.tsx", "line": 148, "end_line": 164, "label": "AppState recovery" }
+      ]
+    },
+    {
+      "id": "apiClient", "type": "frontend", "label": "api-client.ts", "sublabel": "fetch, 60 s timeout", "pos": [1080, 470], "size": [150, 64],
+      "sources": [
+        { "path": "src/services/api-client.ts", "line": 109, "end_line": 174, "label": "apiRequest" },
+        { "path": "src/constants/config.ts", "line": 13, "end_line": 40, "label": "API base URL" }
+      ]
+    },
+    { "id": "expoPush", "type": "external", "label": "Expo push service", "sublabel": "delivers to the device", "pos": [560, 650], "size": [150, 64] },
+    {
+      "id": "socket", "type": "messagebus", "label": "socket-client.ts", "sublabel": "websocket transport only", "pos": [820, 650], "size": [150, 64],
+      "sources": [
+        { "path": "src/services/socket-client.ts", "line": 59, "end_line": 85, "label": "createSocket" }
+      ]
+    },
+    {
+      "id": "backend", "type": "backend", "label": "Varlikent API", "sublabel": "same Render backend as web", "pos": [1080, 650], "size": [150, 64],
+      "sources": [
+        { "path": "src/constants/config.ts", "line": 13, "label": "default Render URL" }
+      ]
+    }
+  ],
+  "connections": [
+    { "id": "launch", "from": "person", "to": "root", "label": "opens app", "variant": "emphasis" },
+    { "id": "to-tabs", "from": "root", "to": "tabs", "label": "(tabs) anchor", "variant": "emphasis" },
+    { "id": "to-screens", "from": "tabs", "to": "screens", "label": "router.push", "variant": "emphasis" },
+    { "id": "to-feature-api", "from": "screens", "to": "featureApi", "label": "calls + token", "variant": "emphasis" },
+    { "id": "auth-group", "from": "root", "to": "authScreens", "label": "(auth) group", "fromSide": "top", "toSide": "bottom" },
+    { "id": "login", "from": "authScreens", "to": "authCtx", "label": "login()", "variant": "security" },
+    { "id": "native-google", "from": "authCtx", "to": "google", "label": "ID token", "variant": "security" },
+    { "id": "mount-prefs", "from": "root", "to": "prefs", "label": "providers", "fromSide": "bottom", "toSide": "top" },
+    { "id": "mount-push", "from": "root", "to": "pushCtx", "label": "providers", "fromSide": "bottom", "toSide": "left" },
+    { "id": "listen", "from": "screens", "to": "realtime", "label": "subscribe", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "request", "from": "featureApi", "to": "apiClient", "label": "apiRequest()", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "rest", "from": "apiClient", "to": "backend", "label": "HTTPS + Bearer", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "open-socket", "from": "realtime", "to": "socket", "label": "createSocket", "fromSide": "bottom", "toSide": "top" },
+    { "id": "ws", "from": "socket", "to": "backend", "label": "wss + JWT", "variant": "dashed" },
+    { "id": "push-token", "from": "pushCtx", "to": "expoPush", "label": "push token", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Navigation",
+      "items": [
+        "Expo Router: files under src/app are the routes; the root is one Stack",
+        "Four tabs: Home, Properties, Chats, Account. Everything else pushes on top",
+        "There is no central route guard: each screen checks useAuth().status itself"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Talking to the backend",
+      "items": [
+        "Each feature has its own typed API module; all of them go through apiRequest",
+        "The token is passed by hand into every call instead of an interceptor",
+        "Same /api routes, same JWT and same Socket.IO events as the website"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Sign-in on the phone",
+      "items": [
+        "Email and password, or native Google sign-in. No Microsoft sign-in",
+        "The app asks Google for an ID token minted for the website's client ID",
+        "AuthProvider also calls auth-api for login, register and /auth/me"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Compared with the website",
+      "items": [
+        "No AI chatbot, no admin portal and no agent portal in the app",
+        "App-only features: Design My Space, room photos, service requests, property alerts",
+        "PushProvider also registers the device with POST /api/push/devices"
+      ]
+    }
+  ]
+}

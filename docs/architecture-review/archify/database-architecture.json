@@ -1,0 +1,621 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Varlikent MongoDB Collections and References",
+    "output": "docs/architecture-review/database-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    },
+    "views": [
+      {
+        "id": "human-chat",
+        "label": "Customer to agent messaging",
+        "focus": [
+          "user",
+          "property",
+          "propertyConversation",
+          "propertyMessage"
+        ],
+        "note": "One conversation per customer and property. Property.agent is the live owner of the agent side."
+      },
+      {
+        "id": "ai-chat",
+        "label": "AI chatbot history",
+        "focus": [
+          "user",
+          "chatConversation",
+          "chatMessage",
+          "property",
+          "contactSubmission"
+        ],
+        "note": "Saved only for signed-in users. A captured lead links to a ContactSubmission."
+      },
+      {
+        "id": "design",
+        "label": "Design My Space",
+        "focus": [
+          "user",
+          "designBoard",
+          "designRoomPhoto",
+          "designGeneration",
+          "serviceRequest",
+          "contactSubmission"
+        ],
+        "note": "A generation needs a board and a room photo; a service request snapshots them."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "cms",
+      "type": "database",
+      "label": "11 standalone collections",
+      "sublabel": "CMS and settings, no refs",
+      "pos": [
+        40,
+        100
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/SiteSettings.js",
+          "line": 3,
+          "end_line": 21,
+          "label": "SiteSettings"
+        },
+        {
+          "path": "backend/models/PageContent.js",
+          "line": 4,
+          "end_line": 15,
+          "label": "PageContent"
+        },
+        {
+          "path": "backend/models/LeadRouting.js",
+          "line": 8,
+          "end_line": 22,
+          "label": "LeadRouting"
+        }
+      ]
+    },
+    {
+      "id": "pushDevice",
+      "type": "database",
+      "label": "PushDevice",
+      "sublabel": "unique Expo token",
+      "pos": [
+        40,
+        230
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/PushDevice.js",
+          "line": 25,
+          "end_line": 73,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "propertyAlert",
+      "type": "database",
+      "label": "PropertyAlert",
+      "sublabel": "saved search criteria",
+      "pos": [
+        40,
+        360
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/PropertyAlert.js",
+          "line": 14,
+          "end_line": 55,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "activityLog",
+      "type": "database",
+      "label": "ActivityLog",
+      "sublabel": "admin audit trail",
+      "pos": [
+        40,
+        490
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/ActivityLog.js",
+          "line": 3,
+          "end_line": 22,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "ownerRemoval",
+      "type": "database",
+      "label": "OwnerRemovalRequest",
+      "sublabel": "two-owner approval code",
+      "pos": [
+        40,
+        620
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/OwnerRemovalRequest.js",
+          "line": 11,
+          "end_line": 62,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "user",
+      "type": "database",
+      "label": "User",
+      "sublabel": "role, permissions[]",
+      "tag": "unique email",
+      "pos": [
+        480,
+        230
+      ],
+      "size": [
+        150,
+        584
+      ],
+      "sources": [
+        {
+          "path": "backend/models/User.js",
+          "line": 4,
+          "end_line": 59,
+          "label": "schema"
+        },
+        {
+          "path": "backend/models/User.js",
+          "line": 83,
+          "end_line": 86,
+          "label": "unique googleId index"
+        }
+      ]
+    },
+    {
+      "id": "contactSubmission",
+      "type": "database",
+      "label": "ContactSubmission",
+      "sublabel": "leads, no user ref",
+      "pos": [
+        880,
+        100
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/ContactSubmission.js",
+          "line": 4,
+          "end_line": 37,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "chatConversation",
+      "type": "database",
+      "label": "ChatConversation",
+      "sublabel": "AI chatbot thread",
+      "pos": [
+        880,
+        230
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/ChatConversation.js",
+          "line": 3,
+          "end_line": 26,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "property",
+      "type": "database",
+      "label": "Property",
+      "sublabel": "listing, embedding vector",
+      "tag": "text index",
+      "pos": [
+        880,
+        360
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/Property.js",
+          "line": 174,
+          "end_line": 179,
+          "label": "agent ref"
+        },
+        {
+          "path": "backend/models/Property.js",
+          "line": 209,
+          "end_line": 213,
+          "label": "descriptionEmbedding"
+        },
+        {
+          "path": "backend/models/Property.js",
+          "line": 243,
+          "end_line": 260,
+          "label": "text index"
+        }
+      ]
+    },
+    {
+      "id": "propertyConversation",
+      "type": "database",
+      "label": "PropertyConversation",
+      "sublabel": "customer and agent thread",
+      "tag": "unique pair",
+      "pos": [
+        880,
+        490
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/PropertyConversation.js",
+          "line": 45,
+          "end_line": 81,
+          "label": "schema"
+        },
+        {
+          "path": "backend/models/PropertyConversation.js",
+          "line": 85,
+          "end_line": 91,
+          "label": "unique customer + property"
+        }
+      ]
+    },
+    {
+      "id": "designBoard",
+      "type": "database",
+      "label": "DesignBoard",
+      "sublabel": "room, style, materials",
+      "pos": [
+        880,
+        620
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/DesignBoard.js",
+          "line": 40,
+          "end_line": 76,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "designRoomPhoto",
+      "type": "database",
+      "label": "DesignRoomPhoto",
+      "sublabel": "private Cloudinary asset",
+      "pos": [
+        880,
+        750
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/DesignRoomPhoto.js",
+          "line": 43,
+          "end_line": 89,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "serviceRequest",
+      "type": "database",
+      "label": "ServiceRequest",
+      "sublabel": "interior or renovation",
+      "pos": [
+        1290,
+        100
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/ServiceRequest.js",
+          "line": 109,
+          "end_line": 150,
+          "label": "schema"
+        },
+        {
+          "path": "backend/models/ServiceRequest.js",
+          "line": 88,
+          "end_line": 92,
+          "label": "design refs"
+        }
+      ]
+    },
+    {
+      "id": "chatMessage",
+      "type": "database",
+      "label": "ChatMessage",
+      "sublabel": "user or assistant turn",
+      "pos": [
+        1290,
+        230
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/ChatMessage.js",
+          "line": 3,
+          "end_line": 31,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "propertyMessage",
+      "type": "database",
+      "label": "PropertyMessage",
+      "sublabel": "text, hiddenFor[]",
+      "pos": [
+        1290,
+        490
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/PropertyMessage.js",
+          "line": 24,
+          "end_line": 71,
+          "label": "schema"
+        }
+      ]
+    },
+    {
+      "id": "designGeneration",
+      "type": "database",
+      "label": "DesignGeneration",
+      "sublabel": "AI image job, leased",
+      "pos": [
+        1290,
+        685
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/models/DesignGeneration.js",
+          "line": 62,
+          "end_line": 75,
+          "label": "refs"
+        },
+        {
+          "path": "backend/models/DesignGeneration.js",
+          "line": 103,
+          "end_line": 115,
+          "label": "indexes + TTL"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "push-user",
+      "from": "pushDevice",
+      "to": "user",
+      "label": "user (nullable)"
+    },
+    {
+      "id": "alert-user",
+      "from": "propertyAlert",
+      "to": "user",
+      "label": "user"
+    },
+    {
+      "id": "log-user",
+      "from": "activityLog",
+      "to": "user",
+      "label": "actorId, targetId"
+    },
+    {
+      "id": "removal-user",
+      "from": "ownerRemoval",
+      "to": "user",
+      "label": "targetUser, requestedBy"
+    },
+    {
+      "id": "chatconv-user",
+      "from": "chatConversation",
+      "to": "user",
+      "label": "user"
+    },
+    {
+      "id": "property-agent",
+      "from": "property",
+      "to": "user",
+      "label": "agent (nullable)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "user-favourites",
+      "from": "user",
+      "to": "property",
+      "label": "favourites[]",
+      "variant": "dashed"
+    },
+    {
+      "id": "propconv-user",
+      "from": "propertyConversation",
+      "to": "user",
+      "label": "customer, agent",
+      "variant": "emphasis"
+    },
+    {
+      "id": "board-user",
+      "from": "designBoard",
+      "to": "user",
+      "label": "user"
+    },
+    {
+      "id": "photo-user",
+      "from": "designRoomPhoto",
+      "to": "user",
+      "label": "user"
+    },
+    {
+      "id": "chatconv-lead",
+      "from": "chatConversation",
+      "to": "contactSubmission",
+      "label": "lead",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "propconv-property",
+      "from": "propertyConversation",
+      "to": "property",
+      "label": "property",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "request-lead",
+      "from": "serviceRequest",
+      "to": "contactSubmission",
+      "label": "contactSubmission"
+    },
+    {
+      "id": "chatmsg-conv",
+      "from": "chatMessage",
+      "to": "chatConversation",
+      "label": "conversation"
+    },
+    {
+      "id": "chatmsg-property",
+      "from": "chatMessage",
+      "to": "property",
+      "label": "propertyIds[]",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "propmsg-conv",
+      "from": "propertyMessage",
+      "to": "propertyConversation",
+      "label": "conversation",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gen-board",
+      "from": "designGeneration",
+      "to": "designBoard",
+      "label": "board",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "gen-photo",
+      "from": "designGeneration",
+      "to": "designRoomPhoto",
+      "label": "roomPhoto",
+      "fromSide": "left",
+      "toSide": "right"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "How to read this",
+      "items": [
+        "Every arrow is a real ObjectId ref in a Mongoose schema; the label is the field name",
+        "The arrow points from the document that stores the id to the document it names",
+        "MongoDB does not enforce these: nothing stops a ref pointing at a deleted document"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Things that are not collections",
+      "items": [
+        "Favourites are an array on User, not a Favourite collection",
+        "There is no Notification collection: the feed is Property.createdAt compared with User.notificationsLastSeenAt",
+        "Agent contact fields are also copied onto Property as plain strings"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "User refs not drawn (lines would cross)",
+      "items": [
+        "PropertyMessage.sender and hiddenFor[]; PropertyConversation.hiddenFromInbox[]",
+        "DesignGeneration.user and ServiceRequest.user",
+        "ServiceRequest also refs DesignBoard, DesignGeneration and DesignRoomPhoto",
+        "OwnerRemovalRequest.confirmedBy and issuances[].requestedBy"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "The 11 standalone collections",
+      "items": [
+        "Review, Project, Partner, TeamMember, ShowroomImage, AboutContent",
+        "PageContent, StudioPalette, SiteSettings, LeadRouting, ContactInterest",
+        "LeadRouting and ContactSubmission join on the interestType string, not an ObjectId"
+      ]
+    }
+  ]
+}

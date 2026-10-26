@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Varlikent System Overview",
+    "output": "docs/architecture-review/system-overview.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    },
+    "views": [
+      {
+        "id": "open-property",
+        "label": "Open a property page",
+        "focus": ["webUsers", "web", "api", "workflows", "mongo"],
+        "note": "Browser calls GET /api/properties/:id; the route reads one Property and returns JSON."
+      },
+      {
+        "id": "message-agent",
+        "label": "Message an agent",
+        "focus": ["mobile", "api", "authz", "workflows", "mongo", "realtime", "notify", "web"],
+        "note": "REST writes the message, then Socket.IO and Expo Push deliver it to the other side."
+      },
+      {
+        "id": "ask-chatbot",
+        "label": "Ask the chatbot",
+        "focus": ["web", "api", "chatbot", "gemini", "mongo"],
+        "note": "Gemini only parses intent and embeds text; MongoDB does the actual property search."
+      },
+      {
+        "id": "sign-in",
+        "label": "Sign in",
+        "focus": ["web", "mobile", "api", "authz", "idp", "mongo"],
+        "note": "Password, Google and Microsoft sign-in all end with the same 7-day Varlikent JWT."
+      }
+    ]
+  },
+  "components": [
+    { "id": "webUsers", "type": "external", "label": "Visitors and staff", "sublabel": "browser", "pos": [40, 100], "size": [150, 64] },
+    {
+      "id": "web", "type": "frontend", "label": "React web app", "sublabel": "Vite SPA, Tailwind CSS", "pos": [300, 100], "size": [150, 64],
+      "sources": [
+        { "path": "frontend/src/main.jsx", "line": 38, "end_line": 60, "label": "provider tree" },
+        { "path": "frontend/src/App.jsx", "line": 56, "end_line": 128, "label": "routes" },
+        { "path": "frontend/vercel.json", "line": 1, "end_line": 32, "label": "Vercel config" }
+      ]
+    },
+    {
+      "id": "mobile", "type": "frontend", "label": "Expo mobile app", "sublabel": "separate repo, varlikent-app", "pos": [560, 100], "size": [150, 64],
+      "sources": [
+        { "path": "backend/config/origins.js", "line": 72, "end_line": 81, "label": "RN sends no Origin" },
+        { "path": "backend/server.js", "line": 97, "end_line": 98, "label": "mobile-only route" }
+      ]
+    },
+    { "id": "appUsers", "type": "external", "label": "App customers", "sublabel": "Android phone", "pos": [820, 100], "size": [150, 64] },
+    {
+      "id": "realtime", "type": "messagebus", "label": "Socket.IO", "sublabel": "one room per user", "pos": [430, 250], "size": [150, 60],
+      "sources": [
+        { "path": "backend/realtime/socket.js", "line": 53, "end_line": 78, "label": "JWT handshake" },
+        { "path": "backend/realtime/socket.js", "line": 86, "end_line": 104, "label": "user room join" },
+        { "path": "backend/server.js", "line": 136, "end_line": 154, "label": "attach to HTTP server" }
+      ]
+    },
+    {
+      "id": "api", "type": "backend", "label": "Express API server", "sublabel": "backend/server.js mounts 31 routers under /api", "pos": [40, 390], "size": [930, 64],
+      "sources": [
+        { "path": "backend/server.js", "line": 49, "end_line": 59, "label": "global middleware" },
+        { "path": "backend/server.js", "line": 61, "end_line": 108, "label": "router mounts" },
+        { "path": "backend/server.js", "line": 115, "end_line": 118, "label": "error handler" }
+      ]
+    },
+    {
+      "id": "authz", "type": "security", "label": "JWT and role guards", "sublabel": "protect, requireRole", "pos": [40, 540], "size": [150, 68],
+      "sources": [
+        { "path": "backend/middleware/auth.js", "line": 4, "end_line": 31, "label": "protect" },
+        { "path": "backend/middleware/checkPermission.js", "line": 1, "end_line": 20, "label": "role + permission" },
+        { "path": "backend/routes/auth.js", "line": 19, "end_line": 20, "label": "sign 7d JWT" }
+      ]
+    },
+    {
+      "id": "chatbot", "type": "backend", "label": "AI chatbot pipeline", "sublabel": "parse, merge, search", "pos": [300, 540], "size": [150, 68],
+      "sources": [
+        { "path": "backend/routes/chat.js", "line": 207, "end_line": 221, "label": "Gemini parse + fallback" },
+        { "path": "backend/routes/chat.js", "line": 664, "end_line": 674, "label": "runPropertySearch" },
+        { "path": "backend/services/chatPropertySearch.js", "line": 326, "end_line": 410, "label": "search order" }
+      ]
+    },
+    {
+      "id": "studio", "type": "backend", "label": "Design and requests", "sublabel": "boards, photos, AI jobs", "pos": [560, 540], "size": [150, 68],
+      "sources": [
+        { "path": "backend/server.js", "line": 88, "end_line": 98, "label": "design routes" },
+        { "path": "backend/services/designGenerations/worker.js", "line": 1, "end_line": 22, "label": "generation worker" },
+        { "path": "backend/routes/serviceRequests.js", "line": 76, "label": "create request" }
+      ]
+    },
+    {
+      "id": "workflows", "type": "backend", "label": "Listings and agents", "sublabel": "properties, inbox, CMS", "pos": [820, 540], "size": [150, 68],
+      "sources": [
+        { "path": "backend/routes/properties.js", "line": 1015, "end_line": 1019, "label": "create listing guard" },
+        { "path": "backend/routes/propertyConversations.js", "line": 377, "end_line": 515, "label": "send message" },
+        { "path": "backend/routes/agent.js", "line": 9, "end_line": 38, "label": "agent portal API" }
+      ]
+    },
+    {
+      "id": "idp", "type": "security", "label": "Google, Microsoft", "sublabel": "OAuth identity", "pos": [170, 700], "size": [150, 64],
+      "sources": [
+        { "path": "backend/services/googleAuth.js", "line": 318, "end_line": 346, "label": "verify Google ID token" },
+        { "path": "backend/routes/auth.js", "line": 35, "end_line": 73, "label": "verify Microsoft token" },
+        { "path": "backend/config/googleAuth.js", "line": 56, "end_line": 64, "label": "audience allowlist" }
+      ]
+    },
+    {
+      "id": "gemini", "type": "external", "label": "Google Gemini", "sublabel": "parse, embed, image", "pos": [430, 700], "size": [150, 64],
+      "sources": [
+        { "path": "backend/utils/geminiPropertyParser.js", "line": 1187, "end_line": 1200, "label": "intent parser call" },
+        { "path": "backend/utils/embeddings.js", "line": 10, "end_line": 36, "label": "embedding call" },
+        { "path": "backend/services/designGenerations/providers/gemini.js", "line": 19, "end_line": 43, "label": "image provider" }
+      ]
+    },
+    {
+      "id": "cloudinary", "type": "cloud", "label": "Cloudinary", "sublabel": "images, video, files", "pos": [690, 700], "size": [150, 64],
+      "sources": [
+        { "path": "backend/config/cloudinary.js", "line": 1, "end_line": 11, "label": "SDK config" },
+        { "path": "backend/routes/upload.js", "line": 119, "end_line": 130, "label": "upload stream" }
+      ]
+    },
+    {
+      "id": "notify", "type": "external", "label": "Resend, Expo Push", "sublabel": "email and push", "pos": [950, 700], "size": [150, 64],
+      "sources": [
+        { "path": "backend/utils/email.js", "line": 57, "end_line": 90, "label": "Resend email" },
+        { "path": "backend/services/pushNotifications.js", "line": 80, "end_line": 96, "label": "Expo push send" }
+      ]
+    },
+    {
+      "id": "mongo", "type": "database", "label": "MongoDB Atlas", "sublabel": "Mongoose, 26 models, one database", "pos": [40, 850], "size": [930, 64],
+      "sources": [
+        { "path": "backend/config/db.js", "line": 7, "end_line": 16, "label": "connect" },
+        { "path": "backend/models/Property.js", "line": 26, "end_line": 44, "label": "Property schema" },
+        { "path": "backend/models/User.js", "line": 4, "end_line": 13, "label": "User schema" }
+      ]
+    }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Vercel", "wraps": ["web"], "pad": 14 },
+    { "kind": "region", "label": "Android, EAS build", "wraps": ["mobile"], "pad": 14 },
+    { "kind": "region", "label": "Render web service, one Node process", "wraps": ["realtime", "api", "authz", "chatbot", "studio", "workflows"], "pad": 18 }
+  ],
+  "connections": [
+    { "id": "browser-web", "from": "webUsers", "to": "web", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "phone-app", "from": "appUsers", "to": "mobile", "label": "taps" },
+    { "id": "web-rest", "from": "web", "to": "api", "label": "REST + Bearer JWT", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "mobile-rest", "from": "mobile", "to": "api", "label": "REST + Bearer JWT", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-emit", "from": "api", "to": "realtime", "label": "emit after write", "fromSide": "top", "toSide": "bottom" },
+    { "id": "socket-web", "from": "realtime", "to": "web", "label": "agent inbox", "variant": "dashed", "fromSide": "left", "toSide": "bottom" },
+    { "id": "socket-mobile", "from": "realtime", "to": "mobile", "label": "live messages", "variant": "dashed", "fromSide": "right", "toSide": "bottom" },
+    { "id": "api-guards", "from": "api", "to": "authz", "label": "protect()", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-chat", "from": "api", "to": "chatbot", "label": "/api/chat", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-design", "from": "api", "to": "studio", "label": "/api/design-*", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-listings", "from": "api", "to": "workflows", "label": "/api/properties", "fromSide": "bottom", "toSide": "top" },
+    { "id": "verify-identity", "from": "authz", "to": "idp", "label": "verify token", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "chat-gemini", "from": "chatbot", "to": "gemini", "label": "parse + embed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "design-gemini", "from": "studio", "to": "gemini", "label": "image edit", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "design-media", "from": "studio", "to": "cloudinary", "label": "private files", "fromSide": "bottom", "toSide": "top" },
+    { "id": "listing-media", "from": "workflows", "to": "cloudinary", "label": "media", "fromSide": "bottom", "toSide": "top" },
+    { "id": "listing-notify", "from": "workflows", "to": "notify", "label": "email + push", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "authz-users", "from": "authz", "to": "mongo", "label": "users", "fromSide": "bottom", "toSide": "top" },
+    { "id": "chat-search", "from": "chatbot", "to": "mongo", "label": "search", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "design-store", "from": "studio", "to": "mongo", "label": "jobs", "fromSide": "bottom", "toSide": "top" },
+    { "id": "listing-store", "from": "workflows", "to": "mongo", "label": "Mongoose", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Two clients, one backend",
+      "items": [
+        "Web and mobile call the same /api routes with the same Bearer JWT",
+        "The web app opens Socket.IO only for agents; the mobile app for every signed-in user",
+        "The AI chatbot is web-only: the mobile app never calls /api/chat"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "One Node process does everything",
+      "items": [
+        "REST, Socket.IO and the AI image worker share one process on Render",
+        "There is no controllers folder: route files hold the handler logic",
+        "REST is the only write path; sockets only push server to client"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Trust boundary",
+      "items": [
+        "Everything above the Render box is untrusted input",
+        "Access is decided by protect, requireRole and requirePermission",
+        "No rate limiter or helmet is installed anywhere in the backend"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Left out for readability",
+      "items": [
+        "OpenStreetMap (Overpass, Nominatim) for chatbot nearby-place answers",
+        "MyMemory for CMS and listing auto-translation",
+        "Render is inferred from code comments and the mobile default API URL"
+      ]
+    }
+  ]
+}

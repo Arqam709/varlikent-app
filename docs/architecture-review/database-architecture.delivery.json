@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "90b19b78-05a0-4615-8516-ec9870124708",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\database-architecture.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\database-architecture.html",
+  "specification": {
+    "sha256": "ecae74598ec34786b34bc42a50971b73611871647dc825169ad5977140da6fff",
+    "bytes": 13768
+  },
+  "artifact": {
+    "sha256": "ff1c87f00f0547ca9f8616270d3de085dacdd4c0ecdccf5e854ef57c6365ad20",
+    "bytes": 786905
+  }
+}

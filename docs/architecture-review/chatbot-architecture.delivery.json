@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "19e08a14-7101-44a1-8e22-7a27c11952f9",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\chatbot-architecture.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\chatbot-architecture.html",
+  "specification": {
+    "sha256": "283057d5a5bfe4ec3c35428edd20a583d9398ad12d6224673e0b739557c84033",
+    "bytes": 13330
+  },
+  "artifact": {
+    "sha256": "ee336c9faafe9a088b7a6a95147a8382abcabed62d889f69dd920072625a2b5b",
+    "bytes": 780979
+  }
+}

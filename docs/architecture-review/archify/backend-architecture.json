@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Varlikent Backend: Request Path",
+    "output": "docs/architecture-review/backend-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Arqam709/varli-kent.git",
+      "revision": "85c77be027c6316ebecc77d8d51a70cb4bdbf4f7"
+    },
+    "views": [
+      {
+        "id": "read-path",
+        "label": "Public read",
+        "focus": ["client", "global", "routers", "models", "mongo"],
+        "note": "GET /api/properties has no guard: the route builds a filter and queries the Property model directly."
+      },
+      {
+        "id": "guarded-write",
+        "label": "Guarded write",
+        "focus": ["client", "global", "routers", "guards", "uploads", "services", "models", "mongo"],
+        "note": "POST /api/properties runs protect, requireRole and requirePermission before the handler."
+      },
+      {
+        "id": "message-send",
+        "label": "Send a message",
+        "focus": ["routers", "guards", "services", "models", "mongo", "io", "external"],
+        "note": "The route saves the message, then emits to user rooms and fires an Expo push without awaiting it."
+      },
+      {
+        "id": "failure",
+        "label": "When something throws",
+        "focus": ["routers", "errors", "client"],
+        "note": "Handlers call next(err); one handler returns { success: false, message } with err.status or 500."
+      }
+    ]
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "Web or mobile client", "sublabel": "axios or fetch", "pos": [40, 330], "size": [150, 64] },
+    {
+      "id": "global", "type": "backend", "label": "Global middleware", "sublabel": "cors, json, activityLogger", "pos": [300, 330], "size": [150, 64],
+      "sources": [
+        { "path": "backend/server.js", "line": 51, "end_line": 59, "label": "app.use chain" },
+        { "path": "backend/middleware/activityLogger.js", "line": 48, "end_line": 80, "label": "audit on finish" }
+      ]
+    },
+    {
+      "id": "routers", "type": "backend", "label": "Route files", "sublabel": "31 routers, handlers inline", "pos": [560, 330], "size": [150, 64],
+      "sources": [
+        { "path": "backend/server.js", "line": 61, "end_line": 108, "label": "router mounts" },
+        { "path": "backend/routes/properties.js", "line": 795, "end_line": 895, "label": "handler inside route" },
+        { "path": "backend/routes/chat.js", "line": 60, "end_line": 76, "label": "chat handler" }
+      ]
+    },
+    {
+      "id": "services", "type": "backend", "label": "Service modules", "sublabel": "business rules, 56 files", "pos": [820, 330], "size": [150, 64],
+      "sources": [
+        { "path": "backend/services/propertyMessaging.js", "line": 125, "end_line": 154, "label": "conversation access" },
+        { "path": "backend/services/chatPropertySearch.js", "line": 326, "end_line": 410, "label": "chat search" },
+        { "path": "backend/services/roleManagement.js", "line": 62, "end_line": 123, "label": "role change rules" }
+      ]
+    },
+    {
+      "id": "models", "type": "database", "label": "Mongoose models", "sublabel": "26 schemas, hooks, indexes", "pos": [1080, 330], "size": [150, 64],
+      "sources": [
+        { "path": "backend/models/Property.js", "line": 26, "end_line": 44, "label": "Property schema" },
+        { "path": "backend/models/User.js", "line": 88, "end_line": 95, "label": "bcrypt pre-save" },
+        { "path": "backend/models/PropertyConversation.js", "line": 85, "end_line": 91, "label": "indexes" }
+      ]
+    },
+    {
+      "id": "mongo", "type": "database", "label": "MongoDB Atlas", "sublabel": "one connection", "pos": [1340, 330], "size": [150, 64],
+      "sources": [
+        { "path": "backend/config/db.js", "line": 7, "end_line": 16, "label": "mongoose.connect" }
+      ]
+    },
+    {
+      "id": "guards", "type": "security", "label": "Auth guards", "sublabel": "protect, role, permission", "pos": [560, 150], "size": [150, 64],
+      "sources": [
+        { "path": "backend/middleware/auth.js", "line": 13, "end_line": 31, "label": "protect" },
+        { "path": "backend/middleware/checkPermission.js", "line": 1, "end_line": 20, "label": "requireRole, requirePermission" },
+        { "path": "backend/routes/adminChats.js", "line": 18, "label": "router-wide guard" }
+      ]
+    },
+    {
+      "id": "external", "type": "external", "label": "Third-party APIs", "sublabel": "Gemini, Cloudinary, Resend", "pos": [1340, 150], "size": [150, 64],
+      "sources": [
+        { "path": "backend/utils/embeddings.js", "line": 10, "end_line": 36, "label": "Gemini embeddings" },
+        { "path": "backend/utils/email.js", "line": 57, "end_line": 90, "label": "Resend email" },
+        { "path": "backend/services/pushNotifications.js", "line": 80, "end_line": 96, "label": "Expo push" }
+      ]
+    },
+    {
+      "id": "errors", "type": "backend", "label": "Error handler", "sublabel": "one JSON error shape", "pos": [300, 510], "size": [150, 64],
+      "sources": [
+        { "path": "backend/server.js", "line": 115, "end_line": 118, "label": "global handler" }
+      ]
+    },
+    {
+      "id": "uploads", "type": "backend", "label": "Body and file parsing", "sublabel": "express-validator, multer", "pos": [560, 510], "size": [150, 64],
+      "sources": [
+        { "path": "backend/routes/upload.js", "line": 68, "end_line": 81, "label": "multer memory storage" },
+        { "path": "backend/routes/auth.js", "line": 76, "end_line": 88, "label": "express-validator" },
+        { "path": "backend/middleware/roomPhotoUpload.js", "line": 10, "end_line": 13, "label": "room photo upload" }
+      ]
+    },
+    {
+      "id": "io", "type": "messagebus", "label": "Socket.IO server", "sublabel": "emit to user rooms", "pos": [820, 510], "size": [150, 64],
+      "sources": [
+        { "path": "backend/realtime/socket.js", "line": 114, "end_line": 119, "label": "registerRealtime" },
+        { "path": "backend/services/propertyMessagingRealtime.js", "line": 108, "end_line": 119, "label": "emit new message" }
+      ]
+    },
+    {
+      "id": "workers", "type": "backend", "label": "In-process workers", "sublabel": "AI image jobs, sweepers", "pos": [1080, 510], "size": [150, 64],
+      "sources": [
+        { "path": "backend/server.js", "line": 176, "end_line": 183, "label": "started after listen" },
+        { "path": "backend/services/designGenerations/worker.js", "line": 1, "end_line": 22, "label": "leased job loop" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "backend/server.js, one Node process",
+      "wraps": ["global", "routers", "services", "models", "guards", "errors", "uploads", "io", "workers"],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    { "id": "http-in", "from": "client", "to": "global", "label": "HTTP /api/*", "variant": "emphasis" },
+    { "id": "mount", "from": "global", "to": "routers", "label": "app.use()", "variant": "emphasis" },
+    { "id": "call-services", "from": "routers", "to": "services", "label": "calls", "variant": "emphasis" },
+    { "id": "query", "from": "services", "to": "models", "label": "queries", "variant": "emphasis" },
+    { "id": "driver", "from": "models", "to": "mongo", "label": "Mongoose", "variant": "emphasis" },
+    { "id": "guard-chain", "from": "routers", "to": "guards", "label": "per-route guards", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "parse", "from": "routers", "to": "uploads", "label": "validate, parse", "fromSide": "bottom", "toSide": "top" },
+    { "id": "throw", "from": "routers", "to": "errors", "label": "next(err)", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "error-out", "from": "errors", "to": "client", "label": "4xx / 5xx JSON", "variant": "dashed", "fromSide": "left", "toSide": "bottom" },
+    { "id": "outbound", "from": "services", "to": "external", "label": "HTTPS", "variant": "dashed", "fromSide": "top", "toSide": "left" },
+    { "id": "emit", "from": "services", "to": "io", "label": "emit", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "jobs", "from": "workers", "to": "models", "label": "claim leased jobs", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "How a request travels",
+      "items": [
+        "cors, express.json and activityLogger run on every request",
+        "The router picks a route file; guards run only where a route lists them",
+        "The handler lives inside the route file, then calls services or models"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Layers are not strict",
+      "items": [
+        "There is no controllers folder and no shared validation layer",
+        "Many routes query models directly, for example reviews.js and notifications.js",
+        "The guards also read MongoDB: protect loads the User on every request"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Errors and uploads",
+      "items": [
+        "Most handlers use try / catch with next(err); auth Google and Microsoft answer errors themselves",
+        "Uploads are buffered in RAM by multer, up to 100 MB for video",
+        "No rate limiting, helmet or request-size policy beyond express.json defaults"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Realtime and background work",
+      "items": [
+        "Socket.IO shares the HTTP server and accepts no client events",
+        "Routes reach it with req.app.get('io') after the database write",
+        "The AI image worker and two cleanup sweepers start after listen()"
+      ]
+    }
+  ]
+}

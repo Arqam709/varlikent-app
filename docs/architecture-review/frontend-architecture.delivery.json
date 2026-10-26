@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b977b256-f594-4b72-a746-1389d5994be6",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\archify\\frontend-architecture.json",
+  "output": "C:\\Users\\ahsan\\OneDrive\\Desktop\\varlikent-app\\docs\\architecture-review\\frontend-architecture.html",
+  "specification": {
+    "sha256": "aa4bb5e8d191a44250a39dc28898f07f3765987a568f2fe7c232e69a0a2d48f1",
+    "bytes": 12047
+  },
+  "artifact": {
+    "sha256": "1827f0b4da3be0c0f8a62262c9d8f556a3c68013847759ce5188da9d98499ab5",
+    "bytes": 779242
+  }
+}
